@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme {
+  --color-navy: #0B1F33;
+  --color-steel: #3F5E7B;
+  --color-gold: #C9A14D;
+  --color-slate: #6C7077;
+  --color-off-white: #F5F3EF;
+  --font-display: "DM Serif Display", serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-mono: "DM Mono", monospace;
+}
+
+:root {
+  --navy: #0B1F33;
+  --steel: #3F5E7B;
+  --gold: #C9A14D;
+  --slate: #6C7077;
+  --off-white: #F5F3EF;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--off-white);
+  color: var(--navy);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.gold-rule {
+  border: none;
+  border-top: 2px solid var(--gold);
+}
+
+.status-certified    { background: #E8F5E9; color: #2E7D32; border: 1px solid #2E7D32; }
+.status-conditional  { background: #FFFDE7; color: #F57F17; border: 1px solid #F9A825; }
+.status-pending      { background: #E3F2FD; color: #1565C0; border: 1px solid #1565C0; }
+.status-inprogress   { background: #F3E5F5; color: #6A1B9A; border: 1px solid #6A1B9A; }
+.status-notcertified { background: #FFEBEE; color: #C62828; border: 1px solid #C62828; }

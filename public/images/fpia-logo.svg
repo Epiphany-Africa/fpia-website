@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 80" width="380" height="80">
+
+  <!-- House icon: left side -->
+  <g transform="translate(44, 40)">
+    <!-- Roof chevron -->
+    <path d="M-32,-6 L0,-38 L32,-6" fill="none" stroke="#F5F3EF" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- Left wall only — right wall removed -->
+    <line x1="-22" y1="-6" x2="-22" y2="20" stroke="#F5F3EF" stroke-width="3" stroke-linecap="round"/>
+    <!-- Gold checkmark centred — replaces right wall visually -->
+    <path d="M-11,5 L-2,15 L15,-7" fill="none" stroke="#C9A14D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Thin gold vertical divider -->
+  <line x1="88" y1="14" x2="88" y2="66" stroke="#C9A14D" stroke-width="0.8"/>
+
+  <!-- FPIA wordmark -->
+  <text x="100" y="32"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="24" font-weight="700"
+        fill="#F5F3EF" letter-spacing="5">FPIA</text>
+
+  <!-- Full name -->
+  <text x="101" y="48"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="7.5" fill="#C9A14D" letter-spacing="2">FAIR PROPERTIES INSPECTION AUTHORITIES</text>
+
+  <!-- Tagline -->
+  <text x="101" y="63"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="7" fill="#F5F3EF" letter-spacing="1.5" opacity="0.6">ACCOUNTABILITY BUILT IN · SOUTH AFRICA</text>
+
+</svg>
