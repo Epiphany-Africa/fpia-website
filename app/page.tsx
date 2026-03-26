@@ -96,8 +96,8 @@ export default function HomePage() {
               Know the true condition<br />
               <em style={{ color: 'var(--gold)' }}>before you buy or sell.</em>
             </h1>
-            <hr className="gold-rule w-24 mb-8" />
-            <p className="text-white/70 text-lg max-w-xl leading-relaxed mb-10">
+            <hr className="gold-rule w-24 mb-6" />
+            <p className="text-white/70 text-lg max-w-xl leading-relaxed mb-6">
               FPIA certifies properties before transfer with independent inspections, tamper-proof reports, and real-time verification — protecting every party in the transaction.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -108,14 +108,14 @@ export default function HomePage() {
                 Register a Property
               </Link>
             </div>
-            <div style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid rgba(201,161,77,0.2)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(201,161,77,0.2)', display: 'flex', alignItems: 'center', gap: '16px' }}>
               <span style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase' }}>Beta Partner</span>
               <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '16px' }}>|</span>
               <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontStyle: 'italic' }}>Century 21 South Africa</span>
             </div>
           </div>
           <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }} className="hidden md:flex">
-            <img src="/images/fpc-badge.png" alt="Fair Property Certified" style={{ width: '260px', height: '260px', objectFit: 'contain' }} />
+            <img src="/images/fpc-badge.png" alt="Fair Property Certified" style={{ width: '200px', height: '200px', objectFit: 'contain' }} />
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', textAlign: 'center' }}>Fair Property Certified™</p>
           </div>
         </div>
@@ -190,8 +190,6 @@ export default function HomePage() {
             A typical property deal — before FPIA.
           </h2>
           <div className="flex flex-col gap-8">
-
-            {/* Without FPIA */}
             <div style={{ backgroundColor: 'white', border: '1px solid rgba(11,31,51,0.1)' }} className="p-8">
               <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-xl mb-6">Without FPIA</h3>
               <p style={{ color: 'var(--slate)' }} className="text-sm leading-relaxed mb-6">
@@ -220,8 +218,6 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-
-            {/* Now with FPIA */}
             <div style={{ backgroundColor: 'var(--navy)', border: '1px solid rgba(201,161,77,0.2)' }} className="p-8">
               <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--gold)' }} className="text-xl mb-6">Now with FPIA</h3>
               <div className="grid sm:grid-cols-2 gap-6">
@@ -266,8 +262,6 @@ export default function HomePage() {
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-2xl leading-relaxed mb-10">
             Explore a real FPIA-certified property and experience how verification works across the transaction chain.
           </p>
-
-          {/* Bullet points */}
           <div className="grid sm:grid-cols-4 gap-4 mb-10">
             {['Full inspection record', 'Certification status', 'Ledger verification', 'Inspector credentials'].map(item => (
               <div key={item} style={{ border: '1px solid rgba(201,161,77,0.2)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="px-5 py-4 flex items-center gap-3">
@@ -276,22 +270,18 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-
-          {/* Full width certificate card */}
           <div style={{ border: '1px solid rgba(201,161,77,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }}>
             <div style={{ backgroundColor: 'rgba(201,161,77,0.1)', borderBottom: '1px solid rgba(201,161,77,0.2)' }} className="px-6 py-4 flex items-center justify-between">
               <span style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--gold)' }} className="text-lg tracking-widest">FPIA CERTIFICATE</span>
               <span className="text-white/40 text-xs font-mono">#ZA-2024-00142</span>
             </div>
             <div className="p-6 grid md:grid-cols-3 gap-8">
-              {/* Property info */}
               <div>
                 <p className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Property</p>
                 <p style={{ color: 'var(--off-white)' }} className="font-semibold text-lg">14 Protea Avenue, Sandton</p>
                 <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>Gauteng, 2196</p>
                 <span className="status-certified text-xs font-semibold px-3 py-1 rounded-full">✔ Certified</span>
               </div>
-              {/* Table */}
               <div>
                 <table className="w-full text-xs">
                   <tbody>
@@ -309,7 +299,6 @@ export default function HomePage() {
                   </tbody>
                 </table>
               </div>
-              {/* QR + CTA */}
               <div className="flex flex-col justify-between">
                 <div style={{ border: '1px dashed rgba(201,161,77,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="p-4 flex items-center gap-4 mb-6">
                   <div style={{ width: 64, height: 64, backgroundColor: 'white', padding: '4px', flexShrink: 0 }}>
