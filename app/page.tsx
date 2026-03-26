@@ -89,7 +89,7 @@ export default function HomePage() {
       {/* ── HERO ── */}
       <section style={{ backgroundColor: 'var(--navy)' }} className="relative overflow-hidden">
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(var(--gold) 1px, transparent 1px), linear-gradient(90deg, var(--gold) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        <div className="relative max-w-7xl mx-auto px-6 py-16 md:py-24" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '60px' }}>
+        <div className="relative max-w-7xl mx-auto px-6 py-8 md:py-10" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '60px' }}>
           <div style={{ flex: 1 }}>
             <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-6 font-medium">Independent Property Certification · South Africa</p>
             <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-5xl md:text-7xl leading-tight max-w-3xl mb-6">
