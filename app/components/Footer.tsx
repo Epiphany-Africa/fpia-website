@@ -31,13 +31,13 @@ export default function Footer() {
       }}>
 
         {/* Brand */}
-        <div style={{ maxWidth: '280px' }}>
+        <div style={{ maxWidth: '300px' }}>
           <Image
             src="/images/fpia-logo.svg"
             alt="FPIA"
-            width={200}
-            height={60}
-            style={{ objectFit: 'contain', width: 'auto', height: '40px', marginBottom: '16px' }}
+            width={320}
+            height={90}
+            style={{ objectFit: 'contain', width: 'auto', height: '64px', marginBottom: '20px' }}
           />
           <p style={{ color: '#a0aec0', fontSize: '13px', lineHeight: '1.8' }}>
             The independent authority certifying South African properties before transfer.
@@ -70,7 +70,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Company */}
+        {/* Platform */}
         <div>
           <p style={{
             color: 'var(--gold)',
@@ -133,10 +133,10 @@ export default function Footer() {
         alignItems: 'center',
       }}>
         <p style={{ color: '#4a5568', fontSize: '12px' }}>
-          © {new Date().getFullYear()} Fair Properties Inspection Authorities. All rights reserved.
+          &copy; {new Date().getFullYear()} Fair Properties Inspection Authorities. All rights reserved.
         </p>
         <p style={{ color: '#4a5568', fontSize: '12px', letterSpacing: '1px' }}>
-          FAIR PROPERTY CERTIFIED™
+          FAIR PROPERTY CERTIFIED&trade;
         </p>
       </div>
     </footer>

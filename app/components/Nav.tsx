@@ -29,7 +29,7 @@ export default function Nav() {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      height: '72px',
+      height: '80px',
       borderBottom: '1px solid rgba(201,161,77,0.2)',
       position: 'sticky',
       top: 0,
@@ -40,16 +40,15 @@ export default function Nav() {
         <Image
           src="/images/fpia-logo.svg"
           alt="FPIA"
-          width={280}
-          height={80}
-          style={{ objectFit: 'contain', width: 'auto', height: '48px' }}
+          width={320}
+          height={90}
+          style={{ objectFit: 'contain', width: 'auto', height: '64px' }}
         />
       </Link>
 
       {/* Links */}
       <div style={{ display: 'flex', gap: '36px', alignItems: 'center' }}>
 
-        {/* Main links */}
         {mainLinks.map((link) => (
           <Link key={link.href} href={link.href} style={{
             textDecoration: 'none',
@@ -101,7 +100,6 @@ export default function Nav() {
               marginTop: '12px',
               zIndex: 200,
             }}>
-              {/* Arrow tip */}
               <div style={{
                 position: 'absolute',
                 top: '-6px',
@@ -115,7 +113,6 @@ export default function Nav() {
                 borderRight: 'none',
                 rotate: '45deg',
               }} />
-
               {dropdownLinks.map((link) => (
                 <Link key={link.href} href={link.href} style={{
                   display: 'block',
