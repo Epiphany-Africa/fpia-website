@@ -134,7 +134,7 @@ export default function Nav() {
         </div>
 
         {/* CTA */}
-        <Link href="/register" style={{
+        <Link href="https://fpia-mvp.vercel.app/login" target="_blank" rel="noopener noreferrer" style={{
           backgroundColor: 'var(--gold)',
           color: 'var(--navy)',
           padding: '8px 20px',
