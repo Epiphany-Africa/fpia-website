@@ -14,6 +14,7 @@ const dropdownLinks = [
 
 const mainLinks = [
   { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Contact', href: '/contact' },
 ]
 
 export default function Nav() {

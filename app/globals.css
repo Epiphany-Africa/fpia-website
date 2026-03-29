@@ -1,18 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@theme {
-  --color-navy: #0B1F33;
-  --color-steel: #3F5E7B;
-  --color-gold: #C9A14D;
-  --color-slate: #6C7077;
-  --color-off-white: #F5F3EF;
-  --font-display: "DM Serif Display", serif;
-  --font-body: "DM Sans", sans-serif;
-  --font-mono: "DM Mono", monospace;
-}
 
 :root {
   --navy: #0B1F33;
