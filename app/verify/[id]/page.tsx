@@ -1,24 +1,57 @@
 export default async function VerifyProperty({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const mock = {
-    id,
-    address: '22 Zimbali Wedge, Ballito',
-    province: 'KZN, 4420',
-    status: 'Certified' as const,
-    inspectionDate: '14 March 2024',
-    inspector: 'S. van der Merwe — SACPCMP Reg.',
-    validUntil: '14 March 2025',
-    ledger: 'Block #88,241',
-    categories: [
-  { name: 'Electrical', status: 'Pass' },
-  { name: 'Structural', status: 'Pass' },
-  { name: 'Gas', status: 'Pass' },
-  { name: 'Entomology', status: 'Pass' },
-  { name: 'Electric Fence', status: 'Pass' },
-  { name: 'Roof', status: 'Pass' },
-]
-  }
+  const normalizedId = id.toUpperCase()
+
+let status: 'Certified' | 'Pending' | 'NotCertified' = 'Certified'
+
+if (normalizedId.includes('PENDING')) {
+  status = 'Pending'
+} else if (
+  normalizedId.includes('FAIL') ||
+  normalizedId.includes('NOT') ||
+  normalizedId.includes('INVALID')
+) {
+  status = 'NotCertified'
+}
+
+const mock = {
+  id,
+  address: '22 Zimbali Wedge, Ballito',
+  province: 'KZN, 4420',
+  status,
+  inspectionDate: '14 March 2024',
+  inspector: 'S. van der Merwe — SACPCMP Reg.',
+  validUntil: status === 'Certified' ? '14 March 2025' : 'Not applicable',
+  ledger: status === 'Certified' ? 'Block #88,241' : 'No active ledger entry',
+  categories:
+    status === 'NotCertified'
+      ? [
+          { name: 'Electrical', status: 'Fail' },
+          { name: 'Structural', status: 'Fail' },
+          { name: 'Gas', status: 'Fail' },
+          { name: 'Entomology', status: 'Fail' },
+          { name: 'Electric Fence', status: 'Fail' },
+          { name: 'Roof', status: 'Fail' },
+        ]
+      : status === 'Pending'
+      ? [
+          { name: 'Electrical', status: 'Pending' },
+          { name: 'Structural', status: 'Pending' },
+          { name: 'Gas', status: 'Pending' },
+          { name: 'Entomology', status: 'Pending' },
+          { name: 'Electric Fence', status: 'Pending' },
+          { name: 'Roof', status: 'Pending' },
+        ]
+      : [
+          { name: 'Electrical', status: 'Pass' },
+          { name: 'Structural', status: 'Pass' },
+          { name: 'Gas', status: 'Pass' },
+          { name: 'Entomology', status: 'Pass' },
+          { name: 'Electric Fence', status: 'Pass' },
+          { name: 'Roof', status: 'Pass' },
+        ],
+}
 
   const statusStyles: Record<string, React.CSSProperties> = {
     Certified:    { background: '#E8F5E9', color: '#2E7D32', border: '1px solid #2E7D32' },
@@ -41,7 +74,7 @@ export default async function VerifyProperty({ params }: { params: Promise<{ id:
             <p style={{ color: '#a0aec0', fontSize: '14px' }}>#{mock.id}</p>
           </div>
           <span style={{ ...statusStyles[mock.status], padding: '6px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 600 }}>
-           ✔ {mock.status.toUpperCase()}
+           ✔ {mock.status === 'NotCertified' ? 'NOT CERTIFIED' : mock.status.toUpperCase()}
           </span>
         </div>
 
@@ -93,8 +126,20 @@ export default async function VerifyProperty({ params }: { params: Promise<{ id:
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             {mock.categories.map((cat, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'var(--off-white)', borderRadius: '4px' }}>
-                <span style={{ fontSize: '14px', color: 'var(--navy)' }}>{cat.name}</span>
-                <span style={{ fontSize: '12px', color: '#2E7D32', fontWeight: 600 }}>✔ {cat.status}</span>
+                <span
+                  style={{
+                    fontSize: '12px',
+                    color:
+                      cat.status === 'Pass'
+                        ? '#2E7D32'
+                        : cat.status === 'Pending'
+                        ? '#1565C0'
+                        : '#C62828',
+                    fontWeight: 600,
+                  }}
+                >
+                  {cat.status === 'Pass' ? '✔' : cat.status === 'Pending' ? '•' : '✕'} {cat.status}
+                </span>
               </div>
             ))}
           </div>
