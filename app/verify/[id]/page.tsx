@@ -1,4 +1,4 @@
-import CopyHashButton from '@/app/components/CopyHashButton'
+import CopyHashButton from '../../components/CopyHashButton'
 
 function simpleHash(input: string) {
   let hash = 0
