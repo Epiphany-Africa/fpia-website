@@ -68,7 +68,29 @@ export default function Verify() {
               value={certNumber}
               onChange={(e) => { setCertNumber(e.target.value); setError('') }}
             />
-            {error && <p style={{ color: '#C62828', fontSize: '12px', marginTop: '8px' }}>{error}</p>}
+
+          <p style={{ fontSize: '12px', color: '#6C7077', marginTop: '-8px', marginBottom: '12px' }}>
+             Try demo certificate:{' '}
+          <button
+              type="button"
+              onClick={() => router.push('/verify/FPIA-6AF4CF0170')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                margin: 0,
+                color: 'var(--gold)',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 600,
+              }}
+            >
+              FPIA-6AF4CF0170
+          </button>
+        </p>
+
+              {error && <p style={{ color: '#C62828', fontSize: '12px', marginTop: '8px' }}>{error}</p>}
             <button type="submit" style={btnStyle}>Verify Property →</button>
           </form>
         </div>
