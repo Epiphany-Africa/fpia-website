@@ -320,7 +320,12 @@ const statementStyles = {
       <div
         key={i}
         style={{
-          borderLeft: '2px solid rgba(201,161,77,0.35)',
+        borderLeft:
+            mock.status === 'Certified'
+              ? '2px solid rgba(46,125,50,0.6)'
+              : mock.status === 'Pending'
+              ? '2px solid rgba(21,101,192,0.6)'
+              : '2px solid rgba(198,40,40,0.6)',
           paddingLeft: '14px',
         }}
       >
