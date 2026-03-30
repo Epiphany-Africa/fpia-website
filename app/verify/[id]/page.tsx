@@ -1,4 +1,5 @@
 import CopyHashButton from './CopyHashButton'
+import QRCode from 'qrcode'
 
 function simpleHash(input: string) {
   let hash = 0
@@ -42,7 +43,11 @@ export default async function VerifyProperty({
   }
 
   const verificationHash = simpleHash(id + status)
-
+  const verificationUrl = `https://www.fairproperties.org.za/verify/${id}`
+  const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
+    width: 180,
+    margin: 1,
+  })
 
   const auditTrail: AuditItem[] =
     status === 'Certified'
@@ -417,6 +422,85 @@ export default async function VerifyProperty({
           </div>
         </div>
 
+       {/* QR Verification */}
+        <div
+          style={{
+            backgroundColor: '#fff',
+            border: '1px solid rgba(11,31,51,0.08)',
+            padding: '24px',
+            marginBottom: '16px',
+          }}
+        >
+          <p
+            style={{
+              fontSize: '12px',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              color: 'var(--gold)',
+              margin: '0 0 18px 0',
+              fontWeight: 700,
+            }}
+          >
+            QR Verification
+          </p>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '24px',
+            }}
+          >
+            <img
+              src={qrCodeDataUrl}
+              alt={`QR code for certificate ${mock.id}`}
+              style={{
+                width: '140px',
+                height: '140px',
+                border: '1px solid #e5e7eb',
+                padding: '8px',
+                backgroundColor: '#fff',
+              }}
+            />
+
+            <div>
+              <p
+                style={{
+                  fontSize: '15px',
+                  color: 'var(--navy)',
+                  fontWeight: 600,
+                  margin: '0 0 10px 0',
+                }}
+              >
+                Scan to open this verified property record
+              </p>
+
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#6C7077',
+                  lineHeight: 1.6,
+                  margin: '0 0 10px 0',
+                }}
+              >
+                This QR code links directly to the official FPIA verification page for this certificate.
+              </p>
+
+              <p
+                style={{
+                  fontSize: '12px',
+                  color: '#6C7077',
+                  margin: 0,
+                  fontFamily: 'monospace',
+                  wordBreak: 'break-all',
+                }}
+              >
+                {verificationUrl}
+              </p>
+            </div>
+          </div>
+        </div>
+              
         {/* Property details */}
         <div
           style={{
