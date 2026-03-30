@@ -1,7 +1,18 @@
+function simpleHash(input: string) {
+  let hash = 0
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash << 5) - hash + input.charCodeAt(i)
+    hash |= 0
+  }
+  // convert to positive hex-like string
+  return Math.abs(hash).toString(16).padStart(16, '0')
+}
+
 export default async function VerifyProperty({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
   const normalizedId = id.toUpperCase()
+  const verificationHash = simpleHash(id + status)
 
 let status: 'Certified' | 'Pending' | 'NotCertified' = 'Certified'
 
@@ -191,7 +202,7 @@ const statementStyles = {
   <div
     style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
       gap: '20px',
     }}
   >
@@ -285,6 +296,38 @@ const statementStyles = {
       </p>
     </div>
   </div>
+</div>
+
+<div>
+  <p
+    style={{
+      fontSize: '11px',
+      letterSpacing: '2px',
+      textTransform: 'uppercase',
+      color: 'var(--gold)',
+      margin: '0 0 8px 0',
+      fontWeight: 700,
+    }}
+  >
+    Verification Hash
+  </p>
+  <p
+    style={{
+      fontSize: '14px',
+      color:
+        mock.status === 'Certified'
+          ? 'var(--off-white)'
+          : mock.status === 'Pending'
+          ? '#BBDEFB'
+          : '#FFCDD2',
+      margin: 0,
+      fontWeight: 600,
+      fontFamily: 'monospace',
+      letterSpacing: '1px',
+    }}
+  >
+    {verificationHash}
+  </p>
 </div>
         
         {/* Audit Trail */}
