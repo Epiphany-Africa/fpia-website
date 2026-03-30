@@ -13,7 +13,7 @@ const dropdownLinks = [
 ]
 
 const mainLinks = [
-  { label: 'Verify', href: '/verify' },
+  { label: 'Verify', href: '/verify/demo' }
   { label: 'How It Works', href: '/how-it-works' },
   { label: 'Contact', href: '/contact' },
 ]

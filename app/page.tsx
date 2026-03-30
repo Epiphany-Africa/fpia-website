@@ -101,7 +101,7 @@ export default function HomePage() {
               Independent inspection, certified reports, and real-time verification that prevent failed deals, hidden defects, and post-transfer disputes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/verify" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
+              <Link href="/verify/demo" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
                 Verify a Property →
               </Link>
               <Link href="/#register" style={{ border: '1px solid rgba(255,255,255,0.3)', color: 'white' }} className="inline-block px-8 py-4 font-medium tracking-wide text-sm hover:border-white/60 transition-colors text-center">
