@@ -41,6 +41,9 @@ export default async function VerifyProperty({
 
   const verificationHash = simpleHash(id + status)
 
+  const copyHash = () => {
+    navigator.clipboard.writeText(verificationHash)
+  }
   const auditTrail: AuditItem[] =
     status === 'Certified'
       ? [
@@ -316,16 +319,34 @@ export default async function VerifyProperty({
 
             <div>
               <p style={integrityLabelStyle}>Verification Hash</p>
-              <p
-                style={{
-                  ...integrityValueStyle,
-                  color: integrityValueColor,
-                  fontFamily: 'monospace',
-                  letterSpacing: '1px',
-                }}
-              >
-                {verificationHash}
-              </p>
+<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+  <p
+    style={{
+      fontSize: '14px',
+      color: integrityValueColor,
+      margin: 0,
+      fontWeight: 600,
+      fontFamily: 'monospace',
+      letterSpacing: '1px',
+    }}
+  >
+    {verificationHash}
+  </p>
+
+  <button
+    onClick={copyHash}
+    style={{
+      fontSize: '11px',
+      padding: '4px 8px',
+      border: '1px solid rgba(201,161,77,0.4)',
+      background: 'transparent',
+      color: 'var(--gold)',
+      cursor: 'pointer',
+    }}
+  >
+    Copy
+  </button>
+</div>
             </div>
           </div>
         </div>
