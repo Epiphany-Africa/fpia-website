@@ -17,41 +17,66 @@ export default function DownloadPdfButton({
   hash,
   qrCode,
 }: Props) {
-  const handleDownload = () => {
-    const doc = new jsPDF()
+ const handleDownload = () => {
+  const doc = new jsPDF()
 
-    // Title
-    doc.setFontSize(18)
-    doc.text('FPIA Property Certification', 20, 20)
+  // Header
+  doc.setFillColor(11, 31, 51) // navy
+  doc.rect(0, 0, 210, 30, 'F')
 
-    // Status
-    doc.setFontSize(14)
-    doc.text(`Status: ${status}`, 20, 35)
+  doc.setTextColor(201, 161, 77) // gold
+  doc.setFontSize(10)
+  doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 20, 12)
 
-    // Property
-    doc.setFontSize(12)
-    doc.text(`Property: ${address}`, 20, 50)
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(12)
+  doc.text(`#${id}`, 20, 22)
 
-    // Certificate ID
-    doc.text(`Certificate ID: ${id}`, 20, 60)
+  // Status
+  doc.setTextColor(0, 0, 0)
+  doc.setFontSize(16)
+  doc.text(`Status: ${status}`, 20, 45)
 
-    // Hash
-    doc.text(`Verification Hash: ${hash}`, 20, 70)
+  // Property
+  doc.setFontSize(12)
+  doc.text('Property:', 20, 60)
+  doc.setFont(undefined, 'bold')
+  doc.text(address, 20, 68)
+  doc.setFont(undefined, 'normal')
 
-    // QR Code
-    doc.addImage(qrCode, 'PNG', 20, 80, 50, 50)
+  // Certificate ID
+  doc.text(`Certificate ID: ${id}`, 20, 85)
 
-    // Footer
-    doc.setFontSize(10)
-    doc.text(
-      'Scan QR code to verify this property record on the official FPIA registry.',
-      20,
-      140
-    )
+  // Hash
+  doc.text('Verification Hash:', 20, 100)
+  doc.setFont('courier', 'normal')
+  doc.text(hash, 20, 108)
+  doc.setFont('helvetica', 'normal')
 
-    doc.save(`FPIA-${id}.pdf`)
-  }
+  // QR
+  doc.addImage(qrCode, 'PNG', 140, 60, 50, 50)
 
+  // QR label
+  doc.setFontSize(10)
+  doc.text('Scan to verify', 140, 115)
+
+  // Footer
+  doc.setFontSize(9)
+  doc.setTextColor(100)
+  doc.text(
+    'This certificate can be independently verified via the official FPIA registry.',
+    20,
+    135
+  )
+
+  doc.text(
+    'Fair Property Inspection Authority (FPIA) · South Africa',
+    20,
+    142
+  )
+
+  doc.save(`FPIA-${id}.pdf`)
+}
   return (
     <button
       onClick={handleDownload}
