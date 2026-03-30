@@ -2,6 +2,8 @@
 
 import { jsPDF } from 'jspdf'
 
+const COMPANY_NAME = 'Fair Properties Inspection Authority (Pty) Ltd'
+
 type Props = {
   id: string
   status: string
@@ -82,9 +84,9 @@ export default function DownloadPdfButton({
       155
     )
     doc.text(
-      'Fair Property Inspection Authority (FPIA) · South Africa',
+      'Fair Properties Inspection Authority (FPIA) · South Africa',
       20,
-      162
+      165
     )
 
     // Signature block
@@ -97,7 +99,7 @@ export default function DownloadPdfButton({
 
     doc.setFontSize(9)
     doc.setTextColor(100)
-    doc.text('Fair Properties Inspection Authority (FPIA)', 20, 195)
+    doc.text('Fair Properties Inspection Authority (FPIA)', 20, 200)
 
     doc.save(`FPIA-${id}.pdf`)
   }
