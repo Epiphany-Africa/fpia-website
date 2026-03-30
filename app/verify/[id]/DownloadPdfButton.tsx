@@ -40,9 +40,9 @@ export default function DownloadPdfButton({
   // Property
   doc.setFontSize(12)
   doc.text('Property:', 20, 60)
-  doc.setFont(undefined, 'bold')
+  doc.setFont('helvetica', 'bold')
   doc.text(address, 20, 68)
-  doc.setFont(undefined, 'normal')
+  doc.setFont('helvetica', 'normal')
 
   // Certificate ID
   doc.text(`Certificate ID: ${id}`, 20, 85)
