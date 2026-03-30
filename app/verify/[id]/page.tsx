@@ -227,7 +227,7 @@ const statementStyles = {
               ? 'var(--off-white)'
               : mock.status === 'Pending'
               ? '#BBDEFB'
-              : '#FFCDD2',
+              : ''#E8E2E2',
           margin: 0,
           fontWeight: 600,
         }}
@@ -256,8 +256,7 @@ const statementStyles = {
             mock.status === 'Certified'
               ? 'var(--off-white)'
               : mock.status === 'Pending'
-              ? '#BBDEFB'
-              : '#FFCDD2',
+              ? '#E8E2E2',
           margin: 0,
           fontWeight: 600,
         }}
@@ -287,7 +286,7 @@ const statementStyles = {
               ? 'var(--off-white)'
               : mock.status === 'Pending'
               ? '#BBDEFB'
-              : '#FFCDD2',
+              : '#E8E2E2',
           margin: 0,
           fontWeight: 600,
         }}
@@ -319,7 +318,7 @@ const statementStyles = {
           ? 'var(--off-white)'
           : mock.status === 'Pending'
           ? '#BBDEFB'
-          : '#FFCDD2',
+          : '#E8E2E2',
       margin: 0,
       fontWeight: 600,
       fontFamily: 'monospace',
