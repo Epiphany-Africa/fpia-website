@@ -288,8 +288,7 @@ export default async function VerifyProperty({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-              paddingRight: '10px',
+              gridTemplateColumns: '1fr 1fr 1fr 1.3fr',
               gap: '20px',
             }}
           >
@@ -320,17 +319,29 @@ export default async function VerifyProperty({
 
             <div>
               <p style={integrityLabelStyle}>Verification Hash</p>
-<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+<div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    width: '100%',
+  }}
+>
   <p
-    style={{
-      fontSize: '14px',
-      color: integrityValueColor,
-      margin: 0,
-      fontWeight: 600,
-      fontFamily: 'monospace',
-      letterSpacing: '1px',
-    }}
-  >
+  style={{
+    fontSize: '14px',
+    color: integrityValueColor,
+    margin: 0,
+    fontWeight: 600,
+    fontFamily: 'monospace',
+    letterSpacing: '1px',
+    flex: 1,
+    minWidth: 0,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  }}
+>
     {verificationHash}
   </p>
 
