@@ -45,6 +45,26 @@ export default async function VerifyProperty({ params }: { params: Promise<{ id:
           </span>
         </div>
 
+        <div
+          style={{
+            backgroundColor: '#fff',
+            border: '1px solid rgba(201,161,77,0.3)',
+            padding: '20px 24px',
+            marginBottom: '16px',
+          }}
+        >
+          <p
+            style={{
+              fontSize: '14px',
+              color: 'var(--navy)',
+              lineHeight: 1.6,
+              margin: 0,
+            }}
+          >
+            This record confirms that the certificate presented has been verified against the official FPIA registry and reflects the current certified status of the property.
+          </p>
+        </div>
+
         {/* Property details */}
         <div style={{ backgroundColor: '#fff', padding: '40px', borderLeft: '1px solid #eee', borderRight: '1px solid #eee' }}>
           <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: '#999', marginBottom: '8px' }}>Property</p>
