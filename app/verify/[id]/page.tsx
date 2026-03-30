@@ -71,6 +71,27 @@ const statusContent = {
   },
 }
 
+const statementStyles = {
+  Certified: {
+    border: '1px solid rgba(201,161,77,0.3)',
+    labelColor: 'var(--gold)',
+    titleColor: '#1a7f37',
+    backgroundColor: '#fff',
+  },
+  Pending: {
+    border: '1px solid rgba(21,101,192,0.28)',
+    labelColor: '#1565C0',
+    titleColor: '#1565C0',
+    backgroundColor: '#f8fbff',
+  },
+  NotCertified: {
+    border: '1px solid rgba(198,40,40,0.28)',
+    labelColor: '#C62828',
+    titleColor: '#C62828',
+    backgroundColor: '#fff8f8',
+  },
+}
+
   const statusStyles: Record<string, React.CSSProperties> = {
     Certified:    { background: '#E8F5E9', color: '#2E7D32', border: '1px solid #2E7D32' },
     Conditional:  { background: '#FFFDE7', color: '#F57F17', border: '1px solid #F9A825' },
@@ -98,8 +119,8 @@ const statusContent = {
 
         <div
           style={{
-            backgroundColor: '#fff',
-            border: '1px solid rgba(201,161,77,0.3)',
+            backgroundColor: statementStyles[mock.status].backgroundColor,
+            border: statementStyles[mock.status].border,
             padding: '20px 24px',
             marginBottom: '16px',
           }}
@@ -109,7 +130,7 @@ const statusContent = {
               fontSize: '12px',
               letterSpacing: '2px',
               textTransform: 'uppercase',
-              color: 'var(--gold)',
+              color: statementStyles[mock.status].labelColor,
               margin: '0 0 10px 0',
               fontWeight: 700,
             }}
@@ -120,7 +141,7 @@ const statusContent = {
           <p
             style={{
               fontSize: '16px',
-              color: 'var(--navy)',
+             color: statementStyles[mock.status].titleColor,
               lineHeight: 1.5,
               margin: '0 0 10px 0',
               fontWeight: 600,
