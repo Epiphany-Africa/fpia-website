@@ -457,9 +457,10 @@ export default async function VerifyProperty({
               style={{
                 width: '140px',
                 height: '140px',
-                border: '1px solid #e5e7eb',
-                padding: '8px',
+                padding: '10px',
                 backgroundColor: '#fff',
+                border: '1px solid rgba(11,31,51,0.08)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
               }}
             />
 
