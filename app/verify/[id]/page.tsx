@@ -53,6 +53,24 @@ const mock = {
         ],
 }
 
+const statusContent = {
+  Certified: {
+    title: 'This property is currently certified.',
+    message:
+      'This record confirms that the certificate has been verified against the official FPIA registry and reflects the current certified status of the property.',
+  },
+  Pending: {
+    title: 'This property is currently pending certification.',
+    message:
+      'An FPIA inspection or review is currently in progress. A final certification outcome has not yet been issued on the official registry.',
+  },
+  NotCertified: {
+    title: 'This property is not currently certified.',
+    message:
+      'No valid active certification was found for this property on the official FPIA registry based on the certificate reference provided.',
+  },
+}
+
   const statusStyles: Record<string, React.CSSProperties> = {
     Certified:    { background: '#E8F5E9', color: '#2E7D32', border: '1px solid #2E7D32' },
     Conditional:  { background: '#FFFDE7', color: '#F57F17', border: '1px solid #F9A825' },
@@ -88,14 +106,39 @@ const mock = {
         >
           <p
             style={{
+              fontSize: '12px',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              color: 'var(--gold)',
+              margin: '0 0 10px 0',
+              fontWeight: 700,
+            }}
+          >
+            Verification Outcome
+          </p>
+
+          <p
+            style={{
+              fontSize: '16px',
+              color: 'var(--navy)',
+              lineHeight: 1.5,
+              margin: '0 0 10px 0',
+              fontWeight: 600,
+            }}
+          >
+            {statusContent[mock.status].title}
+          </p>
+
+          <p
+            style={{
               fontSize: '14px',
               color: 'var(--navy)',
               lineHeight: 1.6,
               margin: 0,
             }}
           >
-            This record confirms that the certificate has been verified against the official FPIA registry and reflects the current certified status of the property.
-          </p>
+            {statusContent[mock.status].message}
+</p>
         </div>
 
         {/* Property details */}
