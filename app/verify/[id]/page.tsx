@@ -61,7 +61,7 @@ export default async function VerifyProperty({ params }: { params: Promise<{ id:
               margin: 0,
             }}
           >
-            This record confirms that the certificate presented has been verified against the official FPIA registry and reflects the current certified status of the property.
+            This record confirms that the certificate has been verified against the official FPIA registry and reflects the current certified status of the property.
           </p>
         </div>
 
