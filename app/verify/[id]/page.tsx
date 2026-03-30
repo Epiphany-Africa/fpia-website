@@ -130,7 +130,7 @@ const statementStyles = {
               fontSize: '12px',
               letterSpacing: '2px',
               textTransform: 'uppercase',
-              color: statementStyles[mock.status].labelColor,
+              color: 'var(--gold)',
               margin: '0 0 10px 0',
               fontWeight: 700,
             }}
