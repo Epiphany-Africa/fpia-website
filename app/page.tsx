@@ -94,12 +94,12 @@ export default function HomePage() {
             <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-6 font-medium">Independent Property Certification · South Africa</p>
             <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-5xl md:text-7xl leading-tight max-w-3xl mb-6">
               Know the true condition<br />
-              <em style={{ color: 'var(--gold)' }}>before you buy or sell.</em>
+            <em style={{ color: 'var(--gold)' }}>before you commit.</em>
             </h1>
-            <hr className="gold-rule w-24 mb-6" />
-            <p className="text-white/70 text-lg max-w-xl leading-relaxed mb-6">
-              FPIA certifies properties before transfer with independent inspections, tamper-proof reports, and real-time verification — protecting every party in the transaction.
-            </p>
+
+<p className="text-white/70 text-lg max-w-xl leading-relaxed mb-6">
+  Independent inspection, certified reports, and real-time verification that prevent failed deals, hidden defects, and post-transfer disputes.
+</p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/verify" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
                 Verify a Property →
