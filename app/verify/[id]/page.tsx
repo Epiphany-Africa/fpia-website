@@ -37,7 +37,7 @@ export default async function VerifyProperty({ params }: { params: Promise<{ id:
         {/* Status banner */}
         <div style={{ backgroundColor: 'var(--navy)', borderRadius: '4px 4px 0 0', padding: '32px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>FPIA Certificate</p>
+            <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>FPIA Verified Property Record</p>
             <p style={{ color: '#a0aec0', fontSize: '14px' }}>#{mock.id}</p>
           </div>
           <span style={{ ...statusStyles[mock.status], padding: '6px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 600 }}>
