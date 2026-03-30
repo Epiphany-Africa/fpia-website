@@ -27,11 +27,12 @@ export default function CopyHashButton({ value }: CopyHashButtonProps) {
         letterSpacing: '1px',
         fontWeight: 700,
         lineHeight: 1,
-        minHeight: '30px',
+        height: '28px',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
         whiteSpace: 'nowrap',
+        marginLeft: '4px',
       }}
     >
       Copy

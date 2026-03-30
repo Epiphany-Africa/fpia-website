@@ -319,7 +319,7 @@ export default async function VerifyProperty({
 
             <div>
               <p style={integrityLabelStyle}>Verification Hash</p>
-<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+<div style={{ display: 'flex', alignItems: 'center', gap: '14px', paddingRight: '10px' }}>
   <p
     style={{
       fontSize: '14px',
