@@ -24,6 +24,24 @@ const mock = {
   inspector: 'S. van der Merwe — SACPCMP Reg.',
   validUntil: status === 'Certified' ? '14 March 2025' : 'Not applicable',
   ledger: status === 'Certified' ? 'Block #88,241' : 'No active ledger entry',
+      auditTrail:
+    status === 'Certified'
+      ? [
+          { label: 'Record Created', value: '14 March 2024 · 09:12' },
+          { label: 'Record Locked', value: '14 March 2024 · 11:48' },
+          { label: 'Last Verified', value: '30 March 2026 · 08:41' },
+        ]
+      : status === 'Pending'
+      ? [
+          { label: 'Record Created', value: '30 March 2026 · 08:05' },
+          { label: 'Inspection Scheduled', value: '31 March 2026 · 10:00' },
+          { label: 'Last Verified', value: '30 March 2026 · 08:41' },
+        ]
+      : [
+          { label: 'Lookup Performed', value: '30 March 2026 · 08:41' },
+          { label: 'Registry Match', value: 'No active certification found' },
+          { label: 'Last Verified', value: '30 March 2026 · 08:41' },
+        ],
   categories:
     status === 'NotCertified'
       ? [
@@ -266,6 +284,72 @@ const statementStyles = {
         {mock.ledger}
       </p>
     </div>
+  </div>
+</div>
+        
+        {/* Audit Trail */}
+<div
+  style={{
+    backgroundColor: '#fff',
+    border: '1px solid rgba(11,31,51,0.08)',
+    padding: '24px',
+    marginBottom: '16px',
+  }}
+>
+  <p
+    style={{
+      fontSize: '12px',
+      letterSpacing: '2px',
+      textTransform: 'uppercase',
+      color: 'var(--gold)',
+      margin: '0 0 18px 0',
+      fontWeight: 700,
+    }}
+  >
+    Audit Trail
+  </p>
+
+  <div
+    style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+      gap: '20px',
+    }}
+  >
+    {mock.auditTrail.map((item, i) => (
+      <div
+        key={i}
+        style={{
+          borderLeft: '2px solid rgba(201,161,77,0.35)',
+          paddingLeft: '14px',
+        }}
+      >
+        <p
+          style={{
+            fontSize: '11px',
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            color: '#6C7077',
+            margin: '0 0 8px 0',
+            fontWeight: 700,
+          }}
+        >
+          {item.label}
+        </p>
+
+        <p
+          style={{
+            fontSize: '14px',
+            color: 'var(--navy)',
+            margin: 0,
+            fontWeight: 600,
+            lineHeight: 1.5,
+          }}
+        >
+          {item.value}
+        </p>
+      </div>
+    ))}
   </div>
 </div>
 
