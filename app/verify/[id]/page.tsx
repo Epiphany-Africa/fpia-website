@@ -227,7 +227,7 @@ const statementStyles = {
               ? 'var(--off-white)'
               : mock.status === 'Pending'
               ? '#BBDEFB'
-              : ''#E8E2E2',
+              : '#E8E2E2',
           margin: 0,
           fontWeight: 600,
         }}
