@@ -1,0 +1,70 @@
+export default function DemoVerificationPage() {
+  return (
+    <div style={{ backgroundColor: 'var(--off-white)', minHeight: '100vh', padding: '80px 20px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        
+        {/* Header */}
+        <div style={{ marginBottom: '40px' }}>
+          <p style={{ color: 'var(--gold)', fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase' }}>
+            FPIA Verification
+          </p>
+          <h1 style={{ fontFamily: 'DM Serif Display, serif', fontSize: '40px', color: 'var(--navy)' }}>
+            Property Verified
+          </h1>
+          <p style={{ color: 'var(--slate)' }}>
+            This property has been independently inspected and certified by FPIA.
+          </p>
+        </div>
+
+        {/* Certificate Card */}
+        <div style={{ backgroundColor: 'white', padding: '30px', border: '1px solid rgba(11,31,51,0.1)' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <h2 style={{ color: 'var(--navy)' }}>FPIA Certificate</h2>
+            <span style={{ backgroundColor: '#e6f7ec', color: '#1a7f37', padding: '6px 12px', fontSize: '12px' }}>
+              Certified
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gap: '12px', fontSize: '14px', color: 'var(--navy)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Property</span>
+              <span>14 Protea Avenue, Sandton</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Inspection Date</span>
+              <span>14 March 2026</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Inspector</span>
+              <span>Stephanus van der Merwe</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Report ID</span>
+              <span>FPIA-6AF4CF0170</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Verification Status</span>
+              <span style={{ color: '#1a7f37' }}>Approved</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Integrity</span>
+              <span style={{ color: 'var(--gold)' }}>Tamper-Proof</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer note */}
+        <div style={{ marginTop: '30px', fontSize: '13px', color: 'var(--slate)' }}>
+          This verification confirms that the certificate presented matches the official FPIA record.
+        </div>
+
+      </div>
+    </div>
+  )
+}
