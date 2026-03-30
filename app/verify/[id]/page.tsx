@@ -41,7 +41,7 @@ export default async function VerifyProperty({ params }: { params: Promise<{ id:
             <p style={{ color: '#a0aec0', fontSize: '14px' }}>#{mock.id}</p>
           </div>
           <span style={{ ...statusStyles[mock.status], padding: '6px 16px', borderRadius: '4px', fontSize: '14px', fontWeight: 600 }}>
-            ✔ {mock.status}
+           ✔ {mock.status.toUpperCase()}
           </span>
         </div>
 
