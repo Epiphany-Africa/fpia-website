@@ -162,6 +162,98 @@ const statementStyles = {
 </p>
         </div>
 
+        <div
+  style={{
+    backgroundColor: 'var(--navy)',
+    border: '1px solid rgba(201,161,77,0.22)',
+    padding: '18px 24px',
+    marginBottom: '16px',
+  }}
+>
+  <div
+    style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+      gap: '20px',
+    }}
+  >
+    <div>
+      <p
+        style={{
+          fontSize: '11px',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          color: 'var(--gold)',
+          margin: '0 0 8px 0',
+          fontWeight: 700,
+        }}
+      >
+        Record Integrity
+      </p>
+      <p
+        style={{
+          fontSize: '14px',
+          color: 'var(--off-white)',
+          margin: 0,
+          fontWeight: 600,
+        }}
+      >
+        {mock.status === 'Certified' ? 'Locked' : mock.status === 'Pending' ? 'In Review' : 'No Active Lock'}
+      </p>
+    </div>
+
+    <div>
+      <p
+        style={{
+          fontSize: '11px',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          color: 'var(--gold)',
+          margin: '0 0 8px 0',
+          fontWeight: 700,
+        }}
+      >
+        Registry Match
+      </p>
+      <p
+        style={{
+          fontSize: '14px',
+          color: 'var(--off-white)',
+          margin: 0,
+          fontWeight: 600,
+        }}
+      >
+        {mock.status === 'NotCertified' ? 'No Match Found' : 'Confirmed'}
+      </p>
+    </div>
+
+    <div>
+      <p
+        style={{
+          fontSize: '11px',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          color: 'var(--gold)',
+          margin: '0 0 8px 0',
+          fontWeight: 700,
+        }}
+      >
+        Ledger Reference
+      </p>
+      <p
+        style={{
+          fontSize: '14px',
+          color: 'var(--off-white)',
+          margin: 0,
+          fontWeight: 600,
+        }}
+      >
+        {mock.ledger}
+      </p>
+    </div>
+  </div>
+</div>
+
         {/* Property details */}
         <div style={{ backgroundColor: '#fff', padding: '40px', borderLeft: '1px solid #eee', borderRight: '1px solid #eee' }}>
           <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: '#999', marginBottom: '8px' }}>Property</p>
