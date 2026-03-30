@@ -45,7 +45,7 @@ export default function Verify() {
         </h1>
         <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '24px' }} />
         <p style={{ color: '#a0aec0', fontSize: '16px', maxWidth: '480px', lineHeight: 1.7 }}>
-          Enter the certificate number from the property listing, or scan the QR code on the FPIA show board to verify instantly.
+          Enter a valid FPIA certificate number or scan the official QR code to verify the property's certified status and inspection record.
         </p>
       </section>
 
