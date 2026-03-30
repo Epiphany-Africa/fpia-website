@@ -82,7 +82,7 @@ export default async function VerifyProperty({ params }: { params: Promise<{ id:
 
         {/* Ledger footer */}
         <div style={{ backgroundColor: 'var(--navy)', borderRadius: '0 0 4px 4px', padding: '24px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ color: '#a0aec0', fontSize: '12px' }}>Verified on the FPIA immutable ledger · fpia.co.za</p>
+          <p style={{ color: '#a0aec0', fontSize: '12px' }}>Verified on the FPIA immutable ledger · fairproperties.org.za</p>
           <p style={{ color: 'var(--gold)', fontSize: '12px', fontWeight: 600 }}>{mock.ledger}</p>
         </div>
 
