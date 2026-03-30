@@ -12,8 +12,7 @@ export default async function VerifyProperty({ params }: { params: Promise<{ id:
   const { id } = await params
 
   const normalizedId = id.toUpperCase()
-  const verificationHash = simpleHash(id + status)
-
+  
 let status: 'Certified' | 'Pending' | 'NotCertified' = 'Certified'
 
 if (normalizedId.includes('PENDING')) {
@@ -25,6 +24,7 @@ if (normalizedId.includes('PENDING')) {
 ) {
   status = 'NotCertified'
 }
+const verificationHash = simpleHash(id + status)
 
 const mock = {
   id,
