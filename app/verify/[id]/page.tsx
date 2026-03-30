@@ -503,6 +503,15 @@ export default async function VerifyProperty({
             </div>
           </div>
         </div>
+        <div style={{ marginTop: '20px' }}>
+          <DownloadPdfButton
+            id={mock.id}
+            status={mock.status}
+            address={mock.address}
+            hash={verificationHash}
+            qrCode={qrCodeDataUrl}
+          />
+        </div>
               
         {/* Property details */}
         <div
