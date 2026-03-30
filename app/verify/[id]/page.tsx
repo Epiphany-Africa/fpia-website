@@ -1,5 +1,7 @@
+import DownloadPdfButton from './DownloadPdfButton'
 import CopyHashButton from './CopyHashButton'
 import QRCode from 'qrcode'
+
 
 function simpleHash(input: string) {
   let hash = 0
