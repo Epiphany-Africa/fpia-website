@@ -193,7 +193,12 @@ const statementStyles = {
       <p
         style={{
           fontSize: '14px',
-          color: 'var(--off-white)',
+          color:
+            mock.status === 'Certified'
+              ? 'var(--off-white)'
+              : mock.status === 'Pending'
+              ? '#BBDEFB'
+              : '#FFCDD2',
           margin: 0,
           fontWeight: 600,
         }}
@@ -218,7 +223,12 @@ const statementStyles = {
       <p
         style={{
           fontSize: '14px',
-          color: 'var(--off-white)',
+          color:
+            mock.status === 'Certified'
+              ? 'var(--off-white)'
+              : mock.status === 'Pending'
+              ? '#BBDEFB'
+              : '#FFCDD2',
           margin: 0,
           fontWeight: 600,
         }}
@@ -243,7 +253,12 @@ const statementStyles = {
       <p
         style={{
           fontSize: '14px',
-          color: 'var(--off-white)',
+          color:
+            mock.status === 'Certified'
+              ? 'var(--off-white)'
+              : mock.status === 'Pending'
+              ? '#BBDEFB'
+              : '#FFCDD2',
           margin: 0,
           fontWeight: 600,
         }}
