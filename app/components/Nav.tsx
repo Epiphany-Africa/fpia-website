@@ -27,7 +27,7 @@ export default function Nav() {
   <nav
     style={{
       backgroundColor: 'var(--navy)',
-      padding: '0 80px',
+      padding: '0 64px',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -49,7 +49,11 @@ export default function Nav() {
         width={220}
         height={70}
         priority
-        style={{ objectFit: 'contain', width: 'auto', height: '64px' }}
+        style={{
+          objectFit: 'contain',
+          height: '72px',
+          width: 'auto',
+        }}
       />
     </Link>
 

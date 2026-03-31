@@ -1,0 +1,48 @@
+<svg width="800" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect width="800" height="300" fill="#0B1F33"/>
+
+  <!-- Icon (House + Check) -->
+<g stroke="#C9A14D" stroke-width="3.5" fill="none" transform="translate(42,88) scale(1.18)">
+
+  <!-- Roof -->
+  <path d="M0 38 L35 5 L70 38"/>
+
+  <!-- Left wall + shortened base -->
+  <path d="M15 38 L15 75 L60 75"/>
+
+  <!-- Refined checkmark (shorter right leg) -->
+  <path d="M22 52 L36 64 L56 40" stroke-width="4"/>
+
+</g>
+
+  <!-- Divider -->
+  <line x1="150" y1="85" x2="150" y2="215" stroke="#C9A14D" stroke-width="1.5"/>
+
+  <!-- FPIA -->
+  <text x="185" y="110" fill="#F5F5F5" font-size="52" font-family="serif" letter-spacing="1.5">
+  FPIA
+  </text>
+
+  <!-- Authority Name -->
+  <text x="185" y="145" fill="#F5F5F5" font-size="18" font-family="sans-serif" letter-spacing="2">
+  FAIR PROPERTIES INSPECTION AUTHORITY
+  </text>
+
+  <!-- SOUTH AFRICA -->
+  <text x="185" y="172" fill="#C9A14D" font-size="13" font-family="sans-serif" letter-spacing="6">
+  SOUTH AFRICA
+  </text>
+
+
+  <!-- Divider line -->
+  <line x1="185" y1="185" x2="560" y2="185" stroke="#C9A14D" stroke-width="1"/>
+
+  <!-- Tagline -->
+  <text x="185" y="210" fill="#A8B0B8" font-size="12" font-family="sans-serif" letter-spacing="3">
+  ACCOUNTABILITY BUILT IN
+  </text>
+
+</svg>
+
