@@ -106,19 +106,20 @@ export default function DownloadPdfButton({
       doc.text(`#${id}`, 22, 39)
 
       // Subtle watermark seal - bottom right
-     doc.addImage(watermarkDataUrl, 'PNG', 146, 198, 40, 40)
+      doc.addImage(watermarkDataUrl, 'PNG', 146, 198, 40, 40)
 
-      // Status block
-      doc.setTextColor(...statusColor)
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(22)
-      doc.text(statusLabel, 22, 62)
+    // Status block (final layout)
 
-      // Label only (no duplicate value)
-      doc.setTextColor(...black)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
-      doc.text('Status', 120, 62)
+      doc.setTextColor(...black)
+      doc.text('Status', 22, 62)
+
+      // Certified to the right of Status
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(18)
+      doc.setTextColor(...statusColor)
+      doc.text(statusLabel, 50, 62)
 
       // Property block
       doc.setFont('helvetica', 'bold')
