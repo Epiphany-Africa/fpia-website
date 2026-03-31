@@ -33,36 +33,52 @@ export default function Nav() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        height: '96px',
+        height: '88px',
         borderBottom: '1px solid rgba(201,161,77,0.2)',
         position: 'sticky',
         top: 0,
         zIndex: 100,
       }}
     >
-      <Link
-        href="/"
+      <div
         style={{
-          textDecoration: 'none',
           display: 'flex',
           alignItems: 'center',
           flexShrink: 0,
         }}
       >
-        <Image
-          src="/fpia-logo.png"
-          alt="FPIA Logo"
-          width={420}
-          height={120}
-          priority
+        <Link
+          href="/"
           style={{
-            objectFit: 'contain',
-            width: 'auto',
-            height: '84px',
-            display: 'block',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Image
+            src="/fpia-logo.png"
+            alt="FPIA Logo"
+            width={420}
+            height={120}
+            priority
+            style={{
+              objectFit: 'contain',
+              width: 'auto',
+              height: '72px',
+              display: 'block',
+            }}
+          />
+        </Link>
+
+        <div
+          style={{
+            width: '1px',
+            height: '40px',
+            backgroundColor: 'rgba(201,161,77,0.2)',
+            marginLeft: '32px',
           }}
         />
-      </Link>
+      </div>
 
       <div
         style={{
