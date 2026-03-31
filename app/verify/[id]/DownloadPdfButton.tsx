@@ -106,7 +106,7 @@ export default function DownloadPdfButton({
       doc.text(`#${id}`, 22, 39)
 
       // Subtle watermark seal - bottom right
-      doc.addImage(watermarkDataUrl, 'PNG', 108, 120, 64, 64)
+      doc.addImage(watermarkDataUrl, 'PNG', 118, 196, 42, 42)
 
       // Status block
       doc.setTextColor(...statusColor)
