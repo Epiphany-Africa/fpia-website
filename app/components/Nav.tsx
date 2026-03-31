@@ -27,31 +27,34 @@ export default function Nav() {
   <nav
     style={{
       backgroundColor: 'var(--navy)',
-      padding: '0 64px',
+      padding: '0 80px',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      height: '80px',
+      height: '104px',
       borderBottom: '1px solid rgba(201,161,77,0.2)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
     }}
   >
-    {/* Logo */}
     <Link
       href="/"
-      style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+      style={{
+        textDecoration: 'none',
+        display: 'flex',
+        alignItems: 'center',
+      }}
     >
       <Image
         src="/fpia-logo.png"
         alt="FPIA Logo"
-        width={220}
-        height={70}
+        width={300}
+        height={95}
         priority
         style={{
           objectFit: 'contain',
-          height: '72px',
+          height: '86px',
           width: 'auto',
         }}
       />
