@@ -27,7 +27,6 @@ export default function DownloadPdfButton({
     })
 
     const pageWidth = doc.internal.pageSize.getWidth()
-    const pageHeight = doc.internal.pageSize.getHeight()
 
     const navy: [number, number, number] = [11, 31, 51]
     const gold: [number, number, number] = [201, 161, 77]
@@ -53,6 +52,7 @@ export default function DownloadPdfButton({
             return
           }
 
+          ctx.globalAlpha = 0.12
           ctx.drawImage(img, 0, 0)
           resolve(canvas.toDataURL('image/png'))
         }
@@ -86,7 +86,7 @@ export default function DownloadPdfButton({
 
       // Background
       doc.setFillColor(248, 248, 248)
-      doc.rect(0, 0, pageWidth, pageHeight, 'F')
+      doc.rect(0, 0, 210, 297, 'F')
 
       // Main certificate panel
       doc.setFillColor(255, 255, 255)
@@ -105,8 +105,8 @@ export default function DownloadPdfButton({
       doc.setFontSize(13)
       doc.text(`#${id}`, 22, 39)
 
-      // Watermark seal
-      doc.addImage(watermarkDataUrl, 'PNG', 45, 82, 120, 120)
+      // Subtle watermark seal - bottom right
+      doc.addImage(watermarkDataUrl, 'PNG', 108, 120, 64, 64)
 
       // Status block
       doc.setTextColor(...statusColor)
@@ -130,7 +130,7 @@ export default function DownloadPdfButton({
       doc.setFontSize(14)
       doc.text(address, 22, 96)
 
-      // Right-side QR block
+      // QR block
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(220, 220, 220)
       doc.roundedRect(140, 58, 42, 52, 1.5, 1.5, 'FD')
@@ -180,7 +180,7 @@ export default function DownloadPdfButton({
       doc.text(shortHash, valueX, y)
       y += 14
 
-      // Legal / integrity text
+      // Legal text
       doc.setDrawColor(...lightGrey)
       doc.line(22, y - 4, 188, y - 4)
 
@@ -195,13 +195,9 @@ export default function DownloadPdfButton({
       const legalText3 =
         'Verification can be performed via the official FPIA registry.'
 
-      const legalLines1 = doc.splitTextToSize(legalText1, 150)
-      const legalLines2 = doc.splitTextToSize(legalText2, 150)
-      const legalLines3 = doc.splitTextToSize(legalText3, 150)
-
-      doc.text(legalLines1, 22, y + 5)
-      doc.text(legalLines2, 22, y + 20)
-      doc.text(legalLines3, 22, y + 33)
+      doc.text(doc.splitTextToSize(legalText1, 150), 22, y + 5)
+      doc.text(doc.splitTextToSize(legalText2, 150), 22, y + 20)
+      doc.text(doc.splitTextToSize(legalText3, 150), 22, y + 33)
 
       // Signature block
       doc.setDrawColor(...black)
