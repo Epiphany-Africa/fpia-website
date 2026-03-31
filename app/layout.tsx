@@ -1,10 +1,11 @@
+import Image from 'next/image'
 import type { Metadata } from 'next'
 import './globals.css'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
 
 export const metadata: Metadata = {
-  title: 'FPIA — Fair Properties Inspection Authorities',
+  title: 'FPIA — Fair Property Inspection Authorities',
   description: 'Independent property certification. Accountability built in.',
 }
 

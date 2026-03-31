@@ -56,7 +56,7 @@ export default function Nav() {
           }}
         >
           <Image
-            src="/fpia-logo.png"
+            src="/fpia-logo-v2.png"
             alt="FPIA Logo"
             width={420}
             height={120}
