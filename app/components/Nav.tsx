@@ -24,7 +24,8 @@ export default function Nav() {
   const dropdownActive = dropdownLinks.some(l => l.href === path)
 
   return (
-    <nav style={{
+  <nav
+    style={{
       backgroundColor: 'var(--navy)',
       padding: '0 80px',
       display: 'flex',
@@ -35,17 +36,22 @@ export default function Nav() {
       position: 'sticky',
       top: 0,
       zIndex: 100,
-    }}>
-      {/* Logo */}
-      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-        <Image
-          src="/images/fpia-logo.svg"
-          alt="FPIA"
-          width={320}
-          height={90}
-          style={{ objectFit: 'contain', width: 'auto', height: '64px' }}
-        />
-      </Link>
+    }}
+  >
+    {/* Logo */}
+    <Link
+      href="/"
+      style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+    >
+      <Image
+        src="/fpia-logo.png"
+        alt="FPIA Logo"
+        width={220}
+        height={70}
+        priority
+        style={{ objectFit: 'contain', width: 'auto', height: '64px' }}
+      />
+    </Link>
 
       {/* Links */}
       <div style={{ display: 'flex', gap: '36px', alignItems: 'center' }}>
