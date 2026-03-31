@@ -121,7 +121,9 @@ export default function DownloadPdfButton({
       doc.setTextColor(...statusColor)
       doc.text(statusLabel, 50, 62)
 
-      // Property block
+     // Reset color back to black before Property section
+      doc.setTextColor(...black)
+
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
       doc.text('Property:', 22, 86)
