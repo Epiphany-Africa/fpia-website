@@ -19,95 +19,223 @@ export default function DownloadPdfButton({
   hash,
   qrCode,
 }: Props) {
-const handleDownload = () => {
-  const doc = new jsPDF()
+  const handleDownload = async () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    })
 
-  // Watermark
-  doc.setTextColor(235, 235, 235)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(70)
-  doc.text('FPIA', 105, 140, {
-    align: 'center',
-    angle: 30,
-  })
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
 
-  // Header
-  doc.setFillColor(11, 31, 51)
-  doc.rect(0, 0, 210, 30, 'F')
+    const navy: [number, number, number] = [11, 31, 51]
+    const gold: [number, number, number] = [201, 161, 77]
+    const green: [number, number, number] = [34, 139, 34]
+    const grey: [number, number, number] = [110, 110, 110]
+    const lightGrey: [number, number, number] = [235, 235, 235]
+    const black: [number, number, number] = [0, 0, 0]
 
-  doc.setTextColor(201, 161, 77)
-  doc.setFontSize(10)
-  doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 20, 12)
+    const watermarkSrc = '/fpia-watermark.png'
 
-  doc.setTextColor(255, 255, 255)
-  doc.setFontSize(12)
-  doc.text(`#${id}`, 20, 22)
+    const loadImageAsDataUrl = (src: string) =>
+      new Promise<string>((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.naturalWidth
+          canvas.height = img.naturalHeight
+          const ctx = canvas.getContext('2d')
 
-  // Status (UPGRADED)
-  doc.setTextColor(34, 139, 34)
-  doc.setFontSize(18)
-  doc.text(status.toUpperCase(), 20, 45)
+          if (!ctx) {
+            reject(new Error('Could not create canvas context'))
+            return
+          }
 
-  doc.setTextColor(0, 0, 0)
-  doc.setFontSize(12)
-  doc.text(`Status: ${status}`, 20, 55)
+          ctx.drawImage(img, 0, 0)
+          resolve(canvas.toDataURL('image/png'))
+        }
+        img.onerror = () => reject(new Error(`Failed to load image: ${src}`))
+        img.src = src
+      })
 
-  // Property
-  doc.text('Property:', 20, 65)
-  doc.setFont('helvetica', 'bold')
-  doc.text(address, 20, 73)
-  doc.setFont('helvetica', 'normal')
+    const safeStatus = status.trim().toLowerCase()
+    const statusLabel =
+      safeStatus === 'certified'
+        ? 'CERTIFIED'
+        : safeStatus === 'pending'
+        ? 'PENDING'
+        : 'NOT CERTIFIED'
 
-  // Certificate details
-  doc.text(`Certificate ID: ${id}`, 20, 90)
-  doc.text('Issued: 30 March 2026', 20, 100)
-  doc.text('Valid Until: 30 March 2027', 20, 108)
+    const statusColor: [number, number, number] =
+      safeStatus === 'certified'
+        ? green
+        : safeStatus === 'pending'
+        ? [21, 101, 192]
+        : [198, 40, 40]
 
-  // Hash
-  doc.text('Verification Hash:', 20, 120)
-  doc.setFont('courier', 'normal')
-  doc.text(hash, 20, 128)
-  doc.setFont('helvetica', 'normal')
+    const validUntil =
+      safeStatus === 'certified' ? '30 March 2027' : 'Not currently applicable'
 
-  // QR (slightly adjusted)
-  doc.addImage(qrCode, 'PNG', 140, 70, 50, 50)
+    const issuedDate = '30 March 2026'
+    const shortHash = hash.length > 28 ? `${hash.slice(0, 28)}...` : hash
 
-  doc.setFontSize(10)
-  doc.text('Scan to verify', 140, 125)
+    try {
+      const watermarkDataUrl = await loadImageAsDataUrl(watermarkSrc)
 
-  // Integrity warning
-  doc.setFontSize(9)
-  doc.setTextColor(120)
-  doc.text(
-    'Any alteration of this certificate or its contents invalidates its authenticity.',
-    20,
-    145
-  )
+      // Background
+      doc.setFillColor(248, 248, 248)
+      doc.rect(0, 0, pageWidth, pageHeight, 'F')
 
-  // Footer
-  doc.setTextColor(100)
-  doc.text(
-    'This certificate can be independently verified via the official FPIA registry.',
-    20,
-    155
-  )
-  doc.text(`${COMPANY_NAME} · South Africa`, 20, 165)
+      // Main certificate panel
+      doc.setFillColor(255, 255, 255)
+      doc.roundedRect(15, 20, 180, 245, 2, 2, 'F')
 
-  // Signature (adjusted up slightly)
-  doc.setDrawColor(0)
-  doc.line(20, 175, 90, 175)
+      // Header band
+      doc.setFillColor(...navy)
+      doc.rect(15, 20, 180, 26, 'F')
 
-  doc.setFontSize(10)
-  doc.setTextColor(0)
-  doc.text('Authorised Inspector', 20, 183)
+      doc.setTextColor(...gold)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 30)
 
-  doc.setFontSize(9)
-  doc.setTextColor(100)
-  doc.text(COMPANY_NAME, 20, 190)
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(13)
+      doc.text(`#${id}`, 22, 39)
 
-  // Save
-  doc.save(`FPIA-${id}.pdf`)
-}
+      // Watermark seal
+      doc.addImage(watermarkDataUrl, 'PNG', 45, 82, 120, 120)
+
+      // Status block
+      doc.setTextColor(...statusColor)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(22)
+      doc.text(statusLabel, 22, 62)
+
+      doc.setTextColor(...black)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(11)
+      doc.text('Status:', 22, 72)
+      doc.setFont('helvetica', 'normal')
+      doc.text(status, 42, 72)
+
+      // Property block
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(11)
+      doc.text('Property:', 22, 86)
+
+      doc.setFont('times', 'bold')
+      doc.setFontSize(14)
+      doc.text(address, 22, 96)
+
+      // Right-side QR block
+      doc.setFillColor(255, 255, 255)
+      doc.setDrawColor(220, 220, 220)
+      doc.roundedRect(140, 58, 42, 52, 1.5, 1.5, 'FD')
+      doc.addImage(qrCode, 'PNG', 146, 64, 30, 30)
+
+      doc.setTextColor(...black)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.text('Scan to verify', 161, 98, { align: 'center' })
+      doc.text('authenticity', 161, 102, { align: 'center' })
+
+      // Certificate details section
+      doc.setDrawColor(230, 230, 230)
+      doc.line(22, 110, 188, 110)
+
+      doc.setTextColor(...grey)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8.5)
+      doc.text('CERTIFICATE DETAILS', 22, 118)
+
+      const labelX = 22
+      const valueX = 78
+      let y = 128
+
+      const detailRow = (label: string, value: string) => {
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.setTextColor(...black)
+        doc.text(label, labelX, y)
+
+        doc.setFont('helvetica', 'normal')
+        doc.text(value, valueX, y)
+        y += 11
+      }
+
+      detailRow('Certificate ID', id)
+      detailRow('Issued', issuedDate)
+      detailRow('Valid Until', validUntil)
+
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.setTextColor(...black)
+      doc.text('Verification Hash', labelX, y)
+
+      doc.setFont('courier', 'normal')
+      doc.setFontSize(9)
+      doc.text(shortHash, valueX, y)
+      y += 14
+
+      // Legal / integrity text
+      doc.setDrawColor(...lightGrey)
+      doc.line(22, y - 4, 188, y - 4)
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9)
+      doc.setTextColor(...grey)
+
+      const legalText1 =
+        'This certificate confirms that the above property has been independently inspected and verified in accordance with FPIA standards.'
+      const legalText2 =
+        'Any alteration or misrepresentation of this certificate invalidates its authenticity.'
+      const legalText3 =
+        'Verification can be performed via the official FPIA registry.'
+
+      const legalLines1 = doc.splitTextToSize(legalText1, 150)
+      const legalLines2 = doc.splitTextToSize(legalText2, 150)
+      const legalLines3 = doc.splitTextToSize(legalText3, 150)
+
+      doc.text(legalLines1, 22, y + 5)
+      doc.text(legalLines2, 22, y + 20)
+      doc.text(legalLines3, 22, y + 33)
+
+      // Signature block
+      doc.setDrawColor(...black)
+      doc.line(22, 232, 88, 232)
+
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.setTextColor(...black)
+      doc.text('Authorised Certification Officer', 22, 240)
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...grey)
+      doc.text(COMPANY_NAME, 22, 247)
+
+      // Footer strip
+      doc.setFillColor(...navy)
+      doc.rect(15, 252, 180, 13, 'F')
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.setTextColor(210, 210, 210)
+      doc.text('Verified on the official FPIA registry', 22, 260)
+
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...gold)
+      doc.text('ACCOUNTABILITY BUILT IN', 188, 260, { align: 'right' })
+
+      doc.save(`FPIA-${id}.pdf`)
+    } catch (error) {
+      console.error('Failed to generate PDF certificate:', error)
+      alert('The certificate could not be generated. Please try again.')
+    }
+  }
 
   return (
     <button
