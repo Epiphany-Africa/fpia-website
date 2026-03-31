@@ -2,7 +2,6 @@ import DownloadPdfButton from './DownloadPdfButton'
 import CopyHashButton from './CopyHashButton'
 import QRCode from 'qrcode'
 
-
 function simpleHash(input: string) {
   let hash = 0
   for (let i = 0; i < input.length; i++) {
@@ -111,10 +110,7 @@ export default async function VerifyProperty({
     categories,
   }
 
-  const statusContent: Record<
-    Status,
-    { title: string; message: string }
-  > = {
+  const statusContent: Record<Status, { title: string; message: string }> = {
     Certified: {
       title: 'This property is currently certified.',
       message:
@@ -194,480 +190,514 @@ export default async function VerifyProperty({
         minHeight: '100vh',
       }}
     >
-      <div style={{ maxWidth: '800px', margin: '60px auto', padding: '0 24px' }}>
-        {/* Status banner */}
-        <div
+      <div
+        style={{
+          position: 'relative',
+          maxWidth: '800px',
+          margin: '60px auto',
+          padding: '0 24px',
+        }}
+      >
+        <img
+          src="/fpia-watermark.png"
+          alt="FPIA Watermark"
           style={{
-            backgroundColor: 'var(--navy)',
-            borderRadius: '4px 4px 0 0',
-            padding: '32px 40px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '70%',
+            opacity: 0.05,
+            pointerEvents: 'none',
+            userSelect: 'none',
+            zIndex: 0,
           }}
-        >
-          <div>
+        />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {/* Status banner */}
+          <div
+            style={{
+              backgroundColor: 'var(--navy)',
+              borderRadius: '4px 4px 0 0',
+              padding: '32px 40px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div>
+              <p
+                style={{
+                  color: 'var(--gold)',
+                  fontSize: '11px',
+                  letterSpacing: '3px',
+                  textTransform: 'uppercase',
+                  marginBottom: '8px',
+                }}
+              >
+                FPIA Verified Property Record
+              </p>
+              <p style={{ color: '#a0aec0', fontSize: '14px' }}>#{mock.id}</p>
+            </div>
+
+            <span
+              style={{
+                ...statusStyles[mock.status],
+                padding: '6px 16px',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 600,
+              }}
+            >
+              ✔{' '}
+              {mock.status === 'NotCertified'
+                ? 'NOT CERTIFIED'
+                : mock.status.toUpperCase()}
+            </span>
+          </div>
+
+          {/* Verification Outcome */}
+          <div
+            style={{
+              backgroundColor: statementStyles[mock.status].backgroundColor,
+              border: statementStyles[mock.status].border,
+              padding: '20px 24px',
+              marginBottom: '16px',
+            }}
+          >
             <p
               style={{
-                color: 'var(--gold)',
-                fontSize: '11px',
-                letterSpacing: '3px',
+                fontSize: '12px',
+                letterSpacing: '2px',
                 textTransform: 'uppercase',
+                color: 'var(--gold)',
+                margin: '0 0 10px 0',
+                fontWeight: 700,
+              }}
+            >
+              Verification Outcome
+            </p>
+
+            <p
+              style={{
+                fontSize: '16px',
+                color: statementStyles[mock.status].titleColor,
+                lineHeight: 1.5,
+                margin: '0 0 10px 0',
+                fontWeight: 600,
+              }}
+            >
+              {statusContent[mock.status].title}
+            </p>
+
+            <p
+              style={{
+                fontSize: '14px',
+                color: 'var(--navy)',
+                lineHeight: 1.6,
+                margin: 0,
+              }}
+            >
+              {statusContent[mock.status].message}
+            </p>
+          </div>
+
+          {/* Integrity Strip */}
+          <div
+            style={{
+              backgroundColor: 'var(--navy)',
+              border: '1px solid rgba(201,161,77,0.22)',
+              padding: '18px 24px',
+              marginBottom: '16px',
+            }}
+          >
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr 1.3fr',
+                gap: '20px',
+              }}
+            >
+              <div>
+                <p style={integrityLabelStyle}>Record Integrity</p>
+                <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
+                  {mock.status === 'Certified'
+                    ? 'Locked'
+                    : mock.status === 'Pending'
+                    ? 'In Review'
+                    : 'No Active Lock'}
+                </p>
+              </div>
+
+              <div>
+                <p style={integrityLabelStyle}>Registry Match</p>
+                <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
+                  {mock.status === 'NotCertified' ? 'No Match Found' : 'Confirmed'}
+                </p>
+              </div>
+
+              <div>
+                <p style={integrityLabelStyle}>Ledger Reference</p>
+                <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
+                  {mock.ledger}
+                </p>
+              </div>
+
+              <div>
+                <p style={integrityLabelStyle}>Verification Hash</p>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '100%',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '14px',
+                      color: integrityValueColor,
+                      margin: 0,
+                      fontWeight: 600,
+                      fontFamily: 'monospace',
+                      letterSpacing: '1px',
+                      flex: 1,
+                      minWidth: 0,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {verificationHash}
+                  </p>
+
+                  <CopyHashButton value={verificationHash} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Audit Trail */}
+          <div
+            style={{
+              backgroundColor: '#fff',
+              border: '1px solid rgba(11,31,51,0.08)',
+              padding: '24px',
+              marginBottom: '16px',
+            }}
+          >
+            <p
+              style={{
+                fontSize: '12px',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                color: 'var(--gold)',
+                margin: '0 0 18px 0',
+                fontWeight: 700,
+              }}
+            >
+              Audit Trail
+            </p>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                gap: '20px',
+              }}
+            >
+              {mock.auditTrail.map((item, i) => (
+                <div
+                  key={i}
+                  style={{
+                    borderLeft: auditBorderColor,
+                    paddingLeft: '14px',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '11px',
+                      letterSpacing: '1.5px',
+                      textTransform: 'uppercase',
+                      color: '#6C7077',
+                      margin: '0 0 8px 0',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {item.label}
+                  </p>
+
+                  <p
+                    style={{
+                      fontSize: '14px',
+                      color: 'var(--navy)',
+                      margin: 0,
+                      fontWeight: 600,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* QR Verification */}
+          <div
+            style={{
+              backgroundColor: '#fff',
+              border: '1px solid rgba(11,31,51,0.08)',
+              padding: '24px',
+              marginBottom: '16px',
+            }}
+          >
+            <p
+              style={{
+                fontSize: '12px',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                color: 'var(--gold)',
+                margin: '0 0 18px 0',
+                fontWeight: 700,
+              }}
+            >
+              QR Verification
+            </p>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '24px',
+              }}
+            >
+              <img
+                src={qrCodeDataUrl}
+                alt={`QR code for certificate ${mock.id}`}
+                style={{
+                  width: '140px',
+                  height: '140px',
+                  padding: '10px',
+                  backgroundColor: '#fff',
+                  border: '1px solid rgba(11,31,51,0.08)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                }}
+              />
+
+              <div>
+                <p
+                  style={{
+                    fontSize: '15px',
+                    color: 'var(--navy)',
+                    fontWeight: 600,
+                    margin: '0 0 10px 0',
+                  }}
+                >
+                  Scan to open this verified property record
+                </p>
+
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: '#6C7077',
+                    lineHeight: 1.6,
+                    margin: '0 0 10px 0',
+                  }}
+                >
+                  This QR code links directly to the official FPIA verification page
+                  for this certificate.
+                </p>
+
+                <p
+                  style={{
+                    fontSize: '12px',
+                    color: '#6C7077',
+                    margin: 0,
+                    fontFamily: 'monospace',
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  {verificationUrl}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '20px' }}>
+            <DownloadPdfButton
+              id={mock.id}
+              status={mock.status}
+              address={mock.address}
+              hash={verificationHash}
+              qrCode={qrCodeDataUrl}
+            />
+          </div>
+
+          {/* Property details */}
+          <div
+            style={{
+              backgroundColor: '#fff',
+              padding: '40px',
+              borderLeft: '1px solid #eee',
+              borderRight: '1px solid #eee',
+            }}
+          >
+            <p
+              style={{
+                fontSize: '11px',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                color: '#999',
                 marginBottom: '8px',
               }}
             >
-              FPIA Verified Property Record
+              Property
             </p>
-            <p style={{ color: '#a0aec0', fontSize: '14px' }}>#{mock.id}</p>
-          </div>
 
-          <span
-            style={{
-              ...statusStyles[mock.status],
-              padding: '6px 16px',
-              borderRadius: '4px',
-              fontSize: '14px',
-              fontWeight: 600,
-            }}
-          >
-            ✔{' '}
-            {mock.status === 'NotCertified'
-              ? 'NOT CERTIFIED'
-              : mock.status.toUpperCase()}
-          </span>
-        </div>
-
-        {/* Verification Outcome */}
-        <div
-          style={{
-            backgroundColor: statementStyles[mock.status].backgroundColor,
-            border: statementStyles[mock.status].border,
-            padding: '20px 24px',
-            marginBottom: '16px',
-          }}
-        >
-          <p
-            style={{
-              fontSize: '12px',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: 'var(--gold)',
-              margin: '0 0 10px 0',
-              fontWeight: 700,
-            }}
-          >
-            Verification Outcome
-          </p>
-
-          <p
-            style={{
-              fontSize: '16px',
-              color: statementStyles[mock.status].titleColor,
-              lineHeight: 1.5,
-              margin: '0 0 10px 0',
-              fontWeight: 600,
-            }}
-          >
-            {statusContent[mock.status].title}
-          </p>
-
-          <p
-            style={{
-              fontSize: '14px',
-              color: 'var(--navy)',
-              lineHeight: 1.6,
-              margin: 0,
-            }}
-          >
-            {statusContent[mock.status].message}
-          </p>
-        </div>
-
-        {/* Integrity Strip */}
-        <div
-          style={{
-            backgroundColor: 'var(--navy)',
-            border: '1px solid rgba(201,161,77,0.22)',
-            padding: '18px 24px',
-            marginBottom: '16px',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr 1.3fr',
-              gap: '20px',
-            }}
-          >
-            <div>
-              <p style={integrityLabelStyle}>Record Integrity</p>
-              <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
-                {mock.status === 'Certified'
-                  ? 'Locked'
-                  : mock.status === 'Pending'
-                  ? 'In Review'
-                  : 'No Active Lock'}
-              </p>
-            </div>
-
-            <div>
-              <p style={integrityLabelStyle}>Registry Match</p>
-              <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
-                {mock.status === 'NotCertified' ? 'No Match Found' : 'Confirmed'}
-              </p>
-            </div>
-
-            <div>
-              <p style={integrityLabelStyle}>Ledger Reference</p>
-              <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
-                {mock.ledger}
-              </p>
-            </div>
-
-            <div>
-              <p style={integrityLabelStyle}>Verification Hash</p>
-<div
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    width: '100%',
-  }}
->
-  <p
-  style={{
-    fontSize: '14px',
-    color: integrityValueColor,
-    margin: 0,
-    fontWeight: 600,
-    fontFamily: 'monospace',
-    letterSpacing: '1px',
-    flex: 1,
-    minWidth: 0,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  }}
->
-    {verificationHash}
-  </p>
-
-<CopyHashButton value={verificationHash} />
-</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Audit Trail */}
-        <div
-          style={{
-            backgroundColor: '#fff',
-            border: '1px solid rgba(11,31,51,0.08)',
-            padding: '24px',
-            marginBottom: '16px',
-          }}
-        >
-          <p
-            style={{
-              fontSize: '12px',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: 'var(--gold)',
-              margin: '0 0 18px 0',
-              fontWeight: 700,
-            }}
-          >
-            Audit Trail
-          </p>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-              gap: '20px',
-            }}
-          >
-            {mock.auditTrail.map((item, i) => (
-              <div
-                key={i}
-                style={{
-                  borderLeft: auditBorderColor,
-                  paddingLeft: '14px',
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: '11px',
-                    letterSpacing: '1.5px',
-                    textTransform: 'uppercase',
-                    color: '#6C7077',
-                    margin: '0 0 8px 0',
-                    fontWeight: 700,
-                  }}
-                >
-                  {item.label}
-                </p>
-
-                <p
-                  style={{
-                    fontSize: '14px',
-                    color: 'var(--navy)',
-                    margin: 0,
-                    fontWeight: 600,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {item.value}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-       {/* QR Verification */}
-        <div
-          style={{
-            backgroundColor: '#fff',
-            border: '1px solid rgba(11,31,51,0.08)',
-            padding: '24px',
-            marginBottom: '16px',
-          }}
-        >
-          <p
-            style={{
-              fontSize: '12px',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: 'var(--gold)',
-              margin: '0 0 18px 0',
-              fontWeight: 700,
-            }}
-          >
-            QR Verification
-          </p>
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '24px',
-            }}
-          >
-            <img
-              src={qrCodeDataUrl}
-              alt={`QR code for certificate ${mock.id}`}
+            <h2
               style={{
-                width: '140px',
-                height: '140px',
-                padding: '10px',
-                backgroundColor: '#fff',
-                border: '1px solid rgba(11,31,51,0.08)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                fontFamily: "'DM Serif Display', serif",
+                fontSize: '28px',
+                marginBottom: '4px',
               }}
-            />
+            >
+              {mock.address}
+            </h2>
 
-            <div>
-              <p
-                style={{
-                  fontSize: '15px',
-                  color: 'var(--navy)',
-                  fontWeight: 600,
-                  margin: '0 0 10px 0',
-                }}
-              >
-                Scan to open this verified property record
-              </p>
+            <p style={{ color: '#666', marginBottom: '40px' }}>{mock.province}</p>
 
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: '#6C7077',
-                  lineHeight: 1.6,
-                  margin: '0 0 10px 0',
-                }}
-              >
-                This QR code links directly to the official FPIA verification page for this certificate.
-              </p>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '0',
+                borderTop: '1px solid #eee',
+              }}
+            >
+              {[
+                { label: 'Inspection Date', value: mock.inspectionDate },
+                { label: 'Inspector', value: mock.inspector },
+                { label: 'Certificate Valid Until', value: mock.validUntil },
+                { label: 'Ledger Entry', value: mock.ledger },
+              ].map((row, i) => (
+                <div
+                  key={i}
+                  style={{
+                    padding: '20px 0',
+                    borderBottom: '1px solid #eee',
+                    paddingRight: '24px',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '11px',
+                      letterSpacing: '1px',
+                      textTransform: 'uppercase',
+                      color: '#999',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    {row.label}
+                  </p>
 
-              <p
-                style={{
-                  fontSize: '12px',
-                  color: '#6C7077',
-                  margin: 0,
-                  fontFamily: 'monospace',
-                  wordBreak: 'break-all',
-                }}
-              >
-                {verificationUrl}
-              </p>
+                  <p style={{ fontWeight: 600, color: 'var(--navy)' }}>
+                    {row.value}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-        <div style={{ marginTop: '20px' }}>
-          <DownloadPdfButton
-            id={mock.id}
-            status={mock.status}
-            address={mock.address}
-            hash={verificationHash}
-            qrCode={qrCodeDataUrl}
-          />
-        </div>
-              
-        {/* Property details */}
-        <div
-          style={{
-            backgroundColor: '#fff',
-            padding: '40px',
-            borderLeft: '1px solid #eee',
-            borderRight: '1px solid #eee',
-          }}
-        >
-          <p
-            style={{
-              fontSize: '11px',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: '#999',
-              marginBottom: '8px',
-            }}
-          >
-            Property
-          </p>
-          <h2
-            style={{
-              fontFamily: "'DM Serif Display', serif",
-              fontSize: '28px',
-              marginBottom: '4px',
-            }}
-          >
-            {mock.address}
-          </h2>
-          <p style={{ color: '#666', marginBottom: '40px' }}>{mock.province}</p>
 
+          {/* Compliance categories */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '0',
+              backgroundColor: '#fff',
+              padding: '40px',
+              borderLeft: '1px solid #eee',
+              borderRight: '1px solid #eee',
               borderTop: '1px solid #eee',
             }}
           >
-            {[
-              { label: 'Inspection Date', value: mock.inspectionDate },
-              { label: 'Inspector', value: mock.inspector },
-              { label: 'Certificate Valid Until', value: mock.validUntil },
-              { label: 'Ledger Entry', value: mock.ledger },
-            ].map((row, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: '20px 0',
-                  borderBottom: '1px solid #eee',
-                  paddingRight: '24px',
-                }}
-              >
-                <p
+            <p
+              style={{
+                fontSize: '11px',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                color: '#999',
+                marginBottom: '24px',
+              }}
+            >
+              Compliance Categories
+            </p>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '16px',
+              }}
+            >
+              {mock.categories.map((cat, i) => (
+                <div
+                  key={i}
                   style={{
-                    fontSize: '11px',
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
-                    color: '#999',
-                    marginBottom: '6px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px 16px',
+                    backgroundColor: 'var(--off-white)',
+                    borderRadius: '4px',
                   }}
                 >
-                  {row.label}
-                </p>
-                <p style={{ fontWeight: 600, color: 'var(--navy)' }}>{row.value}</p>
-              </div>
-            ))}
+                  <span style={{ fontSize: '14px', color: 'var(--navy)' }}>
+                    {cat.name}
+                  </span>
+
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      color:
+                        cat.status === 'Pass'
+                          ? '#2E7D32'
+                          : cat.status === 'Pending'
+                          ? '#1565C0'
+                          : '#C62828',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {cat.status === 'Pass'
+                      ? '✔'
+                      : cat.status === 'Pending'
+                      ? '•'
+                      : '✕'}{' '}
+                    {cat.status}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Compliance categories */}
-        <div
-          style={{
-            backgroundColor: '#fff',
-            padding: '40px',
-            borderLeft: '1px solid #eee',
-            borderRight: '1px solid #eee',
-            borderTop: '1px solid #eee',
-          }}
-        >
-          <p
-            style={{
-              fontSize: '11px',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: '#999',
-              marginBottom: '24px',
-            }}
-          >
-            Compliance Categories
-          </p>
-
+          {/* Ledger footer */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '16px',
+              backgroundColor: 'var(--navy)',
+              borderRadius: '0 0 4px 4px',
+              padding: '24px 40px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
             }}
           >
-            {mock.categories.map((cat, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px 16px',
-                  backgroundColor: 'var(--off-white)',
-                  borderRadius: '4px',
-                }}
-              >
-                <span style={{ fontSize: '14px', color: 'var(--navy)' }}>
-                  {cat.name}
-                </span>
-                <span
-                  style={{
-                    fontSize: '12px',
-                    color:
-                      cat.status === 'Pass'
-                        ? '#2E7D32'
-                        : cat.status === 'Pending'
-                        ? '#1565C0'
-                        : '#C62828',
-                    fontWeight: 600,
-                  }}
-                >
-                  {cat.status === 'Pass'
-                    ? '✔'
-                    : cat.status === 'Pending'
-                    ? '•'
-                    : '✕'}{' '}
-                  {cat.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+            <p style={{ color: '#a0aec0', fontSize: '12px' }}>
+              Verified on the FPIA immutable ledger · fairproperties.org.za
+            </p>
 
-        {/* Ledger footer */}
-        <div
-          style={{
-            backgroundColor: 'var(--navy)',
-            borderRadius: '0 0 4px 4px',
-            padding: '24px 40px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <p style={{ color: '#a0aec0', fontSize: '12px' }}>
-            Verified on the FPIA immutable ledger · fairproperties.org.za
-          </p>
-          <p style={{ color: 'var(--gold)', fontSize: '12px', fontWeight: 600 }}>
-            {mock.ledger}
-          </p>
+            <p style={{ color: 'var(--gold)', fontSize: '12px', fontWeight: 600 }}>
+              {mock.ledger}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -679,8 +709,8 @@ export default async function VerifyProperty({
           paddingBottom: '60px',
         }}
       >
-        This certificate was issued by the Fair Property Inspection Authority (FPIA)
-        · South Africa
+        This certificate was issued by the Fair Property Inspection Authority
+        (FPIA) · South Africa
       </p>
     </main>
   )
