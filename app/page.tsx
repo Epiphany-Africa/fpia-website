@@ -491,16 +491,37 @@ export default function HomePage() {
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
             Protect your property transaction before it's too late.
           </h2>
-          <p style={{ color: 'rgba(11,31,51,0.7)' }} className="text-base mb-8 max-w-lg mx-auto">
-            Join sellers, agents, and buyers using FPIA to prevent costly surprises, failed deals, and post-transfer disputes.
+          <p
+            style={{ color: 'rgba(11,31,51,0.7)' }}
+            className="text-base mb-8 max-w-lg mx-auto"
+          >
+            Join sellers, agents, and buyers using FPIA to prevent costly surprises,
+            failed deals, and post-transfer disputes.
           </p>
+
           <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
-            <input type="email" placeholder="Your email address" style={{ border: '1px solid rgba(11,31,51,0.3)', color: 'var(--navy)' }} className="flex-1 px-4 py-3 text-sm bg-white/80 focus:outline-none focus:border-navy placeholder-slate-400" />
-            <button type="submit" style={{ backgroundColor: 'var(--navy)', color: 'white' }} className="px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity whitespace-nowrap">
+            <input
+              type="email"
+              placeholder="Your email address"
+              style={{
+                border: '1px solid rgba(11,31,51,0.3)',
+                color: 'var(--navy)',
+              }}
+              className="flex-1 px-4 py-3 text-sm bg-white/80 focus:outline-none focus:border-navy placeholder-slate-400"
+            />
+            <button
+              type="submit"
+              style={{ backgroundColor: 'var(--navy)', color: 'white' }}
+              className="px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity whitespace-nowrap"
+            >
               Register Now
             </button>
           </form>
-          <p style={{ color: 'rgba(11,31,51,0.5)' }} className="text-xs mt-4">
+
+          <p
+            style={{ color: 'rgba(11,31,51,0.5)' }}
+            className="text-xs mt-4"
+          >
             No commitment. Our team will contact you within 1 business day.
           </p>
         </div>
