@@ -63,9 +63,8 @@ export default function Nav() {
             priority
             style={{
               objectFit: 'contain',
+              height: '70px',
               width: 'auto',
-              height: '72px',
-              display: 'block',
             }}
           />
         </Link>

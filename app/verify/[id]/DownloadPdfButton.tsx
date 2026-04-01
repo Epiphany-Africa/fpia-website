@@ -96,22 +96,22 @@ export default function DownloadPdfButton({
       doc.setFillColor(255, 255, 255)
       doc.roundedRect(15, 20, 180, 245, 2, 2, 'F')
 
-      // Header band
-        doc.setFillColor(...navy)
-        doc.rect(15, 20, 180, 30, 'F')
+      /// Header band
+      doc.setFillColor(...navy)
+      doc.rect(15, 20, 180, 34, 'F')
 
-        // Logo in header
-        doc.addImage(logoDataUrl, 'PNG', 22, 23, 52, 14)
+      // Logo in header
+      doc.addImage(logoDataUrl, 'PNG', 22, 24, 64, 18)
 
-        // Header text
-        doc.setTextColor(...gold)
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(9)
-        doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 42)
+      // Header text
+      doc.setTextColor(...gold)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 46)
 
-        doc.setTextColor(255, 255, 255)
-        doc.setFontSize(12)
-        doc.text(`#${id}`, 22, 48)
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(12)
+      doc.text(`#${id}`, 22, 52)
 
       // Subtle watermark seal - bottom right
       doc.addImage(watermarkDataUrl, 'PNG', 146, 198, 40, 40)
