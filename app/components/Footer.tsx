@@ -32,7 +32,7 @@ export default function Footer() {
           }}
         >
           <Image
-            src="/fpia-logo-v2.png"
+            src="/fpia-logo.png"
             alt="FPIA Logo"
             width={320}
             height={95}
