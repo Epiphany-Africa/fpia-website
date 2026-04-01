@@ -118,7 +118,7 @@ export default function DownloadPdfButton({
       doc.text(`#${id}`, 22, 58)
 
       // Subtle watermark seal - bottom right
-      doc.addImage(watermarkDataUrl, 'PNG', 146, 198, 40, 40)
+      doc.addImage(watermarkDataUrl, 'PNG', 150, 202, 36, 36)
 
     // Status block (final layout)
 
@@ -131,7 +131,7 @@ export default function DownloadPdfButton({
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(18)
       doc.setTextColor(...statusColor)
-      doc.text(statusLabel, 50, 72)
+      doc.text(statusLabel, 48, 72)
 
      // Reset color back to black before Property section
       doc.setTextColor(...black)
@@ -141,24 +141,24 @@ export default function DownloadPdfButton({
       doc.text('Property:', 22, 82)
 
       doc.setFont('times', 'bold')
-      doc.setFontSize(14)
+      doc.setFontSize(13)
       doc.text(address, 22, 90)
 
       // QR block
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(220, 220, 220)
-      doc.roundedRect(136, 64, 42, 44, 1.5, 1.5, 'FD')
-      doc.addImage(qrCode, 'PNG', 142, 69, 30, 30)
+      doc.roundedRect(138, 66, 40, 42, 1.5, 1.5, 'FD')
+      doc.addImage(qrCode, 'PNG', 144, 71, 28, 28)
 
       doc.setTextColor(...black)
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.5)
-      doc.text('Scan to verify', 157, 103, { align: 'center' })
-      doc.text('authenticity', 157, 107, { align: 'center' })
+      doc.text('Scan to verify', 158, 100, { align: 'center' })
+      doc.text('authenticity', 158, 104, { align: 'center' })
 
       // Certificate details section 
       // // starts around 108–110 instead of 95-ish
-      doc.setDrawColor(230, 230, 230)
+      doc.setDrawColor(210, 210, 210)
       doc.line(20, 116, 190, 116)
 
       doc.setTextColor(...grey)
@@ -216,7 +216,7 @@ export default function DownloadPdfButton({
 
       // Signature block
       doc.setDrawColor(...black)
-      doc.line(22, 232, 88, 232)
+      doc.line(22, 232, 100, 232)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(10)
