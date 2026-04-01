@@ -26,8 +26,6 @@ export default function DownloadPdfButton({
       format: 'a4',
     })
 
-    const pageWidth = doc.internal.pageSize.getWidth()
-
     const navy: [number, number, number] = [11, 31, 51]
     const gold: [number, number, number] = [201, 161, 77]
     const green: [number, number, number] = [34, 139, 34]
@@ -53,9 +51,15 @@ export default function DownloadPdfButton({
             return
           }
 
-          ctx.globalAlpha = 0.12
+          if (src.includes('watermark')) {
+            ctx.globalAlpha = 0.08
+          } else {
+            ctx.globalAlpha = 1
+          }
+
           ctx.drawImage(img, 0, 0)
-          resolve(canvas.toDataURL('image/png'))
+          ctx.globalAlpha = 1 // reset after drawing
+            resolve(canvas.toDataURL('image/png'))
         }
         img.onerror = () => reject(new Error(`Failed to load image: ${src}`))
         img.src = src
