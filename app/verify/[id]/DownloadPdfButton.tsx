@@ -102,7 +102,7 @@ export default function DownloadPdfButton({
 
       /// Header band
       doc.setFillColor(...navy)
-      doc.rect(15, 20, 180, 34, 'F')
+      doc.rect(15, 20, 180, 40, 'F')
 
       // Logo in header
       doc.addImage(logoDataUrl, 'PNG', 22, 24, 64, 18)
@@ -111,11 +111,11 @@ export default function DownloadPdfButton({
       doc.setTextColor(...gold)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
-      doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 46)
-
+      doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 52)
+      
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(12)
-      doc.text(`#${id}`, 22, 52)
+      doc.text(`#${id}`, 22, 58)
 
       // Subtle watermark seal - bottom right
       doc.addImage(watermarkDataUrl, 'PNG', 146, 198, 40, 40)
@@ -125,24 +125,24 @@ export default function DownloadPdfButton({
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
       doc.setTextColor(...black)
-      doc.text('Status', 22, 62)
+      doc.text('Status', 22, 72)
 
       // Certified to the right of Status
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(18)
       doc.setTextColor(...statusColor)
-      doc.text(statusLabel, 50, 62)
+      doc.text(statusLabel, 50, 72)
 
      // Reset color back to black before Property section
       doc.setTextColor(...black)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
-      doc.text('Property:', 22, 86)
+      doc.text('Property:', 22, 82)
 
       doc.setFont('times', 'bold')
       doc.setFontSize(14)
-      doc.text(address, 22, 96)
+      doc.text(address, 22, 90)
 
       // QR block
       doc.setFillColor(255, 255, 255)
@@ -156,9 +156,10 @@ export default function DownloadPdfButton({
       doc.text('Scan to verify', 161, 98, { align: 'center' })
       doc.text('authenticity', 161, 102, { align: 'center' })
 
-      // Certificate details section
+      // Certificate details section 
+      // // starts around 108–110 instead of 95-ish
       doc.setDrawColor(230, 230, 230)
-      doc.line(22, 110, 188, 110)
+      doc.line(20, 98, 190, 98)
 
       doc.setTextColor(...grey)
       doc.setFont('helvetica', 'bold')
