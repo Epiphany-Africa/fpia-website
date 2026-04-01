@@ -237,7 +237,7 @@ export default async function VerifyProperty({
               style={{
                 objectFit: 'contain',
                 width: 'auto',
-                height: '52px',
+                height: '68px',
                 display: 'block',
               }}
             />
