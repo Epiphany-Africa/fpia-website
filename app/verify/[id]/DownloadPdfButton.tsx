@@ -153,8 +153,8 @@ export default function DownloadPdfButton({
       doc.setTextColor(...black)
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.5)
-      doc.text('Scan to verify', 158, 100, { align: 'center' })
-      doc.text('authenticity', 158, 104, { align: 'center' })
+      doc.text('Scan to verify', 158, 101, { align: 'center' })
+      doc.text('authenticity', 158, 105, { align: 'center' })
 
       // Certificate details section 
       // // starts around 108–110 instead of 95-ish
