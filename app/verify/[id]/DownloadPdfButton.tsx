@@ -125,24 +125,24 @@ export default function DownloadPdfButton({
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
       doc.setTextColor(...black)
-      doc.text('Status', 22, 72)
+      doc.text('Status', 22, 78)
 
       // Certified to the right of Status
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(18)
       doc.setTextColor(...statusColor)
-      doc.text(statusLabel, 48, 72)
+      doc.text(statusLabel, 46, 78)
 
      // Reset color back to black before Property section
       doc.setTextColor(...black)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
-      doc.text('Property:', 22, 82)
+      doc.text('Property:', 22, 90)
 
       doc.setFont('times', 'bold')
       doc.setFontSize(13)
-      doc.text(address, 22, 90)
+      doc.text(address, 22, 98)
 
       // QR block
       doc.setFillColor(255, 255, 255)
