@@ -147,28 +147,28 @@ export default function DownloadPdfButton({
       // QR block
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(220, 220, 220)
-      doc.roundedRect(140, 58, 42, 52, 1.5, 1.5, 'FD')
-      doc.addImage(qrCode, 'PNG', 146, 64, 30, 30)
+      doc.roundedRect(136, 64, 42, 44, 1.5, 1.5, 'FD')
+      doc.addImage(qrCode, 'PNG', 142, 69, 30, 30)
 
       doc.setTextColor(...black)
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8.5)
-      doc.text('Scan to verify', 161, 98, { align: 'center' })
-      doc.text('authenticity', 161, 102, { align: 'center' })
+      doc.setFontSize(7.5)
+      doc.text('Scan to verify', 157, 103, { align: 'center' })
+      doc.text('authenticity', 157, 107, { align: 'center' })
 
       // Certificate details section 
       // // starts around 108–110 instead of 95-ish
       doc.setDrawColor(230, 230, 230)
-      doc.line(20, 98, 190, 98)
+      doc.line(20, 116, 190, 116)
 
       doc.setTextColor(...grey)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8.5)
-      doc.text('CERTIFICATE DETAILS', 22, 118)
+      doc.text('CERTIFICATE DETAILS', 22, 126)
 
       const labelX = 22
       const valueX = 78
-      let y = 128
+      let y = 136
 
       const detailRow = (label: string, value: string) => {
         doc.setFont('helvetica', 'bold')
