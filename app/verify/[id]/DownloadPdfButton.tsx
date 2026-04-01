@@ -36,6 +36,7 @@ export default function DownloadPdfButton({
     const black: [number, number, number] = [0, 0, 0]
 
     const watermarkSrc = '/fpia-watermark.png'
+    const logoSrc = '/fpia-logo.png'
 
     const loadImageAsDataUrl = (src: string) =>
       new Promise<string>((resolve, reject) => {
@@ -82,7 +83,10 @@ export default function DownloadPdfButton({
     const shortHash = hash.length > 28 ? `${hash.slice(0, 28)}...` : hash
 
     try {
-      const watermarkDataUrl = await loadImageAsDataUrl(watermarkSrc)
+      const [watermarkDataUrl, logoDataUrl] = await Promise.all([
+        loadImageAsDataUrl(watermarkSrc),
+        loadImageAsDataUrl(logoSrc),
+      ])
 
       // Background
       doc.setFillColor(248, 248, 248)
@@ -93,17 +97,21 @@ export default function DownloadPdfButton({
       doc.roundedRect(15, 20, 180, 245, 2, 2, 'F')
 
       // Header band
-      doc.setFillColor(...navy)
-      doc.rect(15, 20, 180, 26, 'F')
+        doc.setFillColor(...navy)
+        doc.rect(15, 20, 180, 30, 'F')
 
-      doc.setTextColor(...gold)
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(10)
-      doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 30)
+        // Logo in header
+        doc.addImage(logoDataUrl, 'PNG', 22, 23, 52, 14)
 
-      doc.setTextColor(255, 255, 255)
-      doc.setFontSize(13)
-      doc.text(`#${id}`, 22, 39)
+        // Header text
+        doc.setTextColor(...gold)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(9)
+        doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 42)
+
+        doc.setTextColor(255, 255, 255)
+        doc.setFontSize(12)
+        doc.text(`#${id}`, 22, 48)
 
       // Subtle watermark seal - bottom right
       doc.addImage(watermarkDataUrl, 'PNG', 146, 198, 40, 40)

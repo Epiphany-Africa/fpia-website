@@ -1,6 +1,7 @@
 import DownloadPdfButton from './DownloadPdfButton'
 import CopyHashButton from './CopyHashButton'
 import QRCode from 'qrcode'
+import Image from 'next/image'
 
 function simpleHash(input: string) {
   let hash = 0
@@ -215,17 +216,32 @@ export default async function VerifyProperty({
         />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          {/* Status banner */}
-          <div
-            style={{
-              backgroundColor: 'var(--navy)',
-              borderRadius: '4px 4px 0 0',
-              padding: '32px 40px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
+            {/* Status banner */}
+        <div
+          style={{
+            backgroundColor: 'var(--navy)',
+            borderRadius: '4px 4px 0 0',
+            padding: '24px 40px 28px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <Image
+              src="/fpia-logo.png"
+              alt="FPIA Logo"
+              width={320}
+              height={90}
+              priority
+              style={{
+                objectFit: 'contain',
+                width: 'auto',
+                height: '52px',
+                display: 'block',
+              }}
+            />
+
             <div>
               <p
                 style={{
@@ -238,24 +254,25 @@ export default async function VerifyProperty({
               >
                 FPIA Verified Property Record
               </p>
-              <p style={{ color: '#a0aec0', fontSize: '14px' }}>#{mock.id}</p>
+              <p style={{ color: '#a0aec0', fontSize: '14px', margin: 0 }}>#{mock.id}</p>
             </div>
-
-            <span
-              style={{
-                ...statusStyles[mock.status],
-                padding: '6px 16px',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 600,
-              }}
-            >
-              ✔{' '}
-              {mock.status === 'NotCertified'
-                ? 'NOT CERTIFIED'
-                : mock.status.toUpperCase()}
-            </span>
           </div>
+
+          <span
+            style={{
+              ...statusStyles[mock.status],
+              padding: '6px 16px',
+              borderRadius: '4px',
+              fontSize: '14px',
+              fontWeight: 600,
+            }}
+          >
+            ✔{' '}
+            {mock.status === 'NotCertified'
+              ? 'NOT CERTIFIED'
+              : mock.status.toUpperCase()}
+          </span>
+</div>  
 
           {/* Verification Outcome */}
           <div
