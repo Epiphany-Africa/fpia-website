@@ -303,54 +303,62 @@ export default function DownloadPdfButton({
       doc.text(doc.splitTextToSize(legalText2, 150), 22, y + 20)
       doc.text(doc.splitTextToSize(legalText3, 150), 22, y + 33)
 
+      let lowerSectionStartY = y + 42
+
       if (recommendation?.trim()) {
         doc.setFont('helvetica', 'bold')
         doc.setFontSize(9)
         doc.setTextColor(...black)
-        doc.text('Certification Note', 22, y + 50)
+        doc.text('Certification Note', 22, lowerSectionStartY)
 
         doc.setFont('helvetica', 'normal')
         doc.setFontSize(8.5)
         doc.setTextColor(...grey)
-        doc.text(doc.splitTextToSize(recommendation, 150), 22, y + 57)
+
+        const recommendationLines = doc.splitTextToSize(recommendation, 120)
+        doc.text(recommendationLines, 22, lowerSectionStartY + 7)
+
+        lowerSectionStartY += recommendationLines.length * 4 + 16
       }
+    const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 210)
 
-    if (signatureDataUrl) {
-      const signatureFormat = 
-      signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
-      signatureImageUrl?.toLowerCase().endsWith('.jpeg')
-        ? 'JPEG'
-        : 'PNG'
+        if (signatureDataUrl) {
+          const signatureFormat =
+            signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
+            signatureImageUrl?.toLowerCase().endsWith('.jpeg')
+              ? 'JPEG'
+              : 'PNG'
 
-      doc.addImage(signatureDataUrl, signatureFormat, 22, 218, 42, 12)
-    }
-      doc.setDrawColor(...black)
-      doc.line(22, 232, 100, 232)
+          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureBlockTopY - 14, 42, 12)
+        }
 
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(10)
-      doc.setTextColor(...black)
-      doc.text(resolvedInspectorName, 22, 240)
+        doc.setDrawColor(...black)
+        doc.line(22, signatureBlockTopY, 100, signatureBlockTopY)
 
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8.5)
-      doc.setTextColor(...grey)
-      doc.text(resolvedInspectorRole, 22, 246)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.setTextColor(...black)
+        doc.text(resolvedInspectorName, 22, signatureBlockTopY + 8)
 
-      if (inspectorMeta) {
-        doc.text(inspectorMeta, 22, 251)
-      }
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8.5)
+        doc.setTextColor(...grey)
+        doc.text(resolvedInspectorRole, 22, signatureBlockTopY + 14)
 
-      doc.text(resolvedCompanyName, 22, 256)
+        if (inspectorMeta) {
+          doc.text(inspectorMeta, 22, signatureBlockTopY + 19)
+        }
 
-    if (stampDataUrl) {
-      const stampFormat = 
-      stampImageUrl?.toLowerCase().endsWith('.jpg') ||
-      stampImageUrl?.toLowerCase().endsWith('.jpeg')
+        doc.text(resolvedCompanyName, 22, signatureBlockTopY + 24)
+
+      if (stampDataUrl) {
+      const stampFormat =
+        stampImageUrl?.toLowerCase().endsWith('.jpg') ||
+        stampImageUrl?.toLowerCase().endsWith('.jpeg')
           ? 'JPEG'
           : 'PNG'
 
-      doc.addImage(stampDataUrl, stampFormat, 128, 210, 40, 40)
+      doc.addImage(stampDataUrl, stampFormat, 142, signatureBlockTopY - 6, 30, 30)
     }
 
       doc.setFillColor(...navy)
@@ -363,7 +371,7 @@ export default function DownloadPdfButton({
 
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...gold)
-      doc.text('ACCOUNTABILITY BUILT IN', 188, 260, { align: 'right' })
+      doc.text('ACCOUNTABILITY BUILT IN', 182, 260, { align: 'right' })
 
       doc.save(`FPIA-${id}.pdf`)
     } catch (error) {
