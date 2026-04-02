@@ -320,7 +320,7 @@ export default function DownloadPdfButton({
 
         lowerSectionStartY += recommendationLines.length * 4 + 16
       }
-    const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 210)
+    const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 196)
 
         if (signatureDataUrl) {
           const signatureFormat =
@@ -329,7 +329,7 @@ export default function DownloadPdfButton({
               ? 'JPEG'
               : 'PNG'
 
-          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureBlockTopY - 14, 42, 12)
+          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureBlockTopY - 16, 42, 12)
         }
 
         doc.setDrawColor(...black)
@@ -358,7 +358,7 @@ export default function DownloadPdfButton({
           ? 'JPEG'
           : 'PNG'
 
-      doc.addImage(stampDataUrl, stampFormat, 142, signatureBlockTopY - 6, 30, 30)
+      doc.addImage(stampDataUrl, stampFormat, 142, signatureBlockTopY - 10, 34, 34)
     }
 
       doc.setFillColor(...navy)
