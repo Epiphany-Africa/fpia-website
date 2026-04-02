@@ -302,7 +302,7 @@ export default function DownloadPdfButton({
             ? 'JPEG'
             : 'PNG'
 
-        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 14, 42, 12)
+        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 12, 42, 12)
       }
 
       doc.setDrawColor(...black)
@@ -335,11 +335,11 @@ export default function DownloadPdfButton({
       doc.text('VERIFICATION NOTICE', boxX + 4, boxY + 7)
 
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(7.2)
+      doc.setFontSize(7)
       doc.setTextColor(...grey)
       const verificationNotice =
         'Verification can be performed via the official FPIA registry.'
-      const verificationLines = doc.splitTextToSize(verificationNotice, boxW - 8)
+      const verificationLines = doc.splitTextToSize(verificationNotice, boxW - 10)
       doc.text(verificationLines, boxX + 4, boxY + 13)
 
       const noteHeadingY = boxY + 24
@@ -369,10 +369,10 @@ export default function DownloadPdfButton({
           stampFormat,
           98,
           signatureLineY - 4,
-          24,
-          24,
+          22,
+          22,
           undefined,
-          'NONE',
+          'FAST',
           45
         )
       }
@@ -386,7 +386,7 @@ export default function DownloadPdfButton({
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.5)
       doc.setTextColor(210, 210, 210)
-      doc.text('Verified on the official FPIA registry', 22, footerY + 5.2)
+      doc.text('Verified on the official FPIA registry', 22, footerY + 5)
 
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...gold)
