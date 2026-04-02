@@ -311,26 +311,40 @@ export default function DownloadPdfButton({
 
       // ===== LOWER AUTHORITY / VERIFICATION LAYOUT =====
       // Left authority block + right notice box, both above footer
-      const authorityTopY = 224
+      const authorityTopY = 218
       const signatureImageY = authorityTopY - 17
       const signatureLineY = authorityTopY
       const authorityTextY = authorityTopY + 8
 
       const boxX = 118
-      const boxY = 198
+      const boxY = 202
       const boxW = 62
-      const boxH = 40
+      const boxH = 44
 
       // LEFT: signature / authority block
-      if (signatureDataUrl) {
-        const signatureFormat =
-          signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
-          signatureImageUrl?.toLowerCase().endsWith('.jpeg')
-            ? 'JPEG'
-            : 'PNG'
+      if (stampDataUrl) {
+      const stampFormat =
+        stampImageUrl?.toLowerCase().endsWith('.jpg') ||
+        stampImageUrl?.toLowerCase().endsWith('.jpeg')
+          ? 'JPEG'
+          : 'PNG'
 
-        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureImageY, 38, 10)
-      }
+      const stampX = 132
+      const stampY = authorityTopY + 2
+      const stampSize = 24
+
+      doc.addImage(
+        stampDataUrl,
+        stampFormat,
+        stampX,
+        stampY,
+        stampSize,
+        stampSize,
+        undefined,
+        'NONE',
+        -45
+      )
+    }
 
       doc.setDrawColor(...black)
       doc.line(22, signatureLineY, 100, signatureLineY)
@@ -349,7 +363,7 @@ export default function DownloadPdfButton({
         doc.text(inspectorMeta, 22, authorityTextY + 11)
       }
 
-      doc.text(resolvedCompanyName, 22, authorityTextY + 16)
+      doc.text(resolvedCompanyName, 22, authorityTextY + 14)
 
       // RIGHT: verification / certification notice box
       doc.setFillColor(252, 252, 252)
