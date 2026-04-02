@@ -323,60 +323,71 @@ export default function DownloadPdfButton({
       }
     const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 220)
 
-        if (signatureDataUrl) {
-          const signatureFormat =
-            signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
-            signatureImageUrl?.toLowerCase().endsWith('.jpeg')
-              ? 'JPEG'
-              : 'PNG'
+              // ===== LOWER AUTHORITY / FOOTER LAYOUT =====
+      // Fixed A4-safe lower section
+      const authorityTopY = 214
+      const signatureImageY = authorityTopY - 18
+      const signatureLineY = authorityTopY
+      const authorityTextY = authorityTopY + 8
 
-          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureBlockTopY - 16, 40, 11)
-        }
-
-        doc.setDrawColor(...black)
-        doc.line(22, signatureBlockTopY, 100, signatureBlockTopY)
-
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(10)
-        doc.setTextColor(...black)
-        doc.text(resolvedInspectorName, 22, signatureBlockTopY + 8)
-
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8.5)
-        doc.setTextColor(...grey)
-        doc.text(resolvedInspectorRole, 22, signatureBlockTopY + 14)
-
-        if (inspectorMeta) {
-          doc.text(inspectorMeta, 22, signatureBlockTopY + 19)
-        }
-
-        doc.text(resolvedCompanyName, 22, signatureBlockTopY + 24)
-
-      if (stampDataUrl) {
-      const stampFormat =
-        stampImageUrl?.toLowerCase().endsWith('.jpg') ||
-        stampImageUrl?.toLowerCase().endsWith('.jpeg')
-          ? 'JPEG'
-          : 'PNG'
-
-      doc.addImage(stampDataUrl, stampFormat, 142, signatureBlockTopY - 18, 28, 28)
-    }
+      const stampX = 138
+      const stampY = authorityTopY - 20
+      const stampSize = 26
 
       const footerY = 257
       const footerHeight = 8
 
+      if (signatureDataUrl) {
+        const signatureFormat =
+          signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
+          signatureImageUrl?.toLowerCase().endsWith('.jpeg')
+            ? 'JPEG'
+            : 'PNG'
+
+        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureImageY, 40, 11)
+      }
+
+      doc.setDrawColor(...black)
+      doc.line(22, signatureLineY, 100, signatureLineY)
+
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.setTextColor(...black)
+      doc.text(resolvedInspectorName, 22, authorityTextY)
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...grey)
+      doc.text(resolvedInspectorRole, 22, authorityTextY + 6)
+
+      if (inspectorMeta) {
+        doc.text(inspectorMeta, 22, authorityTextY + 11)
+      }
+
+      doc.text(resolvedCompanyName, 22, authorityTextY + 16)
+
+      if (stampDataUrl) {
+        const stampFormat =
+          stampImageUrl?.toLowerCase().endsWith('.jpg') ||
+          stampImageUrl?.toLowerCase().endsWith('.jpeg')
+            ? 'JPEG'
+            : 'PNG'
+
+        doc.addImage(stampDataUrl, stampFormat, stampX, stampY, stampSize, stampSize)
+      }
+
+      // Footer pinned to base of certificate panel
       doc.setFillColor(...navy)
       doc.rect(15, footerY, 180, footerHeight, 'F')
 
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.5)
       doc.setTextColor(210, 210, 210)
-      doc.text('Verified on the official FPIA registry', 22, footerY + 5.4)
+      doc.text('Verified on the official FPIA registry', 22, footerY + 5.2)
 
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...gold)
-      doc.text('ACCOUNTABILITY BUILT IN', 182, footerY + 5.4, { align: 'right' })
-
+      doc.text('ACCOUNTABILITY BUILT IN', 186, footerY + 5.2, { align: 'right' })
       doc.save(`FPIA-${id}.pdf`)
     } catch (error) {
       console.error('Failed to generate PDF certificate:', error)
