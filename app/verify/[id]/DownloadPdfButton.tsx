@@ -164,19 +164,23 @@ export default function DownloadPdfButton({
 
       if (signatureImageUrl) {
         try {
-          signatureDataUrl = await loadRemoteImageAsDataUrl(signatureImageUrl)
+          signatureDataUrl = signatureImageUrl.startsWith('/')
+            ? await loadImageAsDataUrl(signatureImageUrl)
+            : await loadRemoteImageAsDataUrl(signatureImageUrl)
         } catch (error) {
           console.warn('Signature image could not be loaded:', error)
         }
       }
 
-      if (stampImageUrl) {
-        try {
-          stampDataUrl = await loadRemoteImageAsDataUrl(stampImageUrl)
-        } catch (error) {
-          console.warn('Stamp image could not be loaded:', error)
+        if (stampImageUrl) {
+          try {
+            stampDataUrl = stampImageUrl.startsWith('/')
+              ? await loadImageAsDataUrl(stampImageUrl)
+              : await loadRemoteImageAsDataUrl(stampImageUrl)
+          } catch (error) {
+            console.warn('Stamp image could not be loaded:', error)
         }
-      }
+    }
 
       doc.setFillColor(248, 248, 248)
       doc.rect(0, 0, 210, 297, 'F')
