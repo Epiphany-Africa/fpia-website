@@ -10,6 +10,30 @@ type Props = {
   address: string
   hash: string
   qrCode: string
+  issuedDate?: string | null
+  validUntil?: string | null
+  inspectorName?: string | null
+  inspectorRole?: string | null
+  inspectorCode?: string | null
+  badgeNumber?: string | null
+  companyName?: string | null
+  certificateType?: string | null
+  recommendation?: string | null
+  signatureImageUrl?: string | null
+  stampImageUrl?: string | null
+}
+
+function formatDate(input?: string | null) {
+  if (!input) return 'Not available'
+
+  const date = new Date(input)
+  if (Number.isNaN(date.getTime())) return 'Not available'
+
+  return new Intl.DateTimeFormat('en-ZA', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(date)
 }
 
 export default function DownloadPdfButton({
@@ -18,6 +42,17 @@ export default function DownloadPdfButton({
   address,
   hash,
   qrCode,
+  issuedDate,
+  validUntil,
+  inspectorName,
+  inspectorRole,
+  inspectorCode,
+  badgeNumber,
+  companyName,
+  certificateType,
+  recommendation,
+  signatureImageUrl,
+  stampImageUrl,
 }: Props) {
   const handleDownload = async () => {
     const doc = new jsPDF({
@@ -51,17 +86,34 @@ export default function DownloadPdfButton({
             return
           }
 
-          if (src.includes('watermark')) {
-            ctx.globalAlpha = 0.08
-          } else {
-            ctx.globalAlpha = 1
+          ctx.globalAlpha = src.includes('watermark') ? 0.08 : 1
+          ctx.drawImage(img, 0, 0)
+          ctx.globalAlpha = 1
+          resolve(canvas.toDataURL('image/png'))
+        }
+        img.onerror = () => reject(new Error(`Failed to load image: ${src}`))
+        img.src = src
+      })
+
+    const loadRemoteImageAsDataUrl = (src: string) =>
+      new Promise<string>((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.naturalWidth
+          canvas.height = img.naturalHeight
+          const ctx = canvas.getContext('2d')
+
+          if (!ctx) {
+            reject(new Error('Could not create canvas context'))
+            return
           }
 
           ctx.drawImage(img, 0, 0)
-          ctx.globalAlpha = 1 // reset after drawing
-            resolve(canvas.toDataURL('image/png'))
+          resolve(canvas.toDataURL('image/png'))
         }
-        img.onerror = () => reject(new Error(`Failed to load image: ${src}`))
+        img.onerror = () => reject(new Error(`Failed to load remote image: ${src}`))
         img.src = src
       })
 
@@ -80,71 +132,92 @@ export default function DownloadPdfButton({
         ? [21, 101, 192]
         : [198, 40, 40]
 
-    const validUntil =
-      safeStatus === 'certified' ? '30 March 2027' : 'Not currently applicable'
+    const issuedLabel = formatDate(issuedDate)
+    const validUntilLabel =
+      validUntil?.trim() || (safeStatus === 'certified'
+        ? 'Active until revoked or superseded'
+        : 'Not currently applicable')
 
-    const issuedDate = '30 March 2026'
     const shortHash = hash.length > 28 ? `${hash.slice(0, 28)}...` : hash
 
+    const resolvedCompanyName = companyName?.trim() || COMPANY_NAME
+    const resolvedInspectorName = inspectorName?.trim() || 'FPIA Inspector'
+    const resolvedInspectorRole =
+      inspectorRole?.trim() || 'Authorised Certification Officer'
+
+    const inspectorMetaParts = [badgeNumber?.trim(), inspectorCode?.trim()].filter(Boolean)
+    const inspectorMeta = inspectorMetaParts.join(' · ')
+
     try {
-      const [watermarkDataUrl, logoDataUrl] = await Promise.all([
+      const baseImages = await Promise.all([
         loadImageAsDataUrl(watermarkSrc),
         loadImageAsDataUrl(logoSrc),
       ])
 
-      // Background
+      const watermarkDataUrl = baseImages[0]
+      const logoDataUrl = baseImages[1]
+
+      let signatureDataUrl: string | null = null
+      let stampDataUrl: string | null = null
+
+      if (signatureImageUrl) {
+        try {
+          signatureDataUrl = await loadRemoteImageAsDataUrl(signatureImageUrl)
+        } catch (error) {
+          console.warn('Signature image could not be loaded:', error)
+        }
+      }
+
+      if (stampImageUrl) {
+        try {
+          stampDataUrl = await loadRemoteImageAsDataUrl(stampImageUrl)
+        } catch (error) {
+          console.warn('Stamp image could not be loaded:', error)
+        }
+      }
+
       doc.setFillColor(248, 248, 248)
       doc.rect(0, 0, 210, 297, 'F')
 
-      // Main certificate panel
       doc.setFillColor(255, 255, 255)
       doc.roundedRect(15, 20, 180, 245, 2, 2, 'F')
 
-      /// Header band
       doc.setFillColor(...navy)
       doc.rect(15, 20, 180, 40, 'F')
 
-      // Logo in header
       doc.addImage(logoDataUrl, 'PNG', 22, 24, 64, 18)
 
-      // Header text
       doc.setTextColor(...gold)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
       doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 52)
-      
+
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(12)
       doc.text(`#${id}`, 22, 58)
 
-      // Subtle watermark seal - bottom right
       doc.addImage(watermarkDataUrl, 'PNG', 150, 202, 36, 36)
-
-    // Status block (final layout)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
       doc.setTextColor(...black)
       doc.text('Status', 22, 76)
 
-      // Certified to the right of Status
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(18)
       doc.setTextColor(...statusColor)
       doc.text(statusLabel, 44, 76)
 
-     // Reset color back to black before Property section
       doc.setTextColor(...black)
-
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
       doc.text('Property:', 22, 88)
 
       doc.setFont('times', 'bold')
       doc.setFontSize(13)
-      doc.text(address, 22, 96)
+      const addressLines = doc.splitTextToSize(address, 105)
+      doc.text(addressLines, 22, 96)
 
-      // QR block
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(220, 220, 220)
       doc.roundedRect(138, 66, 40, 42, 1.5, 1.5, 'FD')
@@ -156,8 +229,6 @@ export default function DownloadPdfButton({
       doc.text('Scan to verify', 158, 101, { align: 'center' })
       doc.text('authenticity', 158, 105, { align: 'center' })
 
-      // Certificate details section 
-      // // starts around 108–110 instead of 95-ish
       doc.setDrawColor(210, 210, 210)
       doc.line(20, 116, 190, 116)
 
@@ -177,13 +248,14 @@ export default function DownloadPdfButton({
         doc.text(label, labelX, y)
 
         doc.setFont('helvetica', 'normal')
-        doc.text(value, valueX, y)
-        y += 11
+        const lines = doc.splitTextToSize(value, 105)
+        doc.text(lines, valueX, y)
+        y += Math.max(11, lines.length * 5 + 2)
       }
 
       detailRow('Certificate ID', id)
-      detailRow('Issued', issuedDate)
-      detailRow('Valid Until', validUntil)
+      detailRow('Issued', issuedLabel)
+      detailRow('Valid Until', validUntilLabel)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(10)
@@ -195,7 +267,10 @@ export default function DownloadPdfButton({
       doc.text(shortHash, valueX, y)
       y += 14
 
-      // Legal text
+      if (certificateType) {
+        detailRow('Certificate Type', certificateType)
+      }
+
       doc.setDrawColor(...lightGrey)
       doc.line(22, y - 4, 188, y - 4)
 
@@ -214,21 +289,45 @@ export default function DownloadPdfButton({
       doc.text(doc.splitTextToSize(legalText2, 150), 22, y + 20)
       doc.text(doc.splitTextToSize(legalText3, 150), 22, y + 33)
 
-      // Signature block
+      if (recommendation?.trim()) {
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(9)
+        doc.setTextColor(...black)
+        doc.text('Certification Note', 22, y + 50)
+
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8.5)
+        doc.setTextColor(...grey)
+        doc.text(doc.splitTextToSize(recommendation, 150), 22, y + 57)
+      }
+
+      if (signatureDataUrl) {
+        doc.addImage(signatureDataUrl, 'PNG', 22, 218, 42, 12)
+      }
+
       doc.setDrawColor(...black)
       doc.line(22, 232, 100, 232)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(10)
       doc.setTextColor(...black)
-      doc.text('Authorised Certification Officer', 22, 240)
+      doc.text(resolvedInspectorName, 22, 240)
 
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8.5)
       doc.setTextColor(...grey)
-      doc.text(COMPANY_NAME, 22, 247)
+      doc.text(resolvedInspectorRole, 22, 246)
 
-      // Footer strip
+      if (inspectorMeta) {
+        doc.text(inspectorMeta, 22, 251)
+      }
+
+      doc.text(resolvedCompanyName, 22, 256)
+
+      if (stampDataUrl) {
+        doc.addImage(stampDataUrl, 'PNG', 142, 214, 30, 30)
+      }
+
       doc.setFillColor(...navy)
       doc.rect(15, 252, 180, 13, 'F')
 

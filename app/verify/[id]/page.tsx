@@ -829,6 +829,21 @@ export default async function VerifyProperty({
               address={mock.address}
               hash={verificationHash}
               qrCode={qrCodeDataUrl}
+              issuedDate={registry?.issued_at ?? certificate?.issued_at}
+              validUntil={
+                mock.status === 'Certified'
+                  ? 'Active until revoked or superseded'
+                  : 'Not currently applicable'
+              }
+              inspectorName={inspector?.full_name ?? certificate?.inspector_name}
+              inspectorRole={certificate?.inspector_title ?? 'Authorised Certification Officer'}
+              inspectorCode={inspector?.inspector_code ?? certificate?.inspector_id}
+              badgeNumber={inspector?.badge_number}
+              companyName={inspector?.company_name}
+              certificateType={certificate?.certificate_type}
+              recommendation={certificate?.recommendation}
+              signatureImageUrl={certificate?.signature_image_url}
+              stampImageUrl={certificate?.stamp_image_url}
             />
           </div>
 
