@@ -147,8 +147,8 @@ export default function DownloadPdfButton({
     const resolvedInspectorRole =
       inspectorRole?.trim() || 'Authorised Certification Officer'
 
-    const inspectorMetaParts = [badgeNumber?.trim(), inspectorCode?.trim()].filter(Boolean)
-    const inspectorMeta = inspectorMetaParts.join(' · ')
+    const inspectorMetaParts = [inspectorCode?.trim(), badgeNumber?.trim()].filter(Boolean)
+    const inspectorMeta = inspectorMetaParts.join(' | ')
 
     try {
       const baseImages = await Promise.all([
@@ -206,8 +206,6 @@ export default function DownloadPdfButton({
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(12)
       doc.text(`#${id}`, 22, 58)
-
-      doc.addImage(watermarkDataUrl, 'PNG', 150, 202, 36, 36)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
@@ -320,7 +318,7 @@ export default function DownloadPdfButton({
 
         lowerSectionStartY += recommendationLines.length * 4 + 16
       }
-    const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 196)
+    const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 228)
 
         if (signatureDataUrl) {
           const signatureFormat =
@@ -329,7 +327,7 @@ export default function DownloadPdfButton({
               ? 'JPEG'
               : 'PNG'
 
-          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureBlockTopY - 16, 42, 12)
+          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureBlockTopY - 14, 40, 11)
         }
 
         doc.setDrawColor(...black)
@@ -358,20 +356,23 @@ export default function DownloadPdfButton({
           ? 'JPEG'
           : 'PNG'
 
-      doc.addImage(stampDataUrl, stampFormat, 142, signatureBlockTopY - 10, 34, 34)
+      doc.addImage(stampDataUrl, stampFormat, 142, signatureBlockTopY - 18, 30, 30)
     }
 
+      const footerY = 257
+      const footerHeight = 8
+
       doc.setFillColor(...navy)
-      doc.rect(15, 252, 180, 13, 'F')
+      doc.rect(15, footerY, 180, footerHeight, 'F')
 
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8.5)
+      doc.setFontSize(7.5)
       doc.setTextColor(210, 210, 210)
-      doc.text('Verified on the official FPIA registry', 22, 260)
+      doc.text('Verified on the official FPIA registry', 22, footerY + 5.4)
 
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...gold)
-      doc.text('ACCOUNTABILITY BUILT IN', 182, 260, { align: 'right' })
+      doc.text('ACCOUNTABILITY BUILT IN', 182, footerY + 5.4, { align: 'right' })
 
       doc.save(`FPIA-${id}.pdf`)
     } catch (error) {
