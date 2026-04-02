@@ -405,7 +405,7 @@ export default function DownloadPdfButton({
         stampSize,
         undefined,
         'NONE',
-        -45
+        30
       )
 }
       // Footer pinned to base of certificate panel
