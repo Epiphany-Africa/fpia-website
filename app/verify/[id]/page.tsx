@@ -4,6 +4,7 @@ import QRCode from 'qrcode'
 import Image from 'next/image'
 import type { CSSProperties } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import ConditionalActionPanel from './ConditionalActionPanel'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
