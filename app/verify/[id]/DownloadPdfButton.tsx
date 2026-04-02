@@ -304,14 +304,18 @@ export default function DownloadPdfButton({
       const boxH = 40
 
       // LEFT: signature / authority block
-      if (signatureDataUrl) {
-        const signatureFormat =
-          signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
-          signatureImageUrl?.toLowerCase().endsWith('.jpeg')
-            ? 'JPEG'
-            : 'PNG'
+        if (signatureDataUrl) {
+          const signatureFormat =
+            signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
+            signatureImageUrl?.toLowerCase().endsWith('.jpeg')
+              ? 'JPEG'
+              : 'PNG'
 
-        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 14, 42, 12)
+          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 14, 42, 12)
+        }
+
+        doc.setDrawColor(...black)
+        doc.line(22, signatureLineY, 90, signatureLineY)
       }
 
       doc.setDrawColor(...black)
@@ -335,12 +339,10 @@ export default function DownloadPdfButton({
       doc.text(resolvedCompanyName, 22, authorityTextY + 15)
 
       // RIGHT: verification / certification notice box
-      doc.setFillColor(252, 252, 252)
+      doc.setFillColor(248, 249, 250)
       doc.setDrawColor(220, 220, 220)
+      doc.setLineWidth(0.5)
       doc.roundedRect(boxX, boxY, boxW, boxH, 1.5, 1.5, 'FD')
-        fillColor: [248, 249, 250] // subtle grey
-        lineWidth: 0.5
-        lineHeight: 1.4
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8)
