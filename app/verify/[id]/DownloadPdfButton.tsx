@@ -320,7 +320,20 @@ export default function DownloadPdfButton({
       const boxW = 62
       const boxH = 44
 
-      // LEFT: signature / authority block
+      // ✅ SIGNATURE IMAGE (restore this)
+      if (signatureDataUrl) {
+        const signatureFormat =
+          signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
+          signatureImageUrl?.toLowerCase().endsWith('.jpeg')
+            ? 'JPEG'
+            : 'PNG'
+
+        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 14, 42, 12)
+      }
+
+      // Signature line
+      doc.setDrawColor(...black)
+      doc.line(22, signatureLineY, 100, signatureLineY)
       
       doc.setDrawColor(...black)
       doc.line(22, signatureLineY, 100, signatureLineY)
@@ -382,7 +395,24 @@ export default function DownloadPdfButton({
             ? 'JPEG'
             : 'PNG'
 
-        doc.addImage(stampDataUrl, stampFormat, 144, 220, 20, 20)
+              if (stampDataUrl) {
+        const stampFormat =
+          stampImageUrl?.toLowerCase().endsWith('.jpg') ||
+          stampImageUrl?.toLowerCase().endsWith('.jpeg')
+            ? 'JPEG'
+            : 'PNG'
+
+        doc.addImage(
+          stampDataUrl,
+          stampFormat,
+          98,                // more central
+          signatureLineY - 4, // aligned with authority area
+          24,
+          24,
+          undefined,
+          'NONE',
+          45                // 10 o’clock tilt
+        )
       }
   
       // Footer pinned to base of certificate panel
