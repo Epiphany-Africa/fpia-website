@@ -393,12 +393,11 @@ export default async function VerifyProperty({
       ? 'Registry lookup only'
       : 'Location not available'
 
-  const inspectorDisplay =
-    inspector?.full_name ??
-    certificate?.inspector_name ??
-    whiteSpace: 'pre-line'
-    registry?.inspector_signed_off_by ??
-    'FPIA Inspector'
+  const inspectorDisplay = inspector
+      ? `${inspector.full_name}\n${inspector.badge_number}`
+      : certificate?.inspector_name ??
+        registry?.inspector_signed_off_by ??
+        'FPIA Inspector'
 
   const validUntil =
     status === 'Certified' ? 'Active until revoked or superseded' : 'Not applicable'
@@ -955,6 +954,7 @@ export default async function VerifyProperty({
                     lineHeight: 1.5,
                     margin: 0,
                     wordBreak: 'break-word',
+                    whiteSpace: 'pre-line',
                   }}
                 >
                   {row.value}
