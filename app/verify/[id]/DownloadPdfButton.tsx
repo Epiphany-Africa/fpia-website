@@ -120,15 +120,19 @@ export default function DownloadPdfButton({
     const statusLabel =
       safeStatus === 'certified'
         ? 'CERTIFIED'
-        : safeStatus === 'pending'
-        ? 'PENDING'
+        : safeStatus === 'conditional'
+        ? 'CONDITIONAL'
+        : safeStatus === 'revoked'
+        ? 'REVOKED'
         : 'NOT CERTIFIED'
 
     const statusColor: [number, number, number] =
       safeStatus === 'certified'
         ? green
-        : safeStatus === 'pending'
-        ? [21, 101, 192]
+        : safeStatus === 'conditional'
+        ? [183, 121, 31]
+        : safeStatus === 'revoked'
+        ? [122, 28, 28]
         : [198, 40, 40]
 
     const issuedLabel = formatDate(issuedDate)
@@ -136,6 +140,10 @@ export default function DownloadPdfButton({
       validUntil?.trim() ||
       (safeStatus === 'certified'
         ? 'Active until revoked or superseded'
+        : safeStatus === 'conditional'
+        ? 'Conditionally active subject to recorded conditions'
+        : safeStatus === 'revoked'
+        ? 'No longer valid'
         : 'Not currently applicable')
 
     const shortHash =
@@ -189,7 +197,17 @@ export default function DownloadPdfButton({
       doc.setTextColor(...gold)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
-      doc.text('FPIA VERIFIED PROPERTY CERTIFICATE', 22, 52)
+      doc.text(
+        safeStatus === 'conditional'
+          ? 'FPIA CONDITIONAL PROPERTY CERTIFICATE'
+          : safeStatus === 'revoked'
+          ? 'FPIA REVOKED PROPERTY CERTIFICATE'
+          : safeStatus === 'certified'
+          ? 'FPIA VERIFIED PROPERTY CERTIFICATE'
+          : 'FPIA PROPERTY INSPECTION OUTCOME',
+        22,
+        52
+      )
 
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(12)
@@ -352,8 +370,14 @@ export default function DownloadPdfButton({
       doc.setFontSize(7.2)
       doc.setTextColor(...grey)
       const noteText =
-        recommendation?.trim() ||
-        'Certified record issued and active until revoked or superseded.'
+          recommendation?.trim() ||
+          (safeStatus === 'conditional'
+            ? 'Conditional certification issued subject to recorded conditions and remedial actions.'
+            : safeStatus === 'revoked'
+            ? 'This certificate has been revoked and should not be relied upon as evidence of active certification.'
+            : safeStatus === 'certified'
+            ? 'Certified record issued and active until revoked or superseded.'
+            : 'No active certification is currently in force for this property.')
       const noteLines = doc.splitTextToSize(noteText, boxW - 8)
       doc.text(noteLines, boxX + 4, noteHeadingY + 5)
 

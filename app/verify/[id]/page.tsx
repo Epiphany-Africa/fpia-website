@@ -10,7 +10,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-type Status = 'Certified' | 'Pending' | 'NotCertified'
+type Status = 'Certified' | 'Conditional' | 'NotCertified' | 'Revoked'
 
 type AuditItem = {
   label: string
@@ -155,18 +155,36 @@ function normalizeStatus(
   const registryStatus = (registry.status ?? '').toLowerCase()
   const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
   const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
+  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
   const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
 
-  if (certificate?.revoked_at || certificateState === 'revoked') {
-    return 'NotCertified'
-  }
+    if (certificate?.revoked_at || certificateState === 'revoked') {
+      return 'Revoked'
+    }
 
-  if (
-    registryStatus === 'certified' ||
-    workflowStatus === 'certified' ||
-    reviewOutcome === 'approved'
-  ) {
-    return 'Certified'
+    if (
+      certificateState === 'issued' &&
+      inspectionStatus === 'conditional'
+    ) {
+      return 'Conditional'
+    }
+
+    if (
+      certificateState === 'issued' &&
+      inspectionStatus === 'pass'
+    ) {
+      return 'Certified'
+    }
+
+    if (
+      registryStatus === 'certified' ||
+      workflowStatus === 'certified' ||
+      reviewOutcome === 'approved'
+    ) {
+      return 'Certified'
+    }
+
+      return 'NotCertified'
   }
 
   if (
@@ -262,29 +280,33 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
       }
     }
 
-    return Array.from(grouped.entries()).map(([name, groupedStatus]) => ({
-      name,
-      status: groupedStatus,
-    }))
-  }
+        return Array.from(grouped.entries()).map(([name, groupedStatus]) => ({
+          name,
+          status: groupedStatus,
+        }))
+      }
 
-  if (status === 'NotCertified') {
-    return [{ name: 'Certification Status', status: 'Fail' }]
-  }
+      if (status === 'Revoked') {
+        return [{ name: 'Certification Status', status: 'Fail' }]
+      }
 
-  if (status === 'Pending') {
-    return [{ name: 'Certification Status', status: 'Pending' }]
-  }
+      if (status === 'NotCertified') {
+        return [{ name: 'Certification Status', status: 'Fail' }]
+      }
 
-  return [{ name: 'Certification Status', status: 'Pass' }]
-}
+      if (status === 'Conditional') {
+        return [{ name: 'Certification Status', status: 'Pending' }]
+      }
 
-export default async function VerifyProperty({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
+      return [{ name: 'Certification Status', status: 'Pass' }]
+    }
+
+    export default async function VerifyProperty({
+      params,
+    }: {
+      params: Promise<{ id: string }>
+    }) {
+      const { id } = await params
   const normalizedId = id.toUpperCase()
 
   const { data: registryData, error: registryError } = await supabase
@@ -364,7 +386,7 @@ export default async function VerifyProperty({
   const auditTrail = buildAuditTrail(registry, auditRows)
   const categories = buildCategories(certificate, status)
 
-  const identityParts = [
+    const identityParts = [
     property?.unit_number,
     property?.building_name,
     property?.complex_name,
@@ -401,7 +423,13 @@ export default async function VerifyProperty({
       'FPIA Inspector'
 
   const validUntil =
-    status === 'Certified' ? 'Active until revoked or superseded' : 'Not applicable'
+    status === 'Certified'
+      ? 'Active until revoked or superseded'
+      : status === 'Conditional'
+      ? 'Conditionally active subject to recorded conditions'
+      : status === 'Revoked'
+      ? 'No longer valid'
+      : 'Not applicable'
 
   const ledger =
     registry?.property_code ??
@@ -432,56 +460,71 @@ export default async function VerifyProperty({
       message:
         'This record confirms that the certificate has been verified against the official FPIA registry and reflects the current certified status of the property.',
     },
-    Pending: {
-      title: 'This property is currently pending certification.',
+    Conditional: {
+      title: 'This property is conditionally certified.',
       message:
-        'An FPIA inspection or review is currently in progress. A final certification outcome has not yet been issued on the official registry.',
+        'This record confirms that a conditional certificate has been issued. Certification remains subject to disclosed conditions, remedial actions, or limitations recorded by FPIA.',
     },
     NotCertified: {
       title: 'This property is not currently certified.',
       message:
         'No valid active certification was found for this property on the official FPIA registry based on the certificate reference provided.',
     },
+    Revoked: {
+      title: 'This certificate has been revoked.',
+      message:
+        'A previously issued FPIA certificate existed for this property, but it is no longer valid. Please rely only on the current registry outcome and revocation details where provided.',
+    },
   }
 
   const statementStyles: Record<
-    Status,
-    { border: string; titleColor: string; backgroundColor: string }
-  > = {
-    Certified: {
-      border: '1px solid rgba(201,161,77,0.3)',
-      titleColor: '#1a7f37',
-      backgroundColor: '#fff',
-    },
-    Pending: {
-      border: '1px solid rgba(21,101,192,0.28)',
-      titleColor: '#1565C0',
-      backgroundColor: '#f8fbff',
-    },
-    NotCertified: {
-      border: '1px solid rgba(198,40,40,0.28)',
-      titleColor: '#C62828',
-      backgroundColor: '#fff8f8',
-    },
-  }
+  Status,
+  { border: string; titleColor: string; backgroundColor: string }
+> = {
+  Certified: {
+    border: '1px solid rgba(201,161,77,0.3)',
+    titleColor: '#1a7f37',
+    backgroundColor: '#fff',
+  },
+  Conditional: {
+    border: '1px solid rgba(201,161,77,0.35)',
+    titleColor: '#B7791F',
+    backgroundColor: '#fffaf2',
+  },
+  NotCertified: {
+    border: '1px solid rgba(198,40,40,0.28)',
+    titleColor: '#C62828',
+    backgroundColor: '#fff8f8',
+  },
+  Revoked: {
+    border: '1px solid rgba(120, 20, 20, 0.35)',
+    titleColor: '#7A1C1C',
+    backgroundColor: '#fff5f5',
+  },
+}
 
   const statusStyles: Record<string, CSSProperties> = {
-    Certified: {
-      background: '#E8F5E9',
-      color: '#2E7D32',
-      border: '1px solid #2E7D32',
-    },
-    Pending: {
-      background: '#E3F2FD',
-      color: '#1565C0',
-      border: '1px solid #1565C0',
-    },
-    NotCertified: {
-      background: '#FFEBEE',
-      color: '#C62828',
-      border: '1px solid #C62828',
-    },
-  }
+  Certified: {
+    background: '#E8F5E9',
+    color: '#2E7D32',
+    border: '1px solid #2E7D32',
+  },
+  Conditional: {
+    background: '#FFF4E5',
+    color: '#B7791F',
+    border: '1px solid #B7791F',
+  },
+  NotCertified: {
+    background: '#FFEBEE',
+    color: '#C62828',
+    border: '1px solid #C62828',
+  },
+  Revoked: {
+    background: '#FDECEC',
+    color: '#7A1C1C',
+    border: '1px solid #7A1C1C',
+  },
+}
 
   const integrityValueColor =
     mock.status === 'Certified'
@@ -586,7 +629,11 @@ export default async function VerifyProperty({
               ✔{' '}
               {mock.status === 'NotCertified'
                 ? 'NOT CERTIFIED'
-                : mock.status.toUpperCase()}
+                : mock.status === 'Conditional'
+                ? 'CONDITIONAL'
+                : mock.status === 'Revoked'
+                ? 'REVOKED'
+                : 'CERTIFIED'}
             </span>
           </div>
 
