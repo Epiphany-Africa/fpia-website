@@ -66,6 +66,9 @@ export default function DownloadPdfButton({
     const navy: [number, number, number] = [11, 31, 51]
     const gold: [number, number, number] = [201, 161, 77]
     const green: [number, number, number] = [34, 139, 34]
+    const amber: [number, number, number] = [183, 121, 31]
+    const revokedRed: [number, number, number] = [122, 28, 28]
+    const dangerRed: [number, number, number] = [198, 40, 40]
     const grey: [number, number, number] = [110, 110, 110]
     const lightGrey: [number, number, number] = [235, 235, 235]
     const black: [number, number, number] = [0, 0, 0]
@@ -117,6 +120,7 @@ export default function DownloadPdfButton({
       })
 
     const safeStatus = status.trim().toLowerCase()
+
     const statusLabel =
       safeStatus === 'certified'
         ? 'CERTIFIED'
@@ -130,12 +134,22 @@ export default function DownloadPdfButton({
       safeStatus === 'certified'
         ? green
         : safeStatus === 'conditional'
-        ? [183, 121, 31]
+        ? amber
         : safeStatus === 'revoked'
-        ? [122, 28, 28]
-        : [198, 40, 40]
+        ? revokedRed
+        : dangerRed
+
+    const certificateHeading =
+      safeStatus === 'conditional'
+        ? 'FPIA CONDITIONAL PROPERTY CERTIFICATE'
+        : safeStatus === 'revoked'
+        ? 'FPIA REVOKED PROPERTY CERTIFICATE'
+        : safeStatus === 'certified'
+        ? 'FPIA VERIFIED PROPERTY CERTIFICATE'
+        : 'FPIA PROPERTY INSPECTION OUTCOME'
 
     const issuedLabel = formatDate(issuedDate)
+
     const validUntilLabel =
       validUntil?.trim() ||
       (safeStatus === 'certified'
@@ -197,17 +211,7 @@ export default function DownloadPdfButton({
       doc.setTextColor(...gold)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9)
-      doc.text(
-        safeStatus === 'conditional'
-          ? 'FPIA CONDITIONAL PROPERTY CERTIFICATE'
-          : safeStatus === 'revoked'
-          ? 'FPIA REVOKED PROPERTY CERTIFICATE'
-          : safeStatus === 'certified'
-          ? 'FPIA VERIFIED PROPERTY CERTIFICATE'
-          : 'FPIA PROPERTY INSPECTION OUTCOME',
-        22,
-        52
-      )
+      doc.text(certificateHeading, 22, 52)
 
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(12)
@@ -364,20 +368,31 @@ export default function DownloadPdfButton({
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8)
       doc.setTextColor(...black)
-      doc.text('CERTIFICATION NOTE', boxX + 4, noteHeadingY)
+      doc.text(
+        safeStatus === 'conditional'
+          ? 'CONDITIONS'
+          : safeStatus === 'revoked'
+          ? 'REVOCATION NOTE'
+          : safeStatus === 'certified'
+          ? 'CERTIFICATION NOTE'
+          : 'ASSESSMENT NOTE',
+        boxX + 4,
+        noteHeadingY
+      )
 
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(7.2)
       doc.setTextColor(...grey)
       const noteText =
-          recommendation?.trim() ||
-          (safeStatus === 'conditional'
-            ? 'Conditional certification issued subject to recorded conditions and remedial actions.'
-            : safeStatus === 'revoked'
-            ? 'This certificate has been revoked and should not be relied upon as evidence of active certification.'
-            : safeStatus === 'certified'
-            ? 'Certified record issued and active until revoked or superseded.'
-            : 'No active certification is currently in force for this property.')
+        recommendation?.trim() ||
+        (safeStatus === 'conditional'
+          ? 'Conditional certification issued subject to recorded conditions and remedial actions.'
+          : safeStatus === 'revoked'
+          ? 'This certificate has been revoked and should not be relied upon as evidence of active certification.'
+          : safeStatus === 'certified'
+          ? 'Certified record issued and active until revoked or superseded.'
+          : 'No active certification is currently in force for this property.')
+
       const noteLines = doc.splitTextToSize(noteText, boxW - 8)
       doc.text(noteLines, boxX + 4, noteHeadingY + 5)
 
@@ -414,7 +429,7 @@ export default function DownloadPdfButton({
 
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...gold)
-      doc.text('ACCOUNTABILITY BUILT IN', 186, footerY + 5.2, { align: 'right' })
+      doc.text('ACCOUNTABILITY BUILT IN', 186, footerY + 5, { align: 'right' })
 
       doc.save(`FPIA-${id}.pdf`)
     } catch (error) {
