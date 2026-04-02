@@ -2,15 +2,13 @@ import DownloadPdfButton from './DownloadPdfButton'
 import CopyHashButton from './CopyHashButton'
 import QRCode from 'qrcode'
 import Image from 'next/image'
+import type { CSSProperties } from 'react'
+import { createClient } from '@supabase/supabase-js'
 
-function simpleHash(input: string) {
-  let hash = 0
-  for (let i = 0; i < input.length; i++) {
-    hash = (hash << 5) - hash + input.charCodeAt(i)
-    hash |= 0
-  }
-  return Math.abs(hash).toString(16).padStart(16, '0')
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 type Status = 'Certified' | 'Pending' | 'NotCertified'
 
@@ -24,6 +22,259 @@ type CategoryItem = {
   status: 'Pass' | 'Pending' | 'Fail'
 }
 
+type RegistryRow = {
+  id: string
+  property_id: string
+  inspector_id: string | null
+  report_code: string
+  property_code: string | null
+  issued_at: string | null
+  status: string | null
+  is_locked: boolean | null
+  report_hash: string | null
+  locked_at: string | null
+  workflow_status: string | null
+  lock_status: string | null
+  inspector_signed_off_by: string | null
+  inspector_signed_off_at: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  certified_by: string | null
+  certified_at: string | null
+  final_hash: string | null
+  review_outcome: string | null
+  review_notes: string | null
+  submitted_for_review_at: string | null
+  certificate_number: string | null
+}
+
+type PropertyRow = {
+  id: string
+  title: string | null
+  address: string | null
+  city: string | null
+  province: string | null
+  postal_code: string | null
+  status: string | null
+  transaction_stage: string | null
+  property_type: string | null
+  notes: string | null
+  risk_score: number | null
+  created_at: string | null
+}
+
+type CertificateRow = {
+  id: string
+  case_id: string
+  issued_by: string | null
+  issued_at: string | null
+  certificate_type: string | null
+  inspection_status: string | null
+  verification_ref: string | null
+  recommendation: string | null
+  snapshot: any
+  certificate_state: string | null
+  revoked_at: string | null
+  revoked_reason: string | null
+  inspector_name: string | null
+  inspector_id: string | null
+  inspector_title: string | null
+  signature_name: string | null
+  integrity_hash: string | null
+  hash_version: string | null
+  signature_image_url: string | null
+  stamp_image_url: string | null
+  certificate_number: string | null
+  trust_score: number | null
+}
+
+type AuditLogRow = {
+  id: string
+  property_id: string | null
+  event_type: string | null
+  status_label: string | null
+  event_message: string | null
+  previous_hash: string | null
+  new_hash: string | null
+  created_at: string
+  report_id: string | null
+  action: string | null
+  performed_by: string | null
+}
+
+type InspectorRow = {
+  id: string
+  full_name: string
+  inspector_code: string
+  badge_number: string
+  company_name: string
+  signature_file_path: string | null
+  stamp_file_path: string | null
+  is_active: boolean
+  created_at: string
+}
+
+function formatDate(input: string | null | undefined) {
+  if (!input) return 'Not available'
+
+  const date = new Date(input)
+  if (Number.isNaN(date.getTime())) return 'Not available'
+
+  return new Intl.DateTimeFormat('en-ZA', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(date)
+}
+
+function formatDateTime(input: string | null | undefined) {
+  if (!input) return 'Not available'
+
+  const date = new Date(input)
+  if (Number.isNaN(date.getTime())) return 'Not available'
+
+  return new Intl.DateTimeFormat('en-ZA', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+function normalizeStatus(
+  registry: RegistryRow | null,
+  certificate: CertificateRow | null
+): Status {
+  if (!registry) return 'NotCertified'
+
+  const registryStatus = (registry.status ?? '').toLowerCase()
+  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
+  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
+  const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
+
+  if (certificate?.revoked_at || certificateState === 'revoked') {
+    return 'NotCertified'
+  }
+
+  if (
+    registryStatus === 'certified' ||
+    workflowStatus === 'certified' ||
+    reviewOutcome === 'approved'
+  ) {
+    return 'Certified'
+  }
+
+  if (
+    registryStatus === 'locked' ||
+    workflowStatus === 'in_review' ||
+    workflowStatus === 'pending' ||
+    reviewOutcome === 'pending'
+  ) {
+    return 'Pending'
+  }
+
+  return 'Pending'
+}
+
+function buildAuditTrail(
+  registry: RegistryRow | null,
+  auditRows: AuditLogRow[] | null
+): AuditItem[] {
+  const rows = auditRows ?? []
+
+  if (!registry && rows.length === 0) {
+    return [
+      { label: 'Lookup Performed', value: formatDateTime(new Date().toISOString()) },
+      { label: 'Registry Match', value: 'No active certification found' },
+      { label: 'Last Verified', value: formatDateTime(new Date().toISOString()) },
+    ]
+  }
+
+  const preferred = rows
+    .map((row) => ({
+      label:
+        row.event_type === 'REPORT_SUBMITTED'
+          ? 'Report Submitted'
+          : row.event_type === 'REPORT_APPROVED'
+          ? 'Report Approved'
+          : row.event_type === 'REPORT_CERTIFIED'
+          ? 'Report Certified'
+          : row.event_type === 'REPORT_RELOCKED'
+          ? 'Report Re-Locked'
+          : row.event_type === 'CERTIFICATION_INVALIDATED'
+          ? 'Certification Invalidated'
+          : row.event_type ?? 'Registry Event',
+      value: formatDateTime(row.created_at),
+    }))
+    .slice(-3)
+
+  if (preferred.length > 0) return preferred
+
+  return [
+    {
+      label: 'Record Created',
+      value: formatDateTime(registry?.issued_at ?? registry?.submitted_for_review_at),
+    },
+    {
+      label: 'Record Locked',
+      value: formatDateTime(registry?.locked_at),
+    },
+    {
+      label: 'Last Verified',
+      value: formatDateTime(registry?.certified_at ?? registry?.reviewed_at),
+    },
+  ]
+}
+
+function buildCategories(certificate: CertificateRow | null, status: Status): CategoryItem[] {
+  const checklist = certificate?.snapshot?.checklist
+
+  if (Array.isArray(checklist) && checklist.length > 0) {
+    const grouped = new Map<string, CategoryItem['status']>()
+
+    for (const item of checklist) {
+      const section = String(item?.section ?? 'General')
+      const result = String(item?.result ?? '').toLowerCase()
+
+      let mapped: CategoryItem['status'] = 'Pending'
+      if (result === 'pass') mapped = 'Pass'
+      if (result === 'fail') mapped = 'Fail'
+      if (result === 'observation') mapped = 'Pending'
+
+      const existing = grouped.get(section)
+
+      if (!existing) {
+        grouped.set(section, mapped)
+        continue
+      }
+
+      if (existing === 'Fail') continue
+      if (existing === 'Pending' && mapped === 'Pass') continue
+      if (mapped === 'Fail') {
+        grouped.set(section, 'Fail')
+      } else if (mapped === 'Pending') {
+        grouped.set(section, 'Pending')
+      }
+    }
+
+    return Array.from(grouped.entries()).map(([name, groupedStatus]) => ({
+      name,
+      status: groupedStatus,
+    }))
+  }
+
+  if (status === 'NotCertified') {
+    return [{ name: 'Certification Status', status: 'Fail' }]
+  }
+
+  if (status === 'Pending') {
+    return [{ name: 'Certification Status', status: 'Pending' }]
+  }
+
+  return [{ name: 'Certification Status', status: 'Pass' }]
+}
+
 export default async function VerifyProperty({
   params,
 }: {
@@ -32,81 +283,113 @@ export default async function VerifyProperty({
   const { id } = await params
   const normalizedId = id.toUpperCase()
 
-  let status: Status = 'Certified'
+  const { data: registryData, error: registryError } = await supabase
+    .from('report_registry')
+    .select('*')
+    .or(`certificate_number.eq.${normalizedId},report_code.eq.${normalizedId}`)
+    .maybeSingle()
 
-  if (normalizedId.includes('PENDING')) {
-    status = 'Pending'
-  } else if (
-    normalizedId.includes('FAIL') ||
-    normalizedId.includes('NOT') ||
-    normalizedId.includes('INVALID')
-  ) {
-    status = 'NotCertified'
+  const registry = (registryData as RegistryRow | null) ?? null
+
+  let property: PropertyRow | null = null
+  let certificate: CertificateRow | null = null
+  let auditRows: AuditLogRow[] = []
+  let inspector: InspectorRow | null = null
+
+  if (registry && !registryError) {
+    const [{ data: propertyData }, { data: certificateData }, { data: auditData }] =
+      await Promise.all([
+        supabase
+          .from('properties')
+          .select('*')
+          .eq('id', registry.property_id)
+          .maybeSingle(),
+        supabase
+          .from('issued_certificates')
+          .select('*')
+          .or(
+            registry.certificate_number
+              ? `certificate_number.eq.${registry.certificate_number},verification_ref.eq.${registry.report_code}`
+              : `verification_ref.eq.${registry.report_code}`
+          )
+          .order('issued_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('report_audit_log')
+          .select('*')
+          .eq('report_id', registry.id)
+          .order('created_at', { ascending: true }),
+      ])
+
+    property = (propertyData as PropertyRow | null) ?? null
+    certificate = (certificateData as CertificateRow | null) ?? null
+    auditRows = (auditData as AuditLogRow[] | null) ?? []
+
+    if (registry.inspector_id) {
+      const { data: inspectorData } = await supabase
+        .from('inspectors')
+        .select('*')
+        .eq('id', registry.inspector_id)
+        .maybeSingle()
+
+      inspector = (inspectorData as InspectorRow | null) ?? null
+    }
   }
 
-  const verificationHash = simpleHash(id + status)
+  const status = normalizeStatus(registry, certificate)
+
+  const verificationHash =
+    registry?.final_hash ??
+    registry?.report_hash ??
+    certificate?.integrity_hash ??
+    'No active verification hash'
+
   const verificationUrl = `https://www.fairproperties.org.za/verify/${id}`
   const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
     width: 180,
     margin: 1,
   })
 
-  const auditTrail: AuditItem[] =
-    status === 'Certified'
-      ? [
-          { label: 'Record Created', value: '14 March 2024 · 09:12' },
-          { label: 'Record Locked', value: '14 March 2024 · 11:48' },
-          { label: 'Last Verified', value: '30 March 2026 · 08:41' },
-        ]
-      : status === 'Pending'
-      ? [
-          { label: 'Record Created', value: '30 March 2026 · 08:05' },
-          { label: 'Inspection Scheduled', value: '31 March 2026 · 10:00' },
-          { label: 'Last Verified', value: '30 March 2026 · 08:41' },
-        ]
-      : [
-          { label: 'Lookup Performed', value: '30 March 2026 · 08:41' },
-          { label: 'Registry Match', value: 'No active certification found' },
-          { label: 'Last Verified', value: '30 March 2026 · 08:41' },
-        ]
+  const auditTrail = buildAuditTrail(registry, auditRows)
+  const categories = buildCategories(certificate, status)
 
-  const categories: CategoryItem[] =
-    status === 'NotCertified'
-      ? [
-          { name: 'Electrical', status: 'Fail' },
-          { name: 'Structural', status: 'Fail' },
-          { name: 'Gas', status: 'Fail' },
-          { name: 'Entomology', status: 'Fail' },
-          { name: 'Electric Fence', status: 'Fail' },
-          { name: 'Roof', status: 'Fail' },
-        ]
-      : status === 'Pending'
-      ? [
-          { name: 'Electrical', status: 'Pending' },
-          { name: 'Structural', status: 'Pending' },
-          { name: 'Gas', status: 'Pending' },
-          { name: 'Entomology', status: 'Pending' },
-          { name: 'Electric Fence', status: 'Pending' },
-          { name: 'Roof', status: 'Pending' },
-        ]
-      : [
-          { name: 'Electrical', status: 'Pass' },
-          { name: 'Structural', status: 'Pass' },
-          { name: 'Gas', status: 'Pass' },
-          { name: 'Entomology', status: 'Pass' },
-          { name: 'Electric Fence', status: 'Pass' },
-          { name: 'Roof', status: 'Pass' },
-        ]
+  const propertyAddress =
+    property?.address ??
+    (status === 'NotCertified' ? 'No active certified property record found' : 'Unknown property')
+
+  const propertyProvince = property
+    ? [property.city, property.province, property.postal_code].filter(Boolean).join(', ')
+    : 'Registry lookup only'
+
+  const inspectorDisplay =
+    inspector?.full_name ??
+    certificate?.inspector_name ??
+    registry?.inspector_signed_off_by ??
+    'FPIA Inspector'
+
+  const validUntil =
+    status === 'Certified' ? 'Active until revoked or superseded' : 'Not applicable'
+
+  const ledger =
+    registry?.property_code ??
+    registry?.report_code ??
+    certificate?.verification_ref ??
+    'No active ledger entry'
 
   const mock = {
-    id,
-    address: '22 Zimbali Wedge, Ballito',
-    province: 'KZN, 4420',
+    id: registry?.certificate_number ?? registry?.report_code ?? id,
+    address: propertyAddress,
+    province: propertyProvince,
     status,
-    inspectionDate: '14 March 2024',
-    inspector: 'S. van der Merwe — SACPCMP Reg.',
-    validUntil: status === 'Certified' ? '14 March 2025' : 'Not applicable',
-    ledger: status === 'Certified' ? 'Block #88,241' : 'No active ledger entry',
+    inspectionDate: formatDate(registry?.issued_at ?? certificate?.issued_at),
+    inspector: inspector
+      ? `${inspector.full_name} — ${inspector.badge_number}`
+      : certificate?.inspector_title
+      ? `${inspectorDisplay} — ${certificate.inspector_title}`
+      : inspectorDisplay,
+    validUntil,
+    ledger,
     auditTrail,
     categories,
   }
@@ -150,7 +433,7 @@ export default async function VerifyProperty({
     },
   }
 
-  const statusStyles: Record<string, React.CSSProperties> = {
+  const statusStyles: Record<string, CSSProperties> = {
     Certified: {
       background: '#E8F5E9',
       color: '#2E7D32',
@@ -216,65 +499,65 @@ export default async function VerifyProperty({
         />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-            {/* Status banner */}
-        <div
-          style={{
-            backgroundColor: 'var(--navy)',
-            borderRadius: '4px 4px 0 0',
-            padding: '24px 40px 28px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <Image
-              src="/fpia-logo.png"
-              alt="FPIA Logo"
-              width={320}
-              height={90}
-              priority
-              style={{
-                objectFit: 'contain',
-                width: 'auto',
-                height: '68px',
-                display: 'block',
-              }}
-            />
-
-            <div>
-              <p
-                style={{
-                  color: 'var(--gold)',
-                  fontSize: '11px',
-                  letterSpacing: '3px',
-                  textTransform: 'uppercase',
-                  marginBottom: '8px',
-                }}
-              >
-                FPIA Verified Property Record
-              </p>
-              <p style={{ color: '#a0aec0', fontSize: '14px', margin: 0 }}>#{mock.id}</p>
-            </div>
-          </div>
-
-          <span
+          <div
             style={{
-              ...statusStyles[mock.status],
-              padding: '6px 16px',
-              borderRadius: '4px',
-              fontSize: '14px',
-              fontWeight: 600,
+              backgroundColor: 'var(--navy)',
+              borderRadius: '4px 4px 0 0',
+              padding: '24px 40px 28px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
             }}
           >
-            ✔{' '}
-            {mock.status === 'NotCertified'
-              ? 'NOT CERTIFIED'
-              : mock.status.toUpperCase()}
-          </span>
-</div>  
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <Image
+                src="/fpia-logo.png"
+                alt="FPIA Logo"
+                width={320}
+                height={90}
+                priority
+                style={{
+                  objectFit: 'contain',
+                  width: 'auto',
+                  height: '68px',
+                  display: 'block',
+                }}
+              />
 
-          {/* Verification Outcome */}
+              <div>
+                <p
+                  style={{
+                    color: 'var(--gold)',
+                    fontSize: '11px',
+                    letterSpacing: '3px',
+                    textTransform: 'uppercase',
+                    marginBottom: '8px',
+                  }}
+                >
+                  FPIA Verified Property Record
+                </p>
+                <p style={{ color: '#a0aec0', fontSize: '14px', margin: 0 }}>
+                  #{mock.id}
+                </p>
+              </div>
+            </div>
+
+            <span
+              style={{
+                ...statusStyles[mock.status],
+                padding: '6px 16px',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 600,
+              }}
+            >
+              ✔{' '}
+              {mock.status === 'NotCertified'
+                ? 'NOT CERTIFIED'
+                : mock.status.toUpperCase()}
+            </span>
+          </div>
+
           <div
             style={{
               backgroundColor: statementStyles[mock.status].backgroundColor,
@@ -320,7 +603,6 @@ export default async function VerifyProperty({
             </p>
           </div>
 
-          {/* Integrity Strip */}
           <div
             style={{
               backgroundColor: 'var(--navy)',
@@ -339,7 +621,7 @@ export default async function VerifyProperty({
               <div>
                 <p style={integrityLabelStyle}>Record Integrity</p>
                 <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
-                  {mock.status === 'Certified'
+                  {registry?.is_locked
                     ? 'Locked'
                     : mock.status === 'Pending'
                     ? 'In Review'
@@ -395,7 +677,6 @@ export default async function VerifyProperty({
             </div>
           </div>
 
-          {/* Audit Trail */}
           <div
             style={{
               backgroundColor: '#fff',
@@ -461,7 +742,6 @@ export default async function VerifyProperty({
             </div>
           </div>
 
-          {/* QR Verification */}
           <div
             style={{
               backgroundColor: '#fff',
@@ -552,7 +832,6 @@ export default async function VerifyProperty({
             />
           </div>
 
-          {/* Property details */}
           <div
             style={{
               backgroundColor: '#fff',
@@ -619,15 +898,12 @@ export default async function VerifyProperty({
                     {row.label}
                   </p>
 
-                  <p style={{ fontWeight: 600, color: 'var(--navy)' }}>
-                    {row.value}
-                  </p>
+                  <p style={{ fontWeight: 600, color: 'var(--navy)' }}>{row.value}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Compliance categories */}
           <div
             style={{
               backgroundColor: '#fff',
@@ -696,7 +972,6 @@ export default async function VerifyProperty({
             </div>
           </div>
 
-          {/* Ledger footer */}
           <div
             style={{
               backgroundColor: 'var(--navy)',
@@ -733,7 +1008,7 @@ export default async function VerifyProperty({
   )
 }
 
-const integrityLabelStyle: React.CSSProperties = {
+const integrityLabelStyle: CSSProperties = {
   fontSize: '11px',
   letterSpacing: '2px',
   textTransform: 'uppercase',
@@ -742,9 +1017,8 @@ const integrityLabelStyle: React.CSSProperties = {
   fontWeight: 700,
 }
 
-const integrityValueStyle: React.CSSProperties = {
+const integrityValueStyle: CSSProperties = {
   fontSize: '14px',
   margin: 0,
   fontWeight: 600,
 }
-
