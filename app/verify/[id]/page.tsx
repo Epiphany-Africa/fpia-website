@@ -12,41 +12,6 @@ const supabase = createClient(
 
 type Status = 'Certified' | 'Conditional' | 'NotCertified' | 'Revoked'
 
-function normalizeStatus(
-  registry: RegistryRow | null,
-  certificate: CertificateRow | null
-): Status {
-  if (!registry) return 'NotCertified'
-
-  const registryStatus = (registry.status ?? '').toLowerCase()
-  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
-  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
-  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
-  const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
-
-  if (certificate?.revoked_at || certificateState === 'revoked') {
-    return 'Revoked'
-  }
-
-  if (certificateState === 'issued' && inspectionStatus === 'conditional') {
-    return 'Conditional'
-  }
-
-  if (certificateState === 'issued' && inspectionStatus === 'pass') {
-    return 'Certified'
-  }
-
-  if (
-    registryStatus === 'certified' ||
-    workflowStatus === 'certified' ||
-    reviewOutcome === 'approved'
-  ) {
-    return 'Certified'
-  }
-
-  return 'NotCertified'
-}
-
 type AuditItem = {
   label: string
   value: string
@@ -153,6 +118,41 @@ type InspectorRow = {
   created_at: string
 }
 
+function normalizeStatus(
+  registry: RegistryRow | null,
+  certificate: CertificateRow | null
+): Status {
+  if (!registry) return 'NotCertified'
+
+  const registryStatus = (registry.status ?? '').toLowerCase()
+  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
+  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
+  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
+  const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
+
+  if (certificate?.revoked_at || certificateState === 'revoked') {
+    return 'Revoked'
+  }
+
+  if (certificateState === 'issued' && inspectionStatus === 'conditional') {
+    return 'Conditional'
+  }
+
+  if (certificateState === 'issued' && inspectionStatus === 'pass') {
+    return 'Certified'
+  }
+
+  if (
+    registryStatus === 'certified' ||
+    workflowStatus === 'certified' ||
+    reviewOutcome === 'approved'
+  ) {
+    return 'Certified'
+  }
+
+  return 'NotCertified'
+}
+
 function formatDate(input: string | null | undefined) {
   if (!input) return 'Not available'
 
@@ -195,7 +195,7 @@ function buildAuditTrail(
     ]
   }
 
-    const preferred = rows
+  const preferred = rows
     .map((row) => ({
       label:
         row.event_type === 'REPORT_SUBMITTED'
@@ -255,6 +255,7 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
 
       if (existing === 'Fail') continue
       if (existing === 'Conditional' && mapped === 'Pass') continue
+
       if (mapped === 'Fail') {
         grouped.set(section, 'Fail')
       } else if (mapped === 'Conditional') {
@@ -262,33 +263,33 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
       }
     }
 
-        return Array.from(grouped.entries()).map(([name, groupedStatus]) => ({
-          name,
-          status: groupedStatus,
-        }))
-      }
+    return Array.from(grouped.entries()).map(([name, groupedStatus]) => ({
+      name,
+      status: groupedStatus,
+    }))
+  }
 
-      if (status === 'Revoked') {
-        return [{ name: 'Certification Status', status: 'Fail' }]
-      }
+  if (status === 'Revoked') {
+    return [{ name: 'Certification Status', status: 'Fail' }]
+  }
 
-      if (status === 'NotCertified') {
-        return [{ name: 'Certification Status', status: 'Fail' }]
-      }
+  if (status === 'NotCertified') {
+    return [{ name: 'Certification Status', status: 'Fail' }]
+  }
 
-      if (status === 'Conditional') {
-        return [{ name: 'Certification Status', status: 'Conditional' }]
-      }
+  if (status === 'Conditional') {
+    return [{ name: 'Certification Status', status: 'Conditional' }]
+  }
 
-      return [{ name: 'Certification Status', status: 'Pass' }]
-    }
+  return [{ name: 'Certification Status', status: 'Pass' }]
+}
 
-    export default async function VerifyProperty({
-      params,
-    }: {
-      params: Promise<{ id: string }>
-    }) {
-      const { id } = await params
+export default async function VerifyProperty({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
   const normalizedId = id.toUpperCase()
 
   const { data: registryData, error: registryError } = await supabase
@@ -368,7 +369,7 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
   const auditTrail = buildAuditTrail(registry, auditRows)
   const categories = buildCategories(certificate, status)
 
-    const identityParts = [
+  const identityParts = [
     property?.unit_number,
     property?.building_name,
     property?.complex_name,
@@ -460,66 +461,66 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
   }
 
   const statementStyles: Record<
-  Status,
-  { border: string; titleColor: string; backgroundColor: string }
-> = {
-  Certified: {
-    border: '1px solid rgba(201,161,77,0.3)',
-    titleColor: '#1a7f37',
-    backgroundColor: '#fff',
-  },
-  Conditional: {
-    border: '1px solid rgba(201,161,77,0.35)',
-    titleColor: '#B7791F',
-    backgroundColor: '#fffaf2',
-  },
-  NotCertified: {
-    border: '1px solid rgba(198,40,40,0.28)',
-    titleColor: '#C62828',
-    backgroundColor: '#fff8f8',
-  },
-  Revoked: {
-    border: '1px solid rgba(120, 20, 20, 0.35)',
-    titleColor: '#7A1C1C',
-    backgroundColor: '#fff5f5',
-  },
-}
+    Status,
+    { border: string; titleColor: string; backgroundColor: string }
+  > = {
+    Certified: {
+      border: '1px solid rgba(201,161,77,0.3)',
+      titleColor: '#1a7f37',
+      backgroundColor: '#fff',
+    },
+    Conditional: {
+      border: '1px solid rgba(201,161,77,0.35)',
+      titleColor: '#B7791F',
+      backgroundColor: '#fffaf2',
+    },
+    NotCertified: {
+      border: '1px solid rgba(198,40,40,0.28)',
+      titleColor: '#C62828',
+      backgroundColor: '#fff8f8',
+    },
+    Revoked: {
+      border: '1px solid rgba(120, 20, 20, 0.35)',
+      titleColor: '#7A1C1C',
+      backgroundColor: '#fff5f5',
+    },
+  }
 
   const statusStyles: Record<string, CSSProperties> = {
-  Certified: {
-    background: '#E8F5E9',
-    color: '#2E7D32',
-    border: '1px solid #2E7D32',
-  },
-  Conditional: {
-    background: '#FFF4E5',
-    color: '#B7791F',
-    border: '1px solid #B7791F',
-  },
-  NotCertified: {
-    background: '#FFEBEE',
-    color: '#C62828',
-    border: '1px solid #C62828',
-  },
-  Revoked: {
-    background: '#FDECEC',
-    color: '#7A1C1C',
-    border: '1px solid #7A1C1C',
-  },
-}
+    Certified: {
+      background: '#E8F5E9',
+      color: '#2E7D32',
+      border: '1px solid #2E7D32',
+    },
+    Conditional: {
+      background: '#FFF4E5',
+      color: '#B7791F',
+      border: '1px solid #B7791F',
+    },
+    NotCertified: {
+      background: '#FFEBEE',
+      color: '#C62828',
+      border: '1px solid #C62828',
+    },
+    Revoked: {
+      background: '#FDECEC',
+      color: '#7A1C1C',
+      border: '1px solid #7A1C1C',
+    },
+  }
 
   const integrityValueColor =
     mock.status === 'Certified'
       ? 'var(--off-white)'
       : mock.status === 'Conditional'
-      ? '#BBDEFB'
+      ? '#FFF4E5'
       : '#E8E2E2'
 
   const auditBorderColor =
     mock.status === 'Certified'
       ? '2px solid rgba(46,125,50,0.6)'
       : mock.status === 'Conditional'
-      ? '2px solid rgba(21,101,192,0.6)'
+      ? '2px solid rgba(183,121,31,0.6)'
       : '2px solid rgba(198,40,40,0.6)'
 
   return (
@@ -641,13 +642,13 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
             </p>
 
             {certificate?.revoked_reason && mock.status === 'Revoked' && (
-              <p style={{ marginTop: '10px', color: '#7A1C1C', fontWeight: 600 }}>
+              <p style={{ marginTop: '0 0 10px 0', color: '#7A1C1C', fontWeight: 600 }}>
                 Reason: {certificate.revoked_reason}
               </p>
             )}
 
             {certificate?.recommendation && mock.status === 'Conditional' && (
-              <p style={{ marginTop: '10px', color: '#B7791F', fontWeight: 600 }}>
+              <p style={{ marginTop: '0 0 10px 0', color: '#B7791F', fontWeight: 600 }}>
                 Conditions: {certificate.recommendation}
               </p>
             )}
@@ -675,6 +676,278 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
               {statusContent[mock.status].message}
             </p>
           </div>
+
+          {mock.status === 'Conditional' && (
+            <div
+              style={{
+                backgroundColor: '#fffaf2',
+                border: '1px solid rgba(183,121,31,0.28)',
+                padding: '20px 24px',
+                marginBottom: '16px',
+              }}
+            >
+              <p
+                style={{
+                  fontSize: '12px',
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase',
+                  color: 'var(--gold)',
+                  margin: '0 0 10px 0',
+                  fontWeight: 700,
+                }}
+              >
+                Conditional Certification Path
+              </p>
+
+              <p
+                style={{
+                  fontSize: '15px',
+                  color: '#B7791F',
+                  lineHeight: 1.6,
+                  margin: '0 0 10px 0',
+                  fontWeight: 600,
+                }}
+              >
+                This property may qualify for full certification once recorded conditions are resolved.
+              </p>
+
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: 'var(--navy)',
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                Use this pathway to submit proof of remediation, request a reinspection, or move the
+                property toward full certification.
+              </p>
+
+              {certificate?.recommendation && (
+                <div
+                  style={{
+                    marginTop: '14px',
+                    padding: '12px 14px',
+                    backgroundColor: '#fff',
+                    border: '1px solid rgba(183,121,31,0.18)',
+                    borderRadius: '4px',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '11px',
+                      letterSpacing: '1.5px',
+                      textTransform: 'uppercase',
+                      color: '#B7791F',
+                      margin: '0 0 6px 0',
+                      fontWeight: 700,
+                    }}
+                  >
+                    Recorded Conditions
+                  </p>
+
+                  <p
+                    style={{
+                      fontSize: '14px',
+                      color: 'var(--navy)',
+                      lineHeight: 1.6,
+                      margin: 0,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {certificate.recommendation}
+                  </p>
+                </div>
+              )}
+
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '12px',
+                  flexWrap: 'wrap',
+                  marginTop: '16px',
+                }}
+              >
+                <button
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: 'var(--gold)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Submit Proof of Remediation
+                </button>
+
+                <button
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#fff',
+                    color: '#B7791F',
+                    border: '1px solid #B7791F',
+                    borderRadius: '4px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Request Reinspection
+                </button>
+
+                <button
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#fff',
+                    color: 'var(--navy)',
+                    border: '1px solid rgba(11,31,51,0.18)',
+                    borderRadius: '4px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Upgrade to Certified
+                </button>
+              </div>
+            </div>
+          )}
+
+          {mock.status === 'Revoked' && (
+            <div
+              style={{
+                backgroundColor: '#fff5f5',
+                border: '1px solid rgba(122,28,28,0.28)',
+                padding: '20px 24px',
+                marginBottom: '16px',
+              }}
+            >
+              <p
+                style={{
+                  fontSize: '12px',
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase',
+                  color: 'var(--gold)',
+                  margin: '0 0 10px 0',
+                  fontWeight: 700,
+                }}
+              >
+                Revocation Review Path
+              </p>
+
+              <p
+                style={{
+                  fontSize: '15px',
+                  color: '#7A1C1C',
+                  lineHeight: 1.6,
+                  margin: '0 0 10px 0',
+                  fontWeight: 600,
+                }}
+              >
+                This certificate is no longer valid and may only be restored through formal review or reinspection.
+              </p>
+
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: 'var(--navy)',
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}
+              >
+                If the revocation is disputed or underlying issues have been corrected, the certificate
+                holder may request review, submit evidence, or book a fresh inspection.
+              </p>
+
+              {certificate?.revoked_reason && (
+                <div
+                  style={{
+                    marginTop: '14px',
+                    padding: '12px 14px',
+                    backgroundColor: '#fff',
+                    border: '1px solid rgba(122,28,28,0.18)',
+                    borderRadius: '4px',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '11px',
+                      letterSpacing: '1.5px',
+                      textTransform: 'uppercase',
+                      color: '#7A1C1C',
+                      margin: '0 0 6px 0',
+                      fontWeight: 700,
+                    }}
+                  >
+                    Revocation Reason
+                  </p>
+
+                  <p
+                    style={{
+                      fontSize: '14px',
+                      color: 'var(--navy)',
+                      lineHeight: 1.6,
+                      margin: 0,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {certificate.revoked_reason}
+                  </p>
+                </div>
+              )}
+
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '12px',
+                  flexWrap: 'wrap',
+                  marginTop: '16px',
+                }}
+              >
+                <button
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#7A1C1C',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Submit Review Request
+                </button>
+
+                <button
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#fff',
+                    color: '#7A1C1C',
+                    border: '1px solid #7A1C1C',
+                    borderRadius: '4px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Upload Supporting Evidence
+                </button>
+
+                <button
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#fff',
+                    color: 'var(--navy)',
+                    border: '1px solid rgba(11,31,51,0.18)',
+                    borderRadius: '4px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Book Reinspection
+                </button>
+              </div>
+            </div>
+          )}
 
           <div
             style={{
@@ -705,7 +978,7 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
                   {registry?.is_locked
                     ? 'Locked'
                     : mock.status === 'Conditional'
-                    ? 'In Review'
+                    ? 'Conditionally Verified'
                     : 'No Active Lock'}
                 </p>
               </div>
@@ -1083,7 +1356,7 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
                         cat.status === 'Pass'
                           ? '#2E7D32'
                           : cat.status === 'Conditional'
-                          ? '#1565C0'
+                          ? '#B7791F'
                           : '#C62828',
                       fontWeight: 600,
                     }}
