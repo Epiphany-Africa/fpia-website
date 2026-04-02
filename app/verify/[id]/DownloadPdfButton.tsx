@@ -315,7 +315,8 @@ export default function DownloadPdfButton({
       }
 
       doc.setDrawColor(...black)
-      doc.line(22, signatureLineY, 100, signatureLineY)
+      doc.line(22, signatureLineY, 90, signatureLineY)
+      doc.addImage(signatureDataUrl, 'PNG', 110, y - 10, 36, 36)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(10)
@@ -337,6 +338,9 @@ export default function DownloadPdfButton({
       doc.setFillColor(252, 252, 252)
       doc.setDrawColor(220, 220, 220)
       doc.roundedRect(boxX, boxY, boxW, boxH, 1.5, 1.5, 'FD')
+        fillColor: [248, 249, 250] // subtle grey
+        lineWidth: 0.5
+        lineHeight: 1.4
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8)
