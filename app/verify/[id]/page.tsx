@@ -760,56 +760,11 @@ export default async function VerifyProperty({
                 </div>
               )}
 
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '12px',
-                  flexWrap: 'wrap',
-                  marginTop: '16px',
-                }}
-              >
-                <button
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: 'var(--gold)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Submit Proof of Remediation
-                </button>
-
-                <button
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#fff',
-                    color: '#B7791F',
-                    border: '1px solid #B7791F',
-                    borderRadius: '4px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Request Reinspection
-                </button>
-
-                <button
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#fff',
-                    color: 'var(--navy)',
-                    border: '1px solid rgba(11,31,51,0.18)',
-                    borderRadius: '4px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Upgrade to Certified
-                </button>
-              </div>
+              <ConditionalActionPanel
+                certificateRef={mock.id}
+                propertyId={property?.id}
+                registryId={registry?.id}
+              />
             </div>
           )}
 
