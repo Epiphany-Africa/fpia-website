@@ -8,6 +8,7 @@ type Props = {
   id: string
   status: string
   address: string
+  province?: string
   hash: string
   qrCode: string
   issuedDate?: string | null
@@ -40,6 +41,7 @@ export default function DownloadPdfButton({
   id,
   status,
   address,
+  province,
   hash,
   qrCode,
   issuedDate,
@@ -215,6 +217,9 @@ export default function DownloadPdfButton({
 
       doc.setFont('times', 'bold')
       doc.setFontSize(13)
+      
+      const fullAddress = [address, province].filter(Boolean).join('\n')
+
       const addressLines = doc.splitTextToSize(address, 105)
       doc.text(addressLines, 22, 96)
 

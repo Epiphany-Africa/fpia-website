@@ -858,6 +858,7 @@ export default async function VerifyProperty({
               id={mock.id}
               status={mock.status}
               address={mock.address}
+              province={propertyProvince}
               hash={verificationHash}
               qrCode={qrCodeDataUrl}
               issuedDate={registry?.issued_at ?? certificate?.issued_at}
