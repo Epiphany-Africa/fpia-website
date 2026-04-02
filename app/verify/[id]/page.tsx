@@ -396,6 +396,7 @@ export default async function VerifyProperty({
   const inspectorDisplay =
     inspector?.full_name ??
     certificate?.inspector_name ??
+    whiteSpace: 'pre-line'
     registry?.inspector_signed_off_by ??
     'FPIA Inspector'
 
@@ -415,7 +416,7 @@ export default async function VerifyProperty({
     status,
     inspectionDate: formatDate(registry?.issued_at ?? certificate?.issued_at),
     inspector: inspector
-      ? `${inspector.full_name} — ${inspector.badge_number}`
+  ? `${inspector.full_name}\n${inspector.badge_number}`
       : certificate?.inspector_title
       ? `${inspectorDisplay} — ${certificate.inspector_title}`
       : inspectorDisplay,
@@ -946,7 +947,18 @@ export default async function VerifyProperty({
                     {row.label}
                   </p>
 
-                  <p style={{ fontWeight: 600, color: 'var(--navy)' }}>{row.value}</p>
+                <p
+                  style={{
+                    fontWeight: 600,
+                    color: 'var(--navy)',
+                    fontSize: '15px',
+                    lineHeight: 1.5,
+                    margin: 0,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {row.value}
+              </p>
                 </div>
               ))}
             </div>

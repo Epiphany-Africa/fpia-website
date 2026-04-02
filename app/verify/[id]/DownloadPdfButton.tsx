@@ -140,7 +140,10 @@ export default function DownloadPdfButton({
         ? 'Active until revoked or superseded'
         : 'Not currently applicable')
 
-    const shortHash = hash.length > 28 ? `${hash.slice(0, 28)}...` : hash
+    const shortHash =
+        hash.length > 36
+          ? `${hash.slice(0, 18)}...${hash.slice(-8)}`
+          : hash
 
     const resolvedCompanyName = companyName?.trim() || COMPANY_NAME
     const resolvedInspectorName = inspectorName?.trim() || 'FPIA Inspector'
@@ -318,7 +321,7 @@ export default function DownloadPdfButton({
 
         lowerSectionStartY += recommendationLines.length * 4 + 16
       }
-    const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 228)
+    const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 220)
 
         if (signatureDataUrl) {
           const signatureFormat =
@@ -327,7 +330,7 @@ export default function DownloadPdfButton({
               ? 'JPEG'
               : 'PNG'
 
-          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureBlockTopY - 14, 40, 11)
+          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureBlockTopY - 16, 40, 11)
         }
 
         doc.setDrawColor(...black)
@@ -356,7 +359,7 @@ export default function DownloadPdfButton({
           ? 'JPEG'
           : 'PNG'
 
-      doc.addImage(stampDataUrl, stampFormat, 142, signatureBlockTopY - 18, 30, 30)
+      doc.addImage(stampDataUrl, stampFormat, 142, signatureBlockTopY - 18, 28, 28)
     }
 
       const footerY = 257
