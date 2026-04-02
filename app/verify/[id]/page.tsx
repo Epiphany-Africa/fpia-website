@@ -12,6 +12,41 @@ const supabase = createClient(
 
 type Status = 'Certified' | 'Conditional' | 'NotCertified' | 'Revoked'
 
+function normalizeStatus(
+  registry: RegistryRow | null,
+  certificate: CertificateRow | null
+): Status {
+  if (!registry) return 'NotCertified'
+
+  const registryStatus = (registry.status ?? '').toLowerCase()
+  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
+  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
+  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
+  const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
+
+  if (certificate?.revoked_at || certificateState === 'revoked') {
+    return 'Revoked'
+  }
+
+  if (certificateState === 'issued' && inspectionStatus === 'conditional') {
+    return 'Conditional'
+  }
+
+  if (certificateState === 'issued' && inspectionStatus === 'pass') {
+    return 'Certified'
+  }
+
+  if (
+    registryStatus === 'certified' ||
+    workflowStatus === 'certified' ||
+    reviewOutcome === 'approved'
+  ) {
+    return 'Certified'
+  }
+
+  return 'NotCertified'
+}
+
 type AuditItem = {
   label: string
   value: string
@@ -19,7 +54,7 @@ type AuditItem = {
 
 type CategoryItem = {
   name: string
-  status: 'Pass' | 'Pending' | 'Fail'
+  status: 'Pass' | 'Conditional' | 'Fail'
 }
 
 type RegistryRow = {
@@ -146,7 +181,6 @@ function formatDateTime(input: string | null | undefined) {
   }).format(date)
 }
 
-
 function buildAuditTrail(
   registry: RegistryRow | null,
   auditRows: AuditLogRow[] | null
@@ -160,42 +194,8 @@ function buildAuditTrail(
       { label: 'Last Verified', value: formatDateTime(new Date().toISOString()) },
     ]
   }
-  
-  function normalizeStatus(
-  registry: RegistryRow | null,
-  certificate: CertificateRow | null
-): Status {
-  if (!registry) return 'NotCertified'
 
-  const registryStatus = (registry.status ?? '').toLowerCase()
-  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
-  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
-  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
-  const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
-
-  if (certificate?.revoked_at || certificateState === 'revoked') {
-    return 'Revoked'
-  }
-
-  if (certificateState === 'issued' && inspectionStatus === 'conditional') {
-    return 'Conditional'
-  }
-
-  if (certificateState === 'issued' && inspectionStatus === 'pass') {
-    return 'Certified'
-  }
-
-  if (
-    registryStatus === 'certified' ||
-    workflowStatus === 'certified' ||
-    reviewOutcome === 'approved'
-  ) {
-    return 'Certified'
-  }
-
-  return 'NotCertified'
-}
-  const preferred = rows
+    const preferred = rows
     .map((row) => ({
       label:
         row.event_type === 'REPORT_SUBMITTED'
@@ -241,10 +241,10 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
       const section = String(item?.section ?? 'General')
       const result = String(item?.result ?? '').toLowerCase()
 
-      let mapped: CategoryItem['status'] = 'Pending'
+      let mapped: CategoryItem['status'] = 'Conditional'
       if (result === 'pass') mapped = 'Pass'
       if (result === 'fail') mapped = 'Fail'
-      if (result === 'observation') mapped = 'Pending'
+      if (result === 'observation') mapped = 'Conditional'
 
       const existing = grouped.get(section)
 
@@ -254,11 +254,11 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
       }
 
       if (existing === 'Fail') continue
-      if (existing === 'Pending' && mapped === 'Pass') continue
+      if (existing === 'Conditional' && mapped === 'Pass') continue
       if (mapped === 'Fail') {
         grouped.set(section, 'Fail')
-      } else if (mapped === 'Pending') {
-        grouped.set(section, 'Pending')
+      } else if (mapped === 'Conditional') {
+        grouped.set(section, 'Conditional')
       }
     }
 
@@ -277,7 +277,7 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
       }
 
       if (status === 'Conditional') {
-        return [{ name: 'Certification Status', status: 'Pending' }]
+        return [{ name: 'Certification Status', status: 'Conditional' }]
       }
 
       return [{ name: 'Certification Status', status: 'Pass' }]
@@ -511,14 +511,14 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
   const integrityValueColor =
     mock.status === 'Certified'
       ? 'var(--off-white)'
-      : mock.status === 'Pending'
+      : mock.status === 'Conditional'
       ? '#BBDEFB'
       : '#E8E2E2'
 
   const auditBorderColor =
     mock.status === 'Certified'
       ? '2px solid rgba(46,125,50,0.6)'
-      : mock.status === 'Pending'
+      : mock.status === 'Conditional'
       ? '2px solid rgba(21,101,192,0.6)'
       : '2px solid rgba(198,40,40,0.6)'
 
@@ -640,6 +640,18 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
               Verification Outcome
             </p>
 
+            {certificate?.revoked_reason && mock.status === 'Revoked' && (
+              <p style={{ marginTop: '10px', color: '#7A1C1C', fontWeight: 600 }}>
+                Reason: {certificate.revoked_reason}
+              </p>
+            )}
+
+            {certificate?.recommendation && mock.status === 'Conditional' && (
+              <p style={{ marginTop: '10px', color: '#B7791F', fontWeight: 600 }}>
+                Conditions: {certificate.recommendation}
+              </p>
+            )}
+
             <p
               style={{
                 fontSize: '16px',
@@ -692,7 +704,7 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
                 >
                   {registry?.is_locked
                     ? 'Locked'
-                    : mock.status === 'Pending'
+                    : mock.status === 'Conditional'
                     ? 'In Review'
                     : 'No Active Lock'}
                 </p>
@@ -913,6 +925,10 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
               validUntil={
                 mock.status === 'Certified'
                   ? 'Active until revoked or superseded'
+                  : mock.status === 'Conditional'
+                  ? 'Conditionally active subject to recorded conditions'
+                  : mock.status === 'Revoked'
+                  ? 'No longer valid'
                   : 'Not currently applicable'
               }
               inspectorName={inspector?.full_name ?? certificate?.inspector_name}
@@ -1066,7 +1082,7 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
                       color:
                         cat.status === 'Pass'
                           ? '#2E7D32'
-                          : cat.status === 'Pending'
+                          : cat.status === 'Conditional'
                           ? '#1565C0'
                           : '#C62828',
                       fontWeight: 600,
@@ -1074,7 +1090,7 @@ function buildCategories(certificate: CertificateRow | null, status: Status): Ca
                   >
                     {cat.status === 'Pass'
                       ? '✔'
-                      : cat.status === 'Pending'
+                      : cat.status === 'Conditional'
                       ? '•'
                       : '✕'}{' '}
                     {cat.status}
