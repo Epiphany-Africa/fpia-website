@@ -217,12 +217,12 @@ export default function DownloadPdfButton({
 
       doc.setFont('times', 'bold')
       doc.setFontSize(13)
-      
       const fullAddress = [address, province].filter(Boolean).join('\n')
+      const addressLines = fullAddress
+        .split('\n')
+        .flatMap((line) => doc.splitTextToSize(line, 105))
 
-      const addressLines = doc.splitTextToSize(address, 105)
       doc.text(addressLines, 22, 96)
-
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(220, 220, 220)
       doc.roundedRect(138, 66, 40, 42, 1.5, 1.5, 'FD')
