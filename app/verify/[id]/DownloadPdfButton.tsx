@@ -172,15 +172,20 @@ export default function DownloadPdfButton({
         }
       }
 
-        if (stampImageUrl) {
-          try {
-            stampDataUrl = stampImageUrl.startsWith('/')
-              ? await loadImageAsDataUrl(stampImageUrl)
-              : await loadRemoteImageAsDataUrl(stampImageUrl)
-          } catch (error) {
-            console.warn('Stamp image could not be loaded:', error)
+      if (stampImageUrl) {
+        try {
+          stampDataUrl = stampImageUrl.startsWith('/')
+            ? await loadImageAsDataUrl(stampImageUrl)
+            : await loadRemoteImageAsDataUrl(stampImageUrl)
+        } catch (error) {
+          console.warn('Stamp image could not be loaded:', error)
         }
-    }
+      }
+
+      console.log('signatureImageUrl:', signatureImageUrl)
+      console.log('stampImageUrl:', stampImageUrl)
+      console.log('signature loaded:', !!signatureDataUrl)
+      console.log('stamp loaded:', !!stampDataUrl)
 
       doc.setFillColor(248, 248, 248)
       doc.rect(0, 0, 210, 297, 'F')
@@ -310,10 +315,15 @@ export default function DownloadPdfButton({
         doc.text(doc.splitTextToSize(recommendation, 150), 22, y + 57)
       }
 
-      if (signatureDataUrl) {
-        doc.addImage(signatureDataUrl, 'PNG', 22, 218, 42, 12)
-      }
+    if (signatureDataUrl) {
+      const signatureFormat = 
+      signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
+      signatureImageUrl?.toLowerCase().endsWith('.jpeg')
+        ? 'JPEG'
+        : 'PNG'
 
+      doc.addImage(signatureDataUrl, signatureFormat, 22, 218, 42, 12)
+    }
       doc.setDrawColor(...black)
       doc.line(22, 232, 100, 232)
 
@@ -333,9 +343,15 @@ export default function DownloadPdfButton({
 
       doc.text(resolvedCompanyName, 22, 256)
 
-      if (stampDataUrl) {
-        doc.addImage(stampDataUrl, 'PNG', 130, 220, 40, 40)
-      }
+    if (stampDataUrl) {
+      const stampFormat = 
+      stampImageUrl?.toLowerCase().endsWith('.jpg') ||
+      stampImageUrl?.toLowerCase().endsWith('.jpeg')
+          ? 'JPEG'
+          : 'PNG'
+
+      doc.addImage(stampDataUrl, stampFormat, 128, 210, 40, 40)
+    }
 
       doc.setFillColor(...navy)
       doc.rect(15, 252, 180, 13, 'F')
