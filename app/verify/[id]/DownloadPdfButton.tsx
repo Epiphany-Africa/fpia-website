@@ -251,7 +251,7 @@ export default function DownloadPdfButton({
         const lines = doc.splitTextToSize(value, 105)
         doc.text(lines, valueX, y)
 
-        y += Math.max(9, lines.length * 4 + 1)
+        y += Math.max(8, lines.length * 4)
       }
 
       detailRow('Certificate ID', id)
@@ -291,7 +291,7 @@ export default function DownloadPdfButton({
       const authorityTextY = authorityTopY + 8
 
       const boxX = 132
-      const boxY = 214
+      const boxY = 212
       const boxW = 48
       const boxH = 40
 
@@ -367,8 +367,8 @@ export default function DownloadPdfButton({
         doc.addImage(
           stampDataUrl,
           stampFormat,
-          98,
-          signatureLineY - 4,
+          94,
+          signatureLineY - 6,
           22,
           22,
           undefined,
