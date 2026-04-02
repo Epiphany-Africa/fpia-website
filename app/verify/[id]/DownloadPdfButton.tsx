@@ -139,9 +139,7 @@ export default function DownloadPdfButton({
         : 'Not currently applicable')
 
     const shortHash =
-      hash.length > 36
-        ? `${hash.slice(0, 18)}...${hash.slice(-8)}`
-        : hash
+      hash.length > 36 ? `${hash.slice(0, 18)}...${hash.slice(-8)}` : hash
 
     const resolvedCompanyName = companyName?.trim() || COMPANY_NAME
     const resolvedInspectorName = inspectorName?.trim() || 'FPIA Inspector'
@@ -176,11 +174,6 @@ export default function DownloadPdfButton({
           console.warn('Stamp image could not be loaded:', error)
         }
       }
-
-      console.log('signatureImageUrl:', signatureImageUrl)
-      console.log('stampImageUrl:', stampImageUrl)
-      console.log('signature loaded:', !!signatureDataUrl)
-      console.log('stamp loaded:', !!stampDataUrl)
 
       doc.setFillColor(248, 248, 248)
       doc.rect(0, 0, 210, 297, 'F')
@@ -249,17 +242,17 @@ export default function DownloadPdfButton({
       let y = 133
 
       const detailRow = (label: string, value: string) => {
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(10)
-      doc.setTextColor(...black)
-      doc.text(label, labelX, y)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.setTextColor(...black)
+        doc.text(label, labelX, y)
 
-      doc.setFont('helvetica', 'normal')
-      const lines = doc.splitTextToSize(value, 105)
-      doc.text(lines, valueX, y)
+        doc.setFont('helvetica', 'normal')
+        const lines = doc.splitTextToSize(value, 105)
+        doc.text(lines, valueX, y)
 
-      y += Math.max(9, lines.length * 4 + 1)
-    }
+        y += Math.max(9, lines.length * 4 + 1)
+      }
 
       detailRow('Certificate ID', id)
       detailRow('Issued', issuedLabel)
@@ -293,7 +286,6 @@ export default function DownloadPdfButton({
       doc.text(doc.splitTextToSize(legalText1, 150), 22, y + 5)
       doc.text(doc.splitTextToSize(legalText2, 150), 22, y + 18)
 
-      // ===== LOWER AUTHORITY / VERIFICATION LAYOUT =====
       const authorityTopY = 222
       const signatureLineY = authorityTopY
       const authorityTextY = authorityTopY + 8
@@ -303,24 +295,18 @@ export default function DownloadPdfButton({
       const boxW = 48
       const boxH = 40
 
-      // LEFT: signature / authority block
-        if (signatureDataUrl) {
-          const signatureFormat =
-            signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
-            signatureImageUrl?.toLowerCase().endsWith('.jpeg')
-              ? 'JPEG'
-              : 'PNG'
+      if (signatureDataUrl) {
+        const signatureFormat =
+          signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
+          signatureImageUrl?.toLowerCase().endsWith('.jpeg')
+            ? 'JPEG'
+            : 'PNG'
 
-          doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 14, 42, 12)
-        }
-
-        doc.setDrawColor(...black)
-        doc.line(22, signatureLineY, 90, signatureLineY)
+        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 14, 42, 12)
       }
 
       doc.setDrawColor(...black)
       doc.line(22, signatureLineY, 90, signatureLineY)
-      doc.addImage(signatureDataUrl, 'PNG', 110, y - 10, 36, 36)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(10)
@@ -338,7 +324,6 @@ export default function DownloadPdfButton({
 
       doc.text(resolvedCompanyName, 22, authorityTextY + 15)
 
-      // RIGHT: verification / certification notice box
       doc.setFillColor(248, 249, 250)
       doc.setDrawColor(220, 220, 220)
       doc.setLineWidth(0.5)
@@ -372,7 +357,6 @@ export default function DownloadPdfButton({
       const noteLines = doc.splitTextToSize(noteText, boxW - 8)
       doc.text(noteLines, boxX + 4, noteHeadingY + 5)
 
-      // Single central-left stamp
       if (stampDataUrl) {
         const stampFormat =
           stampImageUrl?.toLowerCase().endsWith('.jpg') ||
