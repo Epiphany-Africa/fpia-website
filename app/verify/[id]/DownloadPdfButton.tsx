@@ -242,23 +242,24 @@ export default function DownloadPdfButton({
       doc.setTextColor(...grey)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8.5)
-      doc.text('CERTIFICATE DETAILS', 22, 126)
+      doc.text('CERTIFICATE DETAILS', 22, 124)
 
       const labelX = 22
       const valueX = 78
-      let y = 136
+      let y = 133
 
       const detailRow = (label: string, value: string) => {
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(10)
-        doc.setTextColor(...black)
-        doc.text(label, labelX, y)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.setTextColor(...black)
+      doc.text(label, labelX, y)
 
-        doc.setFont('helvetica', 'normal')
-        const lines = doc.splitTextToSize(value, 105)
-        doc.text(lines, valueX, y)
-        y += Math.max(11, lines.length * 5 + 2)
-      }
+      doc.setFont('helvetica', 'normal')
+      const lines = doc.splitTextToSize(value, 105)
+      doc.text(lines, valueX, y)
+
+      y += Math.max(9, lines.length * 4 + 1)
+    }
 
       detailRow('Certificate ID', id)
       detailRow('Issued', issuedLabel)
@@ -272,7 +273,7 @@ export default function DownloadPdfButton({
       doc.setFont('courier', 'normal')
       doc.setFontSize(9)
       doc.text(shortHash, valueX, y)
-      y += 14
+      y += 10
 
       if (certificateType) {
         detailRow('Certificate Type', certificateType)
