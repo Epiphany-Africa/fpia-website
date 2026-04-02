@@ -61,6 +61,10 @@ type PropertyRow = {
   notes: string | null
   risk_score: number | null
   created_at: string | null
+  unit_number?: string | null
+  complex_name?: string | null
+  estate_name?: string | null
+  building_name?: string | null
 }
 
 type CertificateRow = {
@@ -345,7 +349,13 @@ export default async function VerifyProperty({
     certificate?.integrity_hash ??
     'No active verification hash'
 
+  const hashDisplay =
+    verificationHash.length > 36
+      ? `${verificationHash.slice(0, 18)}...${verificationHash.slice(-8)}`
+      : verificationHash
+
   const verificationUrl = `https://www.fairproperties.org.za/verify/${id}`
+
   const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
     width: 180,
     margin: 1,
@@ -354,14 +364,6 @@ export default async function VerifyProperty({
   const auditTrail = buildAuditTrail(registry, auditRows)
   const categories = buildCategories(certificate, status)
 
-    const fullAddressParts = [
-      property?.unit_number,
-      property?.building_name,
-      property?.complex_name,
-      property?.estate_name,
-      property?.address,
-  ].filter(Boolean)
-
   const identityParts = [
     property?.unit_number,
     property?.building_name,
@@ -369,16 +371,15 @@ export default async function VerifyProperty({
     property?.estate_name,
   ].filter(Boolean)
 
-  const addressLine1 = identityParts.join(' ') // ← NO commas
-
+  const addressLine1 = identityParts.join(' ')
   const addressLine2 = property?.address ?? ''
 
   const propertyAddress =
-        addressLine1 || addressLine2
-          ? [addressLine1, addressLine2].filter(Boolean).join('\n')
-          : status === 'NotCertified'
-          ? 'No active certified property record found'
-          : 'Unknown property'
+    addressLine1 || addressLine2
+      ? [addressLine1, addressLine2].filter(Boolean).join('\n')
+      : status === 'NotCertified'
+      ? 'No active certified property record found'
+      : 'Unknown property'
 
   const provinceParts = [
     property?.city,
@@ -394,10 +395,10 @@ export default async function VerifyProperty({
       : 'Location not available'
 
   const inspectorDisplay = inspector
-      ? `${inspector.full_name}\n${inspector.badge_number}`
-      : certificate?.inspector_name ??
-        registry?.inspector_signed_off_by ??
-        'FPIA Inspector'
+    ? `${inspector.full_name}\n${inspector.badge_number}`
+    : certificate?.inspector_name ??
+      registry?.inspector_signed_off_by ??
+      'FPIA Inspector'
 
   const validUntil =
     status === 'Certified' ? 'Active until revoked or superseded' : 'Not applicable'
@@ -415,9 +416,9 @@ export default async function VerifyProperty({
     status,
     inspectionDate: formatDate(registry?.issued_at ?? certificate?.issued_at),
     inspector: inspector
-  ? `${inspector.full_name}\n${inspector.badge_number}`
+      ? `${inspector.full_name}\n${inspector.badge_number}`
       : certificate?.inspector_title
-      ? `${inspectorDisplay} — ${certificate.inspector_title}`
+      ? `${inspectorDisplay}\n${certificate.inspector_title}`
       : inspectorDisplay,
     validUntil,
     ledger,
@@ -675,7 +676,8 @@ export default async function VerifyProperty({
               </div>
 
               <div>
-                <p style={integrityLabelStyle}>Verification Hash</p>
+                <p style={integrityLabelStyle}>Integrity Hash</p>
+
                 <div
                   style={{
                     display: 'flex',
@@ -686,12 +688,8 @@ export default async function VerifyProperty({
                 >
                   <p
                     style={{
-                      fontSize: '14px',
+                      ...integrityValueStyle,
                       color: integrityValueColor,
-                      margin: 0,
-                      fontWeight: 600,
-                      fontFamily: 'monospace',
-                      letterSpacing: '1px',
                       flex: 1,
                       minWidth: 0,
                       whiteSpace: 'nowrap',
@@ -699,7 +697,7 @@ export default async function VerifyProperty({
                       textOverflow: 'ellipsis',
                     }}
                   >
-                    {verificationHash}
+                    {hashDisplay}
                   </p>
 
                   <CopyHashButton value={verificationHash} />
@@ -946,19 +944,19 @@ export default async function VerifyProperty({
                     {row.label}
                   </p>
 
-                <p
-                  style={{
-                    fontWeight: 600,
-                    color: 'var(--navy)',
-                    fontSize: '15px',
-                    lineHeight: 1.5,
-                    margin: 0,
-                    wordBreak: 'break-word',
-                    whiteSpace: 'pre-line',
-                  }}
-                >
-                  {row.value}
-              </p>
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      color: 'var(--navy)',
+                      fontSize: '15px',
+                      lineHeight: 1.5,
+                      margin: 0,
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-line',
+                    }}
+                  >
+                    {row.value}
+                  </p>
                 </div>
               ))}
             </div>
