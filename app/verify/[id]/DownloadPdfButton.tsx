@@ -8,7 +8,7 @@ type Props = {
   id: string
   status: string
   address: string
-  province?: string
+  province?: string | null
   hash: string
   qrCode: string
   issuedDate?: string | null
