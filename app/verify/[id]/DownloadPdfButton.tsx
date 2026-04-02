@@ -70,7 +70,6 @@ export default function DownloadPdfButton({
     const lightGrey: [number, number, number] = [235, 235, 235]
     const black: [number, number, number] = [0, 0, 0]
 
-    const watermarkSrc = '/fpia-watermark.png'
     const logoSrc = '/fpia-logo.png'
 
     const loadImageAsDataUrl = (src: string) =>
@@ -88,9 +87,7 @@ export default function DownloadPdfButton({
             return
           }
 
-          ctx.globalAlpha = src.includes('watermark') ? 0.08 : 1
           ctx.drawImage(img, 0, 0)
-          ctx.globalAlpha = 1
           resolve(canvas.toDataURL('image/png'))
         }
         img.onerror = () => reject(new Error(`Failed to load image: ${src}`))
@@ -136,14 +133,15 @@ export default function DownloadPdfButton({
 
     const issuedLabel = formatDate(issuedDate)
     const validUntilLabel =
-      validUntil?.trim() || (safeStatus === 'certified'
+      validUntil?.trim() ||
+      (safeStatus === 'certified'
         ? 'Active until revoked or superseded'
         : 'Not currently applicable')
 
     const shortHash =
-        hash.length > 36
-          ? `${hash.slice(0, 18)}...${hash.slice(-8)}`
-          : hash
+      hash.length > 36
+        ? `${hash.slice(0, 18)}...${hash.slice(-8)}`
+        : hash
 
     const resolvedCompanyName = companyName?.trim() || COMPANY_NAME
     const resolvedInspectorName = inspectorName?.trim() || 'FPIA Inspector'
@@ -154,13 +152,7 @@ export default function DownloadPdfButton({
     const inspectorMeta = inspectorMetaParts.join(' | ')
 
     try {
-      const baseImages = await Promise.all([
-        loadImageAsDataUrl(watermarkSrc),
-        loadImageAsDataUrl(logoSrc),
-      ])
-
-      const watermarkDataUrl = baseImages[0]
-      const logoDataUrl = baseImages[1]
+      const logoDataUrl = await loadImageAsDataUrl(logoSrc)
 
       let signatureDataUrl: string | null = null
       let stampDataUrl: string | null = null
@@ -231,8 +223,8 @@ export default function DownloadPdfButton({
       const addressLines = fullAddress
         .split('\n')
         .flatMap((line) => doc.splitTextToSize(line, 105))
-
       doc.text(addressLines, 22, 96)
+
       doc.setFillColor(255, 255, 255)
       doc.setDrawColor(220, 220, 220)
       doc.roundedRect(138, 66, 40, 42, 1.5, 1.5, 'FD')
@@ -286,23 +278,14 @@ export default function DownloadPdfButton({
         detailRow('Certificate Type', certificateType)
       }
 
-      doc.setDrawColor(...lightGrey)
-      doc.line(22, y - 4, 188, y - 4)
-
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(9)
-      doc.setTextColor(...grey)
-
-            const legalText1 =
+      const legalText1 =
         'This certificate confirms that the above property has been independently inspected and verified in accordance with FPIA standards.'
       const legalText2 =
         'Any alteration or misrepresentation of this certificate invalidates its authenticity.'
 
-      // Divider above lower section
       doc.setDrawColor(...lightGrey)
       doc.line(22, y - 4, 188, y - 4)
 
-      // Intro legal lines
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8.5)
       doc.setTextColor(...grey)
@@ -310,17 +293,16 @@ export default function DownloadPdfButton({
       doc.text(doc.splitTextToSize(legalText2, 150), 22, y + 18)
 
       // ===== LOWER AUTHORITY / VERIFICATION LAYOUT =====
-      // Left authority block + right notice box, both above footer
       const authorityTopY = 222
       const signatureLineY = authorityTopY
       const authorityTextY = authorityTopY + 8
 
-      const boxX = 118
+      const boxX = 132
       const boxY = 214
-      const boxW = 62
-      const boxH = 44
+      const boxW = 48
+      const boxH = 40
 
-      // ✅ SIGNATURE IMAGE (restore this)
+      // LEFT: signature / authority block
       if (signatureDataUrl) {
         const signatureFormat =
           signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
@@ -331,10 +313,6 @@ export default function DownloadPdfButton({
         doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 14, 42, 12)
       }
 
-      // Signature line
-      doc.setDrawColor(...black)
-      doc.line(22, signatureLineY, 100, signatureLineY)
-      
       doc.setDrawColor(...black)
       doc.line(22, signatureLineY, 100, signatureLineY)
 
@@ -387,15 +365,8 @@ export default function DownloadPdfButton({
       const noteLines = doc.splitTextToSize(noteText, boxW - 8)
       doc.text(noteLines, boxX + 4, noteHeadingY + 5)
 
-      // Stamp anchored near the notice box, above footer
+      // Single central-left stamp
       if (stampDataUrl) {
-        const stampFormat =
-          stampImageUrl?.toLowerCase().endsWith('.jpg') ||
-          stampImageUrl?.toLowerCase().endsWith('.jpeg')
-            ? 'JPEG'
-            : 'PNG'
-
-              if (stampDataUrl) {
         const stampFormat =
           stampImageUrl?.toLowerCase().endsWith('.jpg') ||
           stampImageUrl?.toLowerCase().endsWith('.jpeg')
@@ -405,17 +376,16 @@ export default function DownloadPdfButton({
         doc.addImage(
           stampDataUrl,
           stampFormat,
-          98,                // more central
-          signatureLineY - 4, // aligned with authority area
+          98,
+          signatureLineY - 4,
           24,
           24,
           undefined,
           'NONE',
-          45                // 10 o’clock tilt
+          45
         )
       }
-  
-      // Footer pinned to base of certificate panel
+
       const footerY = 257
       const footerHeight = 8
 
@@ -430,6 +400,7 @@ export default function DownloadPdfButton({
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...gold)
       doc.text('ACCOUNTABILITY BUILT IN', 186, footerY + 5.2, { align: 'right' })
+
       doc.save(`FPIA-${id}.pdf`)
     } catch (error) {
       console.error('Failed to generate PDF certificate:', error)
