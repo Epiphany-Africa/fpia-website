@@ -330,7 +330,7 @@ export default function DownloadPdfButton({
       doc.text(resolvedCompanyName, 22, 256)
 
       if (stampDataUrl) {
-        doc.addImage(stampDataUrl, 'PNG', 142, 214, 30, 30)
+        doc.addImage(stampDataUrl, 'PNG', 130, 220, 40, 40)
       }
 
       doc.setFillColor(...navy)
