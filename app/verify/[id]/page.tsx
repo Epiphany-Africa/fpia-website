@@ -354,13 +354,33 @@ export default async function VerifyProperty({
   const auditTrail = buildAuditTrail(registry, auditRows)
   const categories = buildCategories(certificate, status)
 
-  const propertyAddress =
-    property?.address ??
-    (status === 'NotCertified' ? 'No active certified property record found' : 'Unknown property')
+    const fullAddressParts = [
+      property?.unit_number,
+      property?.building_name,
+      property?.complex_name,
+      property?.estate_name,
+      property?.address,
+  ].filter(Boolean)
 
-  const propertyProvince = property
-    ? [property.city, property.province, property.postal_code].filter(Boolean).join(', ')
-    : 'Registry lookup only'
+  const propertyAddress =
+    fullAddressParts.length > 0
+      ? fullAddressParts.join(', ')
+      : status === 'NotCertified'
+      ? 'No active certified property record found'
+      : 'Unknown property'
+
+  const provinceParts = [
+    property?.city,
+    property?.province,
+    property?.postal_code,
+  ].filter(Boolean)
+
+  const propertyProvince =
+    provinceParts.length > 0
+      ? provinceParts.join(', ')
+      : status === 'NotCertified'
+      ? 'Registry lookup only'
+      : 'Location not available'
 
   const inspectorDisplay =
     inspector?.full_name ??
