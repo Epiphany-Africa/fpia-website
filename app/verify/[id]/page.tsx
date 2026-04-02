@@ -362,12 +362,23 @@ export default async function VerifyProperty({
       property?.address,
   ].filter(Boolean)
 
+  const identityParts = [
+    property?.unit_number,
+    property?.building_name,
+    property?.complex_name,
+    property?.estate_name,
+  ].filter(Boolean)
+
+  const addressLine1 = identityParts.join(' ') // ← NO commas
+
+  const addressLine2 = property?.address ?? ''
+
   const propertyAddress =
-    fullAddressParts.length > 0
-      ? fullAddressParts.join(', ')
-      : status === 'NotCertified'
-      ? 'No active certified property record found'
-      : 'Unknown property'
+        addressLine1 || addressLine2
+          ? [addressLine1, addressLine2].filter(Boolean).join('\n')
+          : status === 'NotCertified'
+          ? 'No active certified property record found'
+          : 'Unknown property'
 
   const provinceParts = [
     property?.city,
