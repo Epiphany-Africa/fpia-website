@@ -893,8 +893,12 @@ export default async function VerifyProperty({
               companyName={inspector?.company_name}
               certificateType={certificate?.certificate_type}
               recommendation={certificate?.recommendation}
-              signatureImageUrl={certificate?.signature_image_url}
-              stampImageUrl={certificate?.stamp_image_url}
+              signatureImageUrl={
+                inspector?.inspector_code
+                  ? `/signatures/${inspector.inspector_code}.png`
+                  : certificate?.signature_image_url
+              }
+              stampImageUrl="/stamps/FPIA-OFFICIAL.png"
             />
           </div>
 
