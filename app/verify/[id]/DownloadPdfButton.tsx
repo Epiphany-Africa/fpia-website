@@ -311,8 +311,7 @@ export default function DownloadPdfButton({
 
       // ===== LOWER AUTHORITY / VERIFICATION LAYOUT =====
       // Left authority block + right notice box, both above footer
-      const authorityTopY = 236
-      const signatureImageY = authorityTopY - 16
+      const authorityTopY = 222
       const signatureLineY = authorityTopY
       const authorityTextY = authorityTopY + 8
 
@@ -334,13 +333,13 @@ export default function DownloadPdfButton({
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8.5)
       doc.setTextColor(...grey)
-      doc.text(resolvedInspectorRole, 22, authorityTextY + 7)
+      doc.text(resolvedInspectorRole, 22, authorityTextY + 5)
 
       if (inspectorMeta) {
-        doc.text(inspectorMeta, 22, authorityTextY + 14)
+        doc.text(inspectorMeta, 22, authorityTextY + 10)
       }
 
-      doc.text(resolvedCompanyName, 22, authorityTextY + 21)
+      doc.text(resolvedCompanyName, 22, authorityTextY + 15)
 
       // RIGHT: verification / certification notice box
       doc.setFillColor(252, 252, 252)
@@ -385,29 +384,7 @@ export default function DownloadPdfButton({
 
         doc.addImage(stampDataUrl, stampFormat, 144, 220, 20, 20)
       }
-      if (stampDataUrl) {
-  const stampFormat =
-    stampImageUrl?.toLowerCase().endsWith('.jpg') ||
-    stampImageUrl?.toLowerCase().endsWith('.jpeg')
-      ? 'JPEG'
-      : 'PNG'
-
-      const stampX = 104
-      const stampY = authorityTopY - 6
-      const stampSize = 24
-
-      doc.addImage(
-        stampDataUrl,
-        stampFormat,
-        stampX,
-        stampY,
-        stampSize,
-        stampSize,
-        undefined,
-        'NONE',
-        30
-      )
-}
+  
       // Footer pinned to base of certificate panel
       const footerY = 257
       const footerHeight = 8
