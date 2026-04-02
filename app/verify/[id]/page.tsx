@@ -162,19 +162,24 @@ function normalizeStatus(
       return 'Revoked'
     }
 
-    if (
-      certificateState === 'issued' &&
-      inspectionStatus === 'conditional'
-    ) {
+    if (certificateState === 'issued' && inspectionStatus === 'conditional') {
       return 'Conditional'
     }
 
+    if (certificateState === 'issued' && inspectionStatus === 'pass') {
+      return 'Certified'
+    }
+
     if (
-      certificateState === 'issued' &&
-      inspectionStatus === 'pass'
+      registryStatus === 'certified' ||
+      workflowStatus === 'certified' ||
+      reviewOutcome === 'approved'
     ) {
       return 'Certified'
     }
+
+    return 'NotCertified'
+  }
 
     if (
       registryStatus === 'certified' ||
