@@ -146,63 +146,6 @@ function formatDateTime(input: string | null | undefined) {
   }).format(date)
 }
 
-function normalizeStatus(
-  registry: RegistryRow | null,
-  certificate: CertificateRow | null
-): Status {
-  if (!registry) return 'NotCertified'
-
-  const registryStatus = (registry.status ?? '').toLowerCase()
-  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
-  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
-  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
-  const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
-
-    if (certificate?.revoked_at || certificateState === 'revoked') {
-      return 'Revoked'
-    }
-
-    if (certificateState === 'issued' && inspectionStatus === 'conditional') {
-      return 'Conditional'
-    }
-
-    if (certificateState === 'issued' && inspectionStatus === 'pass') {
-      return 'Certified'
-    }
-
-    if (
-      registryStatus === 'certified' ||
-      workflowStatus === 'certified' ||
-      reviewOutcome === 'approved'
-    ) {
-      return 'Certified'
-    }
-
-    return 'NotCertified'
-  }
-
-    if (
-      registryStatus === 'certified' ||
-      workflowStatus === 'certified' ||
-      reviewOutcome === 'approved'
-    ) {
-      return 'Certified'
-    }
-
-      return 'NotCertified'
-  }
-
-  if (
-    registryStatus === 'locked' ||
-    workflowStatus === 'in_review' ||
-    workflowStatus === 'pending' ||
-    reviewOutcome === 'pending'
-  ) {
-    return 'Pending'
-  }
-
-  return 'Pending'
-}
 
 function buildAuditTrail(
   registry: RegistryRow | null,
@@ -217,7 +160,41 @@ function buildAuditTrail(
       { label: 'Last Verified', value: formatDateTime(new Date().toISOString()) },
     ]
   }
+  
+  function normalizeStatus(
+  registry: RegistryRow | null,
+  certificate: CertificateRow | null
+): Status {
+  if (!registry) return 'NotCertified'
 
+  const registryStatus = (registry.status ?? '').toLowerCase()
+  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
+  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
+  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
+  const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
+
+  if (certificate?.revoked_at || certificateState === 'revoked') {
+    return 'Revoked'
+  }
+
+  if (certificateState === 'issued' && inspectionStatus === 'conditional') {
+    return 'Conditional'
+  }
+
+  if (certificateState === 'issued' && inspectionStatus === 'pass') {
+    return 'Certified'
+  }
+
+  if (
+    registryStatus === 'certified' ||
+    workflowStatus === 'certified' ||
+    reviewOutcome === 'approved'
+  ) {
+    return 'Certified'
+  }
+
+  return 'NotCertified'
+}
   const preferred = rows
     .map((row) => ({
       label:
