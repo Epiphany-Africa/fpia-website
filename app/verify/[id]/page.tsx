@@ -1080,8 +1080,7 @@ export default async function VerifyProperty({
           paddingBottom: '60px',
         }}
       >
-        This certificate was issued by the Fair Property Inspection Authority
-        (FPIA) · South Africa
+        Issued and verified by the Fair Properties Inspection Authority (FPIA), South Africa.
       </p>
     </main>
   )

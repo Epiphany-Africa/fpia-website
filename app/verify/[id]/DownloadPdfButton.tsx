@@ -293,50 +293,35 @@ export default function DownloadPdfButton({
       doc.setFontSize(9)
       doc.setTextColor(...grey)
 
-      const legalText1 =
+            const legalText1 =
         'This certificate confirms that the above property has been independently inspected and verified in accordance with FPIA standards.'
       const legalText2 =
         'Any alteration or misrepresentation of this certificate invalidates its authenticity.'
-      const legalText3 =
-        'Verification can be performed via the official FPIA registry.'
 
+      // Divider above lower section
+      doc.setDrawColor(...lightGrey)
+      doc.line(22, y - 4, 188, y - 4)
+
+      // Intro legal lines
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...grey)
       doc.text(doc.splitTextToSize(legalText1, 150), 22, y + 5)
-      doc.text(doc.splitTextToSize(legalText2, 150), 22, y + 20)
-      doc.text(doc.splitTextToSize(legalText3, 150), 22, y + 33)
+      doc.text(doc.splitTextToSize(legalText2, 150), 22, y + 18)
 
-      let lowerSectionStartY = y + 42
-
-      if (recommendation?.trim()) {
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(9)
-        doc.setTextColor(...black)
-        doc.text('Certification Note', 22, lowerSectionStartY)
-
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8.5)
-        doc.setTextColor(...grey)
-
-        const recommendationLines = doc.splitTextToSize(recommendation, 120)
-        doc.text(recommendationLines, 22, lowerSectionStartY + 7)
-
-        lowerSectionStartY += recommendationLines.length * 4 + 16
-      }
-    const signatureBlockTopY = Math.max(lowerSectionStartY + 8, 220)
-
-              // ===== LOWER AUTHORITY / FOOTER LAYOUT =====
-      // Fixed A4-safe lower section
-      const authorityTopY = 214
-      const signatureImageY = authorityTopY - 18
+      // ===== LOWER AUTHORITY / VERIFICATION LAYOUT =====
+      // Left authority block + right notice box, both above footer
+      const authorityTopY = 224
+      const signatureImageY = authorityTopY - 17
       const signatureLineY = authorityTopY
       const authorityTextY = authorityTopY + 8
 
-      const stampX = 138
-      const stampY = authorityTopY - 20
-      const stampSize = 26
+      const boxX = 118
+      const boxY = 198
+      const boxW = 62
+      const boxH = 40
 
-      const footerY = 257
-      const footerHeight = 8
-
+      // LEFT: signature / authority block
       if (signatureDataUrl) {
         const signatureFormat =
           signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
@@ -344,7 +329,7 @@ export default function DownloadPdfButton({
             ? 'JPEG'
             : 'PNG'
 
-        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureImageY, 40, 11)
+        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureImageY, 38, 10)
       }
 
       doc.setDrawColor(...black)
@@ -366,6 +351,40 @@ export default function DownloadPdfButton({
 
       doc.text(resolvedCompanyName, 22, authorityTextY + 16)
 
+      // RIGHT: verification / certification notice box
+      doc.setFillColor(252, 252, 252)
+      doc.setDrawColor(220, 220, 220)
+      doc.roundedRect(boxX, boxY, boxW, boxH, 1.5, 1.5, 'FD')
+
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8)
+      doc.setTextColor(...black)
+      doc.text('VERIFICATION NOTICE', boxX + 4, boxY + 7)
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(7.2)
+      doc.setTextColor(...grey)
+      const verificationNotice =
+        'Verification can be performed via the official FPIA registry.'
+      const verificationLines = doc.splitTextToSize(verificationNotice, boxW - 8)
+      doc.text(verificationLines, boxX + 4, boxY + 13)
+
+      const noteHeadingY = boxY + 24
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8)
+      doc.setTextColor(...black)
+      doc.text('CERTIFICATION NOTE', boxX + 4, noteHeadingY)
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(7.2)
+      doc.setTextColor(...grey)
+      const noteText =
+        recommendation?.trim() ||
+        'Certified record issued and active until revoked or superseded.'
+      const noteLines = doc.splitTextToSize(noteText, boxW - 8)
+      doc.text(noteLines, boxX + 4, noteHeadingY + 5)
+
+      // Stamp anchored near the notice box, above footer
       if (stampDataUrl) {
         const stampFormat =
           stampImageUrl?.toLowerCase().endsWith('.jpg') ||
@@ -373,10 +392,13 @@ export default function DownloadPdfButton({
             ? 'JPEG'
             : 'PNG'
 
-        doc.addImage(stampDataUrl, stampFormat, stampX, stampY, stampSize, stampSize)
+        doc.addImage(stampDataUrl, stampFormat, 144, 220, 20, 20)
       }
 
       // Footer pinned to base of certificate panel
+      const footerY = 257
+      const footerHeight = 8
+
       doc.setFillColor(...navy)
       doc.rect(15, footerY, 180, footerHeight, 'F')
 
