@@ -646,13 +646,21 @@ export default async function VerifyProperty({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr 1.3fr',
+                gridTemplateColumns: '1fr 1fr 1fr 1.4fr auto',
                 gap: '20px',
+                alignItems: 'start',
               }}
             >
               <div>
                 <p style={integrityLabelStyle}>Record Integrity</p>
-                <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
+                <p
+                  style={{
+                    ...integrityValueStyle,
+                    color: integrityValueColor,
+                    lineHeight: 1.45,
+                    margin: 0,
+                  }}
+                >
                   {registry?.is_locked
                     ? 'Locked'
                     : mock.status === 'Pending'
@@ -663,45 +671,58 @@ export default async function VerifyProperty({
 
               <div>
                 <p style={integrityLabelStyle}>Registry Match</p>
-                <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
+                <p
+                  style={{
+                    ...integrityValueStyle,
+                    color: integrityValueColor,
+                    lineHeight: 1.45,
+                    margin: 0,
+                  }}
+                >
                   {mock.status === 'NotCertified' ? 'No Match Found' : 'Confirmed'}
                 </p>
               </div>
 
               <div>
                 <p style={integrityLabelStyle}>Ledger Reference</p>
-                <p style={{ ...integrityValueStyle, color: integrityValueColor }}>
+                <p
+                  style={{
+                    ...integrityValueStyle,
+                    color: integrityValueColor,
+                    lineHeight: 1.45,
+                    margin: 0,
+                    wordBreak: 'break-word',
+                  }}
+                >
                   {mock.ledger}
                 </p>
               </div>
 
               <div>
                 <p style={integrityLabelStyle}>Integrity Hash</p>
-
-                <div
+                <p
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    width: '100%',
+                    ...integrityValueStyle,
+                    color: integrityValueColor,
+                    lineHeight: 1.45,
+                    margin: 0,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}
                 >
-                  <p
-                    style={{
-                      ...integrityValueStyle,
-                      color: integrityValueColor,
-                      flex: 1,
-                      minWidth: 0,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {hashDisplay}
-                  </p>
+                  {hashDisplay}
+                </p>
+              </div>
 
-                  <CopyHashButton value={verificationHash} />
-                </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  paddingTop: '34px',
+                }}
+              >
+                <CopyHashButton value={verificationHash} />
               </div>
             </div>
           </div>
@@ -1071,7 +1092,7 @@ const integrityLabelStyle: CSSProperties = {
   letterSpacing: '2px',
   textTransform: 'uppercase',
   color: 'var(--gold)',
-  margin: '0 0 8px 0',
+  margin: '0 0 6px 0',
   fontWeight: 700,
 }
 
