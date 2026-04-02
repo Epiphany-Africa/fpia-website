@@ -903,6 +903,7 @@ export default async function VerifyProperty({
                 fontFamily: "'DM Serif Display', serif",
                 fontSize: '28px',
                 marginBottom: '4px',
+                whiteSpace: 'pre-line',
               }}
             >
               {mock.address}
