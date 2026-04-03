@@ -1170,7 +1170,7 @@ export default async function VerifyProperty({
                     margin: '0 0 10px 0',
                   }}
                 >
-                  Scan to open this verified property record
+                  Scan to verify this property record
                 </p>
 
                 <p
