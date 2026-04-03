@@ -716,7 +716,7 @@ export default async function VerifyProperty({
                   fontWeight: 600,
                 }}
               >
-                This property may qualify for full certification once recorded conditions are resolved.
+                This property has been issued a Conditional Certificate due to outstanding recorded conditions that affect full certification status.
               </p>
 
               <p
@@ -727,8 +727,7 @@ export default async function VerifyProperty({
                   margin: 0,
                 }}
               >
-                Use this pathway to submit proof of remediation, request a reinspection, or move the
-                property toward full certification.
+                Full certification can only be achieved once all recorded conditions are resolved, verified, and formally approved by the Fair Properties Inspection Authority.
               </p>
 
               {certificate?.recommendation && (
@@ -751,7 +750,7 @@ export default async function VerifyProperty({
                       fontWeight: 700,
                     }}
                   >
-                    Recorded Conditions
+                    Outstanding Certification Conditions
                   </p>
 
                   <p
