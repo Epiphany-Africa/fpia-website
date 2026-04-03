@@ -119,8 +119,6 @@ type InspectorRow = {
   created_at: string
 }
 
-type Status = 'Certified' | 'Conditional' | 'NotCertified' | 'Revoked'
-
 function normalizeStatus(
   registry: RegistryRow | null,
   certificate: CertificateRow | null
@@ -149,7 +147,6 @@ function normalizeStatus(
     return 'Certified'
   }
 
-  // Only allow fallback certified if registry is clearly final
   if (
     reviewOutcome === 'approved' &&
     workflowStatus === 'certified' &&
@@ -449,12 +446,12 @@ export default async function VerifyProperty({
     Certified: {
       title: 'This property is currently certified.',
       message:
-        'This verification record confirms that the certificate has been authenticated against the official FPIA registry and reflects the current live status of the property. This page constitutes the authoritative verification record. Any downloaded, printed, or shared copies should be treated as reference documents only and must be validated against this live record. ',
+        'This verification record confirms that the certificate has been authenticated against the official FPIA registry and reflects the current live status of the property. This page constitutes the authoritative verification record. Any downloaded, printed, or shared copies should be treated as reference documents only and must be validated against this live record.',
     },
     Conditional: {
       title: 'This property is conditionally certified.',
       message:
-        'This record confirms that a conditional certificate has been issued. Certification remains subject to disclosed conditions, remedial actions, or limitations recorded by FPIA.',
+        'This verification record confirms that a conditional certificate has been issued. Certification remains subject to outstanding recorded conditions, remedial actions, or limitations controlled through the FPIA verification process.',
     },
     NotCertified: {
       title: 'This property is not currently certified.',
@@ -650,13 +647,13 @@ export default async function VerifyProperty({
             </p>
 
             {certificate?.revoked_reason && mock.status === 'Revoked' && (
-              <p style={{ marginTop: '0 0 10px 0', color: '#7A1C1C', fontWeight: 600 }}>
+              <p style={{ margin: '0 0 10px 0', color: '#7A1C1C', fontWeight: 600 }}>
                 Reason: {certificate.revoked_reason}
               </p>
             )}
 
             {certificate?.recommendation && mock.status === 'Conditional' && (
-              <p style={{ marginTop: '0 0 10px 0', color: '#B7791F', fontWeight: 600 }}>
+              <p style={{ margin: '0 0 10px 0', color: '#B7791F', fontWeight: 600 }}>
                 Conditions: {certificate.recommendation}
               </p>
             )}
@@ -719,12 +716,47 @@ export default async function VerifyProperty({
                 This property has been issued a Conditional Certificate due to outstanding recorded conditions that affect full certification status.
               </p>
 
+              <div
+                style={{
+                  marginTop: '14px',
+                  padding: '12px 14px',
+                  backgroundColor: '#fff',
+                  border: '1px solid rgba(183,121,31,0.18)',
+                  borderRadius: '4px',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: '11px',
+                    letterSpacing: '1.5px',
+                    textTransform: 'uppercase',
+                    color: '#B7791F',
+                    margin: '0 0 6px 0',
+                    fontWeight: 700,
+                  }}
+                >
+                  Certification Status
+                </p>
+
+                <p
+                  style={{
+                    fontSize: '14px',
+                    color: 'var(--navy)',
+                    lineHeight: 1.6,
+                    margin: 0,
+                    fontWeight: 500,
+                  }}
+                >
+                  This property does not currently meet full certification requirements due to unresolved inspection findings.
+                </p>
+              </div>
+
               <p
                 style={{
                   fontSize: '14px',
                   color: 'var(--navy)',
                   lineHeight: 1.7,
-                  margin: 0,
+                  margin: '14px 0 0 0',
                 }}
               >
                 Full certification can only be achieved once all recorded conditions are resolved, verified, and formally approved by the Fair Properties Inspection Authority.
@@ -755,6 +787,17 @@ export default async function VerifyProperty({
 
                   <p
                     style={{
+                      fontSize: '13px',
+                      color: '#B7791F',
+                      margin: '0 0 8px 0',
+                      fontWeight: 600,
+                    }}
+                  >
+                    The following conditions must be resolved and verified before full certification can be granted. These conditions may affect safety, compliance, or property value.
+                  </p>
+
+                  <p
+                    style={{
                       fontSize: '14px',
                       color: 'var(--navy)',
                       lineHeight: 1.6,
@@ -766,6 +809,28 @@ export default async function VerifyProperty({
                   </p>
                 </div>
               )}
+
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: 'var(--navy)',
+                  lineHeight: 1.7,
+                  margin: '16px 0 0 0',
+                }}
+              >
+                To progress toward full certification, the certificate holder must resolve the above conditions and submit supporting evidence for review, or request a formal reinspection through FPIA.
+              </p>
+
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#B7791F',
+                  marginTop: '16px',
+                  fontWeight: 600,
+                }}
+              >
+                Certification status will remain conditional until all requirements are fulfilled and verified.
+              </p>
 
               <ConditionalActionPanel
                 certificateRef={mock.id}
@@ -817,8 +882,7 @@ export default async function VerifyProperty({
                   margin: 0,
                 }}
               >
-                If the revocation is disputed or underlying issues have been corrected, the certificate
-                holder may request review, submit evidence, or book a fresh inspection.
+                If the revocation is disputed or underlying issues have been corrected, the certificate holder may request review, submit evidence, or book a fresh inspection.
               </p>
 
               {certificate?.revoked_reason && (
@@ -911,149 +975,149 @@ export default async function VerifyProperty({
             </div>
           )}
 
+          <div
+            style={{
+              backgroundColor: 'var(--navy)',
+              border: '1px solid rgba(201,161,77,0.22)',
+              padding: '18px 24px',
+              marginBottom: '16px',
+            }}
+          >
             <div
-        style={{
-          backgroundColor: 'var(--navy)',
-          border: '1px solid rgba(201,161,77,0.22)',
-          padding: '18px 24px',
-          marginBottom: '16px',
-        }}
-      >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr 1.4fr auto',
-            gap: '20px',
-            alignItems: 'end',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateRows: '32px 32px',
-              alignItems: 'end',
-            }}
-          >
-            <p
               style={{
-                ...integrityLabelStyle,
-                margin: 0,
-                lineHeight: '16px',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr 1.4fr auto',
+                gap: '20px',
+                alignItems: 'end',
               }}
             >
-              Lock Status
-            </p>
-            <p
-              style={{
-                ...integrityValueStyle,
-                color: integrityValueColor,
-                margin: 0,
-                lineHeight: '20px',
-              }}
-            >
-              {registry?.is_locked ? 'Locked' : 'Not Locked'}
-            </p>
-          </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateRows: '32px 32px',
+                  alignItems: 'end',
+                }}
+              >
+                <p
+                  style={{
+                    ...integrityLabelStyle,
+                    margin: 0,
+                    lineHeight: '16px',
+                  }}
+                >
+                  Lock Status
+                </p>
+                <p
+                  style={{
+                    ...integrityValueStyle,
+                    color: integrityValueColor,
+                    margin: 0,
+                    lineHeight: '20px',
+                  }}
+                >
+                  {registry?.is_locked ? 'Locked' : 'Not Locked'}
+                </p>
+              </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateRows: '32px 32px',
-              alignItems: 'end',
-            }}
-          >
-            <p
-              style={{
-                ...integrityLabelStyle,
-                margin: 0,
-                lineHeight: '16px',
-              }}
-            >
-              Registry Record
-            </p>
-            <p
-              style={{
-                ...integrityValueStyle,
-                color: integrityValueColor,
-                margin: 0,
-                lineHeight: '20px',
-              }}
-            >
-              {mock.status === 'NotCertified' ? 'Not Found' : 'Found'}
-            </p>
-          </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateRows: '32px 32px',
+                  alignItems: 'end',
+                }}
+              >
+                <p
+                  style={{
+                    ...integrityLabelStyle,
+                    margin: 0,
+                    lineHeight: '16px',
+                  }}
+                >
+                  Registry Record
+                </p>
+                <p
+                  style={{
+                    ...integrityValueStyle,
+                    color: integrityValueColor,
+                    margin: 0,
+                    lineHeight: '20px',
+                  }}
+                >
+                  {mock.status === 'NotCertified' ? 'Not Found' : 'Found'}
+                </p>
+              </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateRows: '32px 32px',
-              alignItems: 'end',
-            }}
-          >
-            <p
-              style={{
-                ...integrityLabelStyle,
-                margin: 0,
-                lineHeight: '16px',
-              }}
-            >
-              Ledger Reference
-            </p>
-            <p
-              style={{
-                ...integrityValueStyle,
-                color: integrityValueColor,
-                margin: 0,
-                lineHeight: '20px',
-                wordBreak: 'break-word',
-              }}
-            >
-              {mock.ledger}
-            </p>
-          </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateRows: '32px 32px',
+                  alignItems: 'end',
+                }}
+              >
+                <p
+                  style={{
+                    ...integrityLabelStyle,
+                    margin: 0,
+                    lineHeight: '16px',
+                  }}
+                >
+                  Ledger Reference
+                </p>
+                <p
+                  style={{
+                    ...integrityValueStyle,
+                    color: integrityValueColor,
+                    margin: 0,
+                    lineHeight: '20px',
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {mock.ledger}
+                </p>
+              </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateRows: '32px 32px',
-              alignItems: 'end',
-            }}
-          >
-            <p
-              style={{
-                ...integrityLabelStyle,
-                margin: 0,
-                lineHeight: '16px',
-              }}
-            >
-              Integrity Hash
-            </p>
-            <p
-              style={{
-                ...integrityValueStyle,
-                color: integrityValueColor,
-                margin: 0,
-                lineHeight: '20px',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {hashDisplay}
-            </p>
-          </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateRows: '32px 32px',
+                  alignItems: 'end',
+                }}
+              >
+                <p
+                  style={{
+                    ...integrityLabelStyle,
+                    margin: 0,
+                    lineHeight: '16px',
+                  }}
+                >
+                  Integrity Hash
+                </p>
+                <p
+                  style={{
+                    ...integrityValueStyle,
+                    color: integrityValueColor,
+                    margin: 0,
+                    lineHeight: '20px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {hashDisplay}
+                </p>
+              </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-end',
-              height: '64px',
-            }}
-          >
-            <CopyHashButton value={verificationHash} />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  height: '64px',
+                }}
+              >
+                <CopyHashButton value={verificationHash} />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
           <div
             style={{
