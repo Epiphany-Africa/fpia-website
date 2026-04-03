@@ -449,7 +449,7 @@ export default async function VerifyProperty({
     Certified: {
       title: 'This property is currently certified.',
       message:
-        'This record confirms that the certificate has been verified against the official FPIA registry and reflects the current certified status of the property.',
+        'This verification record confirms that the certificate has been authenticated against the official FPIA registry and reflects the current live status of the property. This page constitutes the authoritative verification record. Any downloaded, printed, or shared copies should be treated as reference documents only and must be validated against this live record. ',
     },
     Conditional: {
       title: 'This property is conditionally certified.',
@@ -1181,8 +1181,7 @@ export default async function VerifyProperty({
                     margin: '0 0 10px 0',
                   }}
                 >
-                  This QR code links directly to the official FPIA verification page
-                  for this certificate.
+                  This QR code links directly to the official FPIA verification record, which serves as the live source of truth for this certificate.
                 </p>
 
                 <p
