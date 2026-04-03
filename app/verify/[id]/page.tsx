@@ -119,20 +119,26 @@ type InspectorRow = {
   created_at: string
 }
 
+type Status = 'Certified' | 'Conditional' | 'NotCertified' | 'Revoked'
+
 function normalizeStatus(
   registry: RegistryRow | null,
   certificate: CertificateRow | null
 ): Status {
   if (!registry) return 'NotCertified'
 
-  const registryStatus = (registry.status ?? '').toLowerCase()
-  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
-  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
-  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
   const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
+  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
+  const registryLocked = Boolean(registry.is_locked)
+  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
+  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
 
   if (certificate?.revoked_at || certificateState === 'revoked') {
     return 'Revoked'
+  }
+
+  if (!registryLocked) {
+    return 'NotCertified'
   }
 
   if (certificateState === 'issued' && inspectionStatus === 'conditional') {
@@ -143,10 +149,11 @@ function normalizeStatus(
     return 'Certified'
   }
 
+  // Only allow fallback certified if registry is clearly final
   if (
-    registryStatus === 'certified' ||
-    workflowStatus === 'certified' ||
-    reviewOutcome === 'approved'
+    reviewOutcome === 'approved' &&
+    workflowStatus === 'certified' &&
+    registryLocked
   ) {
     return 'Certified'
   }
@@ -905,96 +912,121 @@ export default async function VerifyProperty({
             </div>
           )}
 
-          <div
-            style={{
-              backgroundColor: 'var(--navy)',
-              border: '1px solid rgba(201,161,77,0.22)',
-              padding: '18px 24px',
-              marginBottom: '16px',
-            }}
-          >
             <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr 1.4fr auto',
-                gap: '20px',
-                alignItems: 'start',
-              }}
-            >
-              <div>
-                <p style={integrityLabelStyle}>Record Integrity</p>
-                <p
-                  style={{
-                    ...integrityValueStyle,
-                    color: integrityValueColor,
-                    lineHeight: 1.45,
-                    margin: 0,
-                  }}
-                >
-                  {registry?.is_locked
-                    ? 'Locked'
-                    : mock.status === 'Conditional'
-                    ? 'Conditionally Verified'
-                    : 'No Active Lock'}
-                </p>
-              </div>
-
-              <div>
-                <p style={integrityLabelStyle}>Registry Match</p>
-                <p
-                  style={{
-                    ...integrityValueStyle,
-                    color: integrityValueColor,
-                    lineHeight: 1.45,
-                    margin: 0,
-                  }}
-                >
-                  {mock.status === 'NotCertified' ? 'No Match Found' : 'Confirmed'}
-                </p>
-              </div>
-
-              <div>
-                <p style={integrityLabelStyle}>Ledger Reference</p>
-                <p
-                  style={{
-                    ...integrityValueStyle,
-                    color: integrityValueColor,
-                    lineHeight: 1.45,
-                    margin: 0,
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {mock.ledger}
-                </p>
-              </div>
-
-              <div>
-                <p style={integrityLabelStyle}>Integrity Hash</p>
-                <p
-                  style={{
-                    ...integrityValueStyle,
-                    color: integrityValueColor,
-                    lineHeight: 1.45,
-                    margin: 0,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {hashDisplay}
-                </p>
-              </div>
-
-              <div
                 style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  paddingTop: '34px',
+                  backgroundColor: 'var(--navy)',
+                  border: '1px solid rgba(201,161,77,0.22)',
+                  padding: '18px 24px',
+                  marginBottom: '16px',
                 }}
               >
-                <CopyHashButton value={verificationHash} />
-              </div>
-            </div>
+            <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr 1.4fr auto',
+                    gap: '20px',
+                    alignItems: 'center',
+                  }}
+                >
+            <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-start',
+                      height: '48px',
+                    }}
+                  >
+                    <p style={integrityLabelStyle}>Lock Status</p>
+                    <p
+                      style={{
+                        ...integrityValueStyle,
+                        color: integrityValueColor,
+                        margin: 0,
+                        marginTop: 'auto',
+                      }}
+                    >
+                      {registry?.is_locked ? 'Locked' : 'Not Locked'}
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-start',
+                      height: '48px',
+                    }}
+                  >
+                    <p style={integrityLabelStyle}>Registry Record</p>
+                    <p
+                      style={{
+                        ...integrityValueStyle,
+                        color: integrityValueColor,
+                        margin: 0,
+                        marginTop: 'auto',
+
+                      }}
+                    >
+                      {mock.status === 'NotCertified' ? 'Not Found' : 'Found'}
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-start',
+                      height: '48px',
+                    }}
+                  >
+                    <p style={integrityLabelStyle}>Ledger Reference</p>
+                    <p
+                      style={{
+                        ...integrityValueStyle,
+                        color: integrityValueColor,
+                        margin: 0,
+                        marginTop: 'auto',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {mock.ledger}
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-start',
+                      height: '48px',
+                    }}
+                  >
+                    <p style={integrityLabelStyle}>Integrity Hash</p>
+                    <p
+                      style={{
+                        ...integrityValueStyle,
+                        color: integrityValueColor,
+                        margin: 0,
+                        marginTop: 'auto',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {hashDisplay}
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      height: '48px',
+                    }}
+                  >
+                    <CopyHashButton value={verificationHash} />
+                  </div>
+                </div>
           </div>
 
           <div
