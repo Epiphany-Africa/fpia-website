@@ -1,6 +1,9 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
+import { getFpiaProduct } from '@/lib/products/fpiaProducts'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,14 +20,23 @@ type Suburb = {
 
 type Step = 'property' | 'contact' | 'confirm'
 
-export default function RequestInspectionPage() {
+function RequestInspectionPageContent() {
+  const searchParams = useSearchParams()
+  const inspectionProduct = getFpiaProduct('inspection_product')
+  const upgradeProduct = getFpiaProduct('upgrade_product')
+  const sellerPackage = getFpiaProduct('seller_precert_package')
+  const propertyReference = searchParams.get('propertyReference')?.trim() ?? ''
+  const requestedProperty = searchParams.get('requestedProperty')?.trim() ?? ''
+  const prefilledName = searchParams.get('name')?.trim() ?? ''
+  const prefilledEmail = searchParams.get('email')?.trim() ?? ''
+  const prefilledPhone = searchParams.get('phone')?.trim() ?? ''
+  const today = new Date().toISOString().split('T')[0]
   const [step, setStep] = useState<Step>('property')
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   // Address autocomplete
-  const [addressQuery, setAddressQuery] = useState('')
   const [streetNumber, setStreetNumber] = useState('')
   const [streetName, setStreetName] = useState('')
   const [suburbQuery, setSuburbQuery] = useState('')
@@ -35,9 +47,10 @@ export default function RequestInspectionPage() {
 
   // Contact details
   const [role, setRole] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
+  const [fullName, setFullName] = useState(prefilledName)
+  const [email, setEmail] = useState(prefilledEmail)
+  const [phone, setPhone] = useState(prefilledPhone)
+  const [companyWebsite, setCompanyWebsite] = useState('')
   const [preferredDate, setPreferredDate] = useState('')
   const [altDate, setAltDate] = useState('')
   const [notes, setNotes] = useState('')
@@ -94,6 +107,20 @@ export default function RequestInspectionPage() {
     return role && fullName.trim() && email.trim() && phone.trim() && preferredDate
   }
 
+  function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : 'Unexpected error.'
+  }
+
+  function buildRequestNotes() {
+    const parts = [
+      propertyReference ? `Verification reference: ${propertyReference}` : '',
+      requestedProperty ? `Requested property: ${requestedProperty}` : '',
+      notes.trim(),
+    ].filter(Boolean)
+
+    return parts.length > 0 ? parts.join('\n\n') : null
+  }
+
   async function handleSubmit() {
     setBusy(true)
     setError('')
@@ -112,9 +139,10 @@ export default function RequestInspectionPage() {
           requestor_name: fullName,
           requestor_email: email,
           requestor_phone: phone,
+          company_website: companyWebsite,
           preferred_date: preferredDate,
           alt_date: altDate || null,
-          notes: notes || null,
+          notes: buildRequestNotes(),
         }),
       })
 
@@ -124,8 +152,8 @@ export default function RequestInspectionPage() {
       }
 
       setSubmitted(true)
-    } catch (err: any) {
-      setError(err.message ?? 'Unexpected error.')
+    } catch (error: unknown) {
+      setError(getErrorMessage(error))
     } finally {
       setBusy(false)
     }
@@ -165,6 +193,25 @@ export default function RequestInspectionPage() {
           Complete the form below and an FPIA inspector in your area will be assigned within 48 hours.
         </p>
 
+        {(propertyReference || requestedProperty) && (
+          <div
+            style={{
+              maxWidth: '620px',
+              border: '1px solid rgba(201,161,77,0.2)',
+              backgroundColor: 'rgba(255,255,255,0.03)',
+              padding: '14px 16px',
+              marginTop: '18px',
+            }}
+          >
+            <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 6px 0' }}>
+              {propertyReference ? 'Linked Verification Record' : 'Requested Property'}
+            </p>
+            <p style={{ color: 'var(--off-white)', fontSize: '14px', margin: 0, wordBreak: 'break-word' }}>
+              {propertyReference || requestedProperty}
+            </p>
+          </div>
+        )}
+
         {/* Steps indicator */}
         <div style={{ display: 'flex', gap: '32px', marginTop: '32px' }}>
           {(['property', 'contact', 'confirm'] as Step[]).map((s, i) => (
@@ -185,6 +232,83 @@ export default function RequestInspectionPage() {
               }}>
                 {s === 'property' ? 'Property' : s === 'contact' ? 'Your Details' : 'Confirm'}
               </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ padding: '32px 80px 0' }}>
+        <div
+          style={{
+            maxWidth: '980px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+            gap: '16px',
+          }}
+        >
+          {[inspectionProduct, upgradeProduct, sellerPackage].map((product) => (
+            <div
+              key={product.id}
+              style={{
+                border: '1px solid rgba(201,161,77,0.18)',
+                backgroundColor: 'rgba(255,255,255,0.03)',
+                padding: '18px',
+              }}
+            >
+              <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                {product.certificateOutcome}
+              </p>
+              <h3 style={{ color: 'var(--off-white)', fontSize: '18px', marginBottom: '6px', fontFamily: 'var(--font-serif)' }}>
+                {product.name}
+              </h3>
+              <p style={{ color: '#a0aec0', fontSize: '12px', marginBottom: '12px' }}>
+                {product.usageSubheading}
+              </p>
+              <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                {product.priceLabel}
+              </p>
+              <p style={{ color: 'var(--off-white)', fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>
+                {product.price}
+              </p>
+              <p style={{ color: 'var(--off-white)', fontSize: '13px', lineHeight: 1.6, marginBottom: '10px' }}>
+                {product.valueMicrocopy}
+              </p>
+              <p style={{ color: 'var(--slate)', fontSize: '13px', lineHeight: 1.7, marginBottom: '12px' }}>
+                {product.description}
+              </p>
+              <p style={{ color: 'rgba(201,161,77,0.85)', fontSize: '11px', lineHeight: 1.6, marginBottom: '12px' }}>
+                {product.systemTrigger}
+              </p>
+              <Link
+                href={product.ctaHref}
+                style={
+                  product.id === 'inspection_product'
+                    ? {
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '10px 14px',
+                        backgroundColor: 'var(--gold)',
+                        color: 'var(--navy)',
+                        textDecoration: 'none',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                      }
+                    : {
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '10px 14px',
+                        border: '1px solid rgba(201,161,77,0.35)',
+                        color: 'var(--off-white)',
+                        textDecoration: 'none',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                      }
+                }
+              >
+                {product.ctaLabel}
+              </Link>
             </div>
           ))}
         </div>
@@ -342,11 +466,11 @@ export default function RequestInspectionPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={labelStyle}>Preferred Inspection Date</label>
-                  <input type="date" value={preferredDate} onChange={e => setPreferredDate(e.target.value)} style={inputStyle} />
+                  <input type="date" min={today} value={preferredDate} onChange={e => setPreferredDate(e.target.value)} style={inputStyle} />
                 </div>
                 <div>
                   <label style={labelStyle}>Alternative Date</label>
-                  <input type="date" value={altDate} onChange={e => setAltDate(e.target.value)} style={inputStyle} />
+                  <input type="date" min={preferredDate || today} value={altDate} onChange={e => setAltDate(e.target.value)} style={inputStyle} />
                 </div>
               </div>
 
@@ -358,6 +482,17 @@ export default function RequestInspectionPage() {
                   rows={4}
                   placeholder="Access instructions, gate codes, or any special requirements..."
                   style={{ ...inputStyle, resize: 'vertical', paddingTop: '12px' }}
+                />
+              </div>
+
+              <div style={honeypotWrapStyle} aria-hidden="true">
+                <label style={labelStyle}>Company website</label>
+                <input
+                  value={companyWebsite}
+                  onChange={e => setCompanyWebsite(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  style={inputStyle}
                 />
               </div>
             </div>
@@ -389,13 +524,16 @@ export default function RequestInspectionPage() {
             <div style={{ display: 'grid', gap: '12px', marginBottom: '32px' }}>
               {[
                 { label: 'Property Address', value: fullAddress() },
+                ...(propertyReference
+                  ? [{ label: 'Property Reference', value: propertyReference }]
+                  : []),
                 { label: 'Role', value: role },
                 { label: 'Name', value: fullName },
                 { label: 'Email', value: email },
                 { label: 'Phone / WhatsApp', value: phone },
                 { label: 'Preferred Date', value: preferredDate },
                 { label: 'Alternative Date', value: altDate || '—' },
-                { label: 'Notes', value: notes || '—' },
+                { label: 'Notes', value: buildRequestNotes() || '—' },
               ].map((item) => (
                 <div key={item.label} style={{
                   padding: '14px 18px',
@@ -448,6 +586,32 @@ export default function RequestInspectionPage() {
   )
 }
 
+export default function RequestInspectionPage() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          style={{
+            backgroundColor: 'var(--navy)',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px',
+            color: 'var(--off-white)',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '15px', color: '#a0aec0' }}>
+            Loading inspection request form...
+          </p>
+        </main>
+      }
+    >
+      <RequestInspectionPageContent />
+    </Suspense>
+  )
+}
+
 const stepTitleStyle: React.CSSProperties = {
   fontFamily: 'var(--font-serif)',
   fontSize: '28px',
@@ -496,4 +660,12 @@ const btnSecondaryStyle: React.CSSProperties = {
   letterSpacing: '1px',
   textTransform: 'uppercase',
   cursor: 'pointer',
+}
+
+const honeypotWrapStyle: React.CSSProperties = {
+  position: 'absolute',
+  left: '-9999px',
+  width: '1px',
+  height: '1px',
+  overflow: 'hidden',
 }

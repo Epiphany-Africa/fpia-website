@@ -22,7 +22,7 @@
   <!-- Full name -->
   <text x="101" y="48"
         font-family="Georgia, 'Times New Roman', serif"
-        font-size="7.5" fill="#C9A14D" letter-spacing="2">FAIR PROPERTIES INSPECTION AUTHORITIES</text>
+        font-size="7.5" fill="#C9A14D" letter-spacing="2">FAIR PROPERTY INSPECTION AUTHORITIES</text>
 
   <!-- Tagline -->
   <text x="101" y="63"

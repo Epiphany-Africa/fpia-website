@@ -1,12 +1,14 @@
 'use client'
 
 import { jsPDF } from 'jspdf'
+import type { TrustOutcome } from '@/lib/certification/getCanonicalTrustState'
+import { getTrustBadgeMeta } from '@/lib/certification/getTrustBadgeMeta'
 
 const COMPANY_NAME = 'Fair Properties Inspection Authority (Pty) Ltd'
 
 type Props = {
   id: string
-  status: string
+  trustState: TrustOutcome
   address: string
   province?: string | null
   hash: string
@@ -37,9 +39,74 @@ function formatDate(input?: string | null) {
   }).format(date)
 }
 
+function getWatermarkHashLabel(hash: string) {
+  if (!hash || hash === 'No active verification hash') {
+    return 'HASH VERIFIED: RECORD PENDING'
+  }
+
+  const normalizedHash = hash.replace(/^sha256:/i, '')
+  return `HASH VERIFIED: ${normalizedHash.slice(0, 12)}`
+}
+
+function normalizeAssetPath(
+  input: string | null | undefined,
+  fallback?: string | null
+) {
+  const value = input?.trim()
+
+  if (!value) return fallback ?? null
+  if (
+    value.startsWith('/') ||
+    value.startsWith('http://') ||
+    value.startsWith('https://') ||
+    value.startsWith('data:')
+  ) {
+    return value
+  }
+
+  if (fallback) return fallback
+
+  return `/${value.replace(/^\/+/, '')}`
+}
+
+function buildCertificateWatermarkSvg(hash: string) {
+  const hashLabel = getWatermarkHashLabel(hash)
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+      <g transform="translate(600 260) rotate(28)">
+        <text
+          x="0"
+          y="-12"
+          text-anchor="middle"
+          fill="rgba(60,78,98,0.077)"
+          font-family="Times New Roman, serif"
+          font-size="60"
+          font-weight="700"
+          letter-spacing="0.11em"
+        >
+          FAIR PROPERTY CERTIFIED<tspan dx="-1" dy="-21" font-size="26">™</tspan>
+        </text>
+        <text
+          x="0"
+          y="30"
+          text-anchor="middle"
+          fill="rgba(60,78,98,0.082)"
+          font-family="Helvetica, Arial, sans-serif"
+          font-size="14"
+          font-weight="700"
+          letter-spacing="0.085em"
+        >
+          ${hashLabel}
+        </text>
+      </g>
+    </svg>
+  `.trim()
+}
+
 export default function DownloadPdfButton({
   id,
-  status,
+  trustState,
   address,
   province,
   hash,
@@ -52,7 +119,6 @@ export default function DownloadPdfButton({
   badgeNumber,
   companyName,
   certificateType,
-  recommendation,
   signatureImageUrl,
   stampImageUrl,
 }: Props) {
@@ -97,101 +163,135 @@ export default function DownloadPdfButton({
         img.src = src
       })
 
-    const loadRemoteImageAsDataUrl = (src: string) =>
+    const loadBlobAsDataUrl = (blob: Blob) =>
       new Promise<string>((resolve, reject) => {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          canvas.width = img.naturalWidth
-          canvas.height = img.naturalHeight
-          const ctx = canvas.getContext('2d')
-
-          if (!ctx) {
-            reject(new Error('Could not create canvas context'))
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const result = reader.result
+          if (typeof result === 'string') {
+            resolve(result)
             return
           }
 
-          ctx.drawImage(img, 0, 0)
-          resolve(canvas.toDataURL('image/png'))
+          reject(new Error('Could not convert blob to data URL'))
         }
-        img.onerror = () => reject(new Error(`Failed to load remote image: ${src}`))
-        img.src = src
+        reader.onerror = () => reject(new Error('Could not read blob as data URL'))
+        reader.readAsDataURL(blob)
       })
 
-    const safeStatus = status.trim().toLowerCase()
+    const loadFetchedAssetAsDataUrl = async (src: string) => {
+      const response = await fetch(src, { cache: 'no-store' })
+      if (!response.ok) {
+        throw new Error(`Failed to fetch asset: ${src}`)
+      }
 
-    const statusLabel =
-      safeStatus === 'certified'
-        ? 'CERTIFIED'
-        : safeStatus === 'conditional'
-        ? 'CONDITIONAL'
-        : safeStatus === 'revoked'
-        ? 'REVOKED'
-        : 'NOT CERTIFIED'
+      return loadBlobAsDataUrl(await response.blob())
+    }
+
+    const buildAssetFetchPath = (src: string) => {
+      if (src.startsWith('data:')) return src
+      if (src.startsWith('/')) return src
+      return `/api/public-asset?src=${encodeURIComponent(src)}`
+    }
+
+    const badgeMeta = getTrustBadgeMeta(trustState)
+    const statusLabel = badgeMeta.label
 
     const statusColor: [number, number, number] =
-      safeStatus === 'certified'
+      trustState === 'FINAL_VERIFIED'
         ? green
-        : safeStatus === 'conditional'
+        : trustState === 'CONDITIONAL'
         ? amber
-        : safeStatus === 'revoked'
+        : trustState === 'REVOKED'
         ? revokedRed
         : dangerRed
 
     const certificateHeading =
-      safeStatus === 'conditional'
+      trustState === 'CONDITIONAL'
         ? 'FPIA CONDITIONAL PROPERTY CERTIFICATE'
-        : safeStatus === 'revoked'
+        : trustState === 'REVOKED'
         ? 'FPIA REVOKED PROPERTY CERTIFICATE'
-        : safeStatus === 'certified'
-        ? 'FPIA VERIFIED PROPERTY CERTIFICATE'
+        : trustState === 'FINAL_VERIFIED'
+        ? 'FPIA VERIFIED PROPERTY RECORD'
         : 'FPIA PROPERTY INSPECTION OUTCOME'
 
     const issuedLabel = formatDate(issuedDate)
 
-    const validUntilLabel =
-      validUntil?.trim() ||
-      (safeStatus === 'certified'
+      const validUntilLabel =
+        validUntil?.trim() ||
+        (trustState === 'FINAL_VERIFIED'
         ? 'Active until revoked or superseded'
-        : safeStatus === 'conditional'
+        : trustState === 'CONDITIONAL'
         ? 'Conditionally active subject to recorded conditions'
-        : safeStatus === 'revoked'
+        : trustState === 'REVOKED'
         ? 'No longer valid'
         : 'Not currently applicable')
 
-    const shortHash =
-      hash.length > 36 ? `${hash.slice(0, 18)}...${hash.slice(-8)}` : hash
+      const shortHash =
+        hash.length > 36 ? `${hash.slice(0, 18)}...${hash.slice(-8)}` : hash
+
+      const topNoteTitle =
+        trustState === 'CONDITIONAL'
+          ? 'CONDITIONAL NOTE'
+          : trustState === 'REVOKED'
+          ? 'REVOCATION NOTE'
+          : trustState === 'FINAL_VERIFIED'
+          ? 'CERTIFICATION NOTE'
+          : 'ASSESSMENT NOTE'
+
+      const topNoteText =
+        trustState === 'CONDITIONAL'
+          ? 'Conditional certification issued subject to recorded conditions.'
+          : trustState === 'REVOKED'
+          ? 'This certificate has been revoked and should not be relied upon.'
+          : trustState === 'FINAL_VERIFIED'
+          ? 'Certified record issued and active until revoked or superseded.'
+          : 'No active certification is currently in force for this property.'
+
+      const topVerificationNotice =
+        'Use the official FPIA registry link or QR code for live verification.'
 
     const resolvedCompanyName = companyName?.trim() || COMPANY_NAME
     const resolvedInspectorName = inspectorName?.trim() || 'FPIA Inspector'
     const resolvedInspectorRole =
       inspectorRole?.trim() || 'Authorised Certification Officer'
+    const demoSignatureFallback =
+      id.toUpperCase() === 'ZA-2024-00142' ? '/signatures/INS-001.png' : null
+    const resolvedSignatureImageUrl = normalizeAssetPath(
+      signatureImageUrl,
+      demoSignatureFallback ||
+        (inspectorCode?.trim() ? `/signatures/${inspectorCode.trim()}.png` : null)
+    )
+    const resolvedStampImageUrl = normalizeAssetPath(stampImageUrl)
 
     const inspectorMetaParts = [inspectorCode?.trim(), badgeNumber?.trim()].filter(Boolean)
     const inspectorMeta = inspectorMetaParts.join(' | ')
 
     try {
       const logoDataUrl = await loadImageAsDataUrl(logoSrc)
+      const watermarkSvg = buildCertificateWatermarkSvg(hash)
+      const watermarkDataUrl = await loadImageAsDataUrl(
+        `data:image/svg+xml;charset=utf-8,${encodeURIComponent(watermarkSvg)}`
+      )
 
       let signatureDataUrl: string | null = null
       let stampDataUrl: string | null = null
 
-      if (signatureImageUrl) {
+      if (resolvedSignatureImageUrl) {
         try {
-          signatureDataUrl = signatureImageUrl.startsWith('/')
-            ? await loadImageAsDataUrl(signatureImageUrl)
-            : await loadRemoteImageAsDataUrl(signatureImageUrl)
+          signatureDataUrl = await loadFetchedAssetAsDataUrl(
+            buildAssetFetchPath(resolvedSignatureImageUrl)
+          )
         } catch (error) {
           console.warn('Signature image could not be loaded:', error)
         }
       }
 
-      if (stampImageUrl) {
+      if (resolvedStampImageUrl) {
         try {
-          stampDataUrl = stampImageUrl.startsWith('/')
-            ? await loadImageAsDataUrl(stampImageUrl)
-            : await loadRemoteImageAsDataUrl(stampImageUrl)
+          stampDataUrl = await loadFetchedAssetAsDataUrl(
+            buildAssetFetchPath(resolvedStampImageUrl)
+          )
         } catch (error) {
           console.warn('Stamp image could not be loaded:', error)
         }
@@ -202,6 +302,8 @@ export default function DownloadPdfButton({
 
       doc.setFillColor(255, 255, 255)
       doc.roundedRect(15, 20, 180, 245, 2, 2, 'F')
+
+      doc.addImage(watermarkDataUrl, 'PNG', 14, 120, 182, 82)
 
       doc.setFillColor(...navy)
       doc.rect(15, 20, 180, 40, 'F')
@@ -227,6 +329,11 @@ export default function DownloadPdfButton({
       doc.setTextColor(...statusColor)
       doc.text(statusLabel, 44, 76)
 
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...grey)
+      doc.text(badgeMeta.descriptor, 44, 81)
+
       doc.setTextColor(...black)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
@@ -240,16 +347,30 @@ export default function DownloadPdfButton({
         .flatMap((line) => doc.splitTextToSize(line, 105))
       doc.text(addressLines, 22, 96)
 
-      doc.setFillColor(255, 255, 255)
-      doc.setDrawColor(220, 220, 220)
-      doc.roundedRect(138, 66, 40, 42, 1.5, 1.5, 'FD')
-      doc.addImage(qrCode, 'PNG', 144, 71, 28, 28)
+      const topBoxCenterX = 156
 
       doc.setTextColor(...black)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8.2)
+      doc.text('VERIFICATION', topBoxCenterX, 75.2, { align: 'center' })
+      doc.text('NOTICE', topBoxCenterX, 78.4, { align: 'center' })
+
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(7.5)
-      doc.text('Scan to verify', 158, 101, { align: 'center' })
-      doc.text('authenticity', 158, 105, { align: 'center' })
+      doc.setFontSize(6.6)
+      doc.setTextColor(...grey)
+      const topVerificationLines = doc.splitTextToSize(topVerificationNotice, 38)
+      doc.text(topVerificationLines, topBoxCenterX, 81.5, { align: 'center' })
+
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8.2)
+      doc.setTextColor(...black)
+      doc.text(topNoteTitle, topBoxCenterX, 90.2, { align: 'center' })
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(6.6)
+      doc.setTextColor(...grey)
+      const topNoteLines = doc.splitTextToSize(topNoteText, 38)
+      doc.text(topNoteLines, topBoxCenterX, 93.5, { align: 'center' })
 
       doc.setDrawColor(210, 210, 210)
       doc.line(20, 116, 190, 116)
@@ -312,19 +433,19 @@ export default function DownloadPdfButton({
       const signatureLineY = authorityTopY
       const authorityTextY = authorityTopY + 8
 
-      const boxX = 132
-      const boxY = 212
-      const boxW = 48
-      const boxH = 40
+      const qrBoxX = 134
+      const qrBoxY = 200
+      const qrBoxW = 44
+      const qrBoxH = 44
 
       if (signatureDataUrl) {
         const signatureFormat =
-          signatureImageUrl?.toLowerCase().endsWith('.jpg') ||
-          signatureImageUrl?.toLowerCase().endsWith('.jpeg')
+          resolvedSignatureImageUrl?.toLowerCase().endsWith('.jpg') ||
+          resolvedSignatureImageUrl?.toLowerCase().endsWith('.jpeg')
             ? 'JPEG'
             : 'PNG'
 
-        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 12, 42, 12)
+        doc.addImage(signatureDataUrl, signatureFormat, 22, signatureLineY - 17, 58, 17)
       }
 
       doc.setDrawColor(...black)
@@ -347,59 +468,25 @@ export default function DownloadPdfButton({
       doc.text(resolvedCompanyName, 22, authorityTextY + 15)
 
       doc.setFillColor(248, 249, 250)
-      doc.setDrawColor(220, 220, 220)
+      doc.setDrawColor(210, 210, 210)
       doc.setLineWidth(0.5)
-      doc.roundedRect(boxX, boxY, boxW, boxH, 1.5, 1.5, 'FD')
+      doc.roundedRect(qrBoxX, qrBoxY, qrBoxW, qrBoxH, 1.5, 1.5, 'FD')
+      doc.addImage(qrCode, 'PNG', qrBoxX + 10, qrBoxY + 5, 24, 24)
 
       doc.setFont('helvetica', 'bold')
-      doc.setFontSize(8)
-      doc.setTextColor(...black)
-      doc.text('VERIFICATION NOTICE', boxX + 4, boxY + 7)
-
-      doc.setFont('helvetica', 'normal')
       doc.setFontSize(7)
-      doc.setTextColor(...grey)
-      const verificationNotice =
-        'Verification can be performed via the official FPIA registry.'
-      const verificationLines = doc.splitTextToSize(verificationNotice, boxW - 10)
-      doc.text(verificationLines, boxX + 4, boxY + 13)
-
-      const noteHeadingY = boxY + 24
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(8)
       doc.setTextColor(...black)
-      doc.text(
-        safeStatus === 'conditional'
-          ? 'CONDITIONS'
-          : safeStatus === 'revoked'
-          ? 'REVOCATION NOTE'
-          : safeStatus === 'certified'
-          ? 'CERTIFICATION NOTE'
-          : 'ASSESSMENT NOTE',
-        boxX + 4,
-        noteHeadingY
-      )
+      doc.text('SCAN TO VERIFY', qrBoxX + qrBoxW / 2, qrBoxY + 34, { align: 'center' })
 
       doc.setFont('helvetica', 'normal')
-      doc.setFontSize(7.2)
+      doc.setFontSize(6.4)
       doc.setTextColor(...grey)
-      const noteText =
-        recommendation?.trim() ||
-        (safeStatus === 'conditional'
-          ? 'Conditional certification issued subject to recorded conditions and remedial actions.'
-          : safeStatus === 'revoked'
-          ? 'This certificate has been revoked and should not be relied upon as evidence of active certification.'
-          : safeStatus === 'certified'
-          ? 'Certified record issued and active until revoked or superseded.'
-          : 'No active certification is currently in force for this property.')
-
-      const noteLines = doc.splitTextToSize(noteText, boxW - 8)
-      doc.text(noteLines, boxX + 4, noteHeadingY + 5)
+      doc.text('LIVE RECORD', qrBoxX + qrBoxW / 2, qrBoxY + 38, { align: 'center' })
 
       if (stampDataUrl) {
         const stampFormat =
-          stampImageUrl?.toLowerCase().endsWith('.jpg') ||
-          stampImageUrl?.toLowerCase().endsWith('.jpeg')
+          resolvedStampImageUrl?.toLowerCase().endsWith('.jpg') ||
+          resolvedStampImageUrl?.toLowerCase().endsWith('.jpeg')
             ? 'JPEG'
             : 'PNG'
 
@@ -418,6 +505,16 @@ export default function DownloadPdfButton({
 
       const footerY = 257
       const footerHeight = 8
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(7.2)
+      doc.setTextColor(...grey)
+      doc.text(
+        'This document is cryptographically anchored to the FPIA registry.',
+        105,
+        footerY - 3,
+        { align: 'center' }
+      )
 
       doc.setFillColor(...navy)
       doc.rect(15, footerY, 180, footerHeight, 'F')
@@ -439,20 +536,40 @@ export default function DownloadPdfButton({
   }
 
   return (
-    <button
-      onClick={handleDownload}
-      style={{
-        padding: '10px 16px',
-        backgroundColor: 'var(--gold)',
-        color: '#fff',
-        border: 'none',
-        cursor: 'pointer',
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: '1px',
-      }}
-    >
-      Download Certificate
-    </button>
+    <>
+      <button
+        onClick={handleDownload}
+        className="fpia-download-button"
+        style={{
+          padding: '10px 16px',
+          backgroundColor: 'var(--gold)',
+          color: '#fff',
+          border: 'none',
+          cursor: 'pointer',
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+        }}
+      >
+        Download Certificate
+      </button>
+
+      <style jsx>{`
+        .fpia-download-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 46px;
+          border-radius: 6px;
+          width: auto;
+        }
+
+        @media (max-width: 640px) {
+          .fpia-download-button {
+            width: 100%;
+          }
+        }
+      `}</style>
+    </>
   )
 }

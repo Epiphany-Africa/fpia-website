@@ -1,18 +1,75 @@
 'use client'
 import { useState } from 'react'
+import { getFpiaProduct } from '@/lib/products/fpiaProducts'
 
 const STEPS = ['Property', 'Owner & Contact', 'Agent & Docs', 'Inspection']
 
 export default function Register() {
+  const sellerPackage = getFpiaProduct('seller_precert_package')
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   function next() { setStep(s => s + 1) }
   function back() { setStep(s => s - 1) }
-  function handleSubmit(e: React.FormEvent) {
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // TODO: wire up to API
-    setSubmitted(true)
+    setError(null)
+    setSubmitting(true)
+
+    const form = new FormData(e.currentTarget)
+
+    const payload = {
+      street_address: form.get('street_address'),
+      suburb: form.get('suburb'),
+      city: form.get('city'),
+      province: form.get('province'),
+      erf_number: form.get('erf_number'),
+      full_name: form.get('full_name'),
+      id_number: form.get('id_number'),
+      email: form.get('email'),
+      phone: form.get('phone'),
+      role_in_transaction: form.get('role_in_transaction'),
+      contact_name: form.get('contact_name'),
+      contact_phone: form.get('contact_phone'),
+      agent_name: form.get('agent_name'),
+      agency: form.get('agency'),
+      agent_email: form.get('agent_email'),
+      agent_phone: form.get('agent_phone'),
+      transaction_type: form.get('transaction_type'),
+      preferred_date: form.get('preferred_date'),
+      alternative_date: form.get('alternative_date'),
+      additional_notes: form.get('additional_notes'),
+      company_website: form.get('company_website'),
+    }
+
+    try {
+      const response = await fetch('/api/register-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = (await response.json().catch(() => ({}))) as {
+        error?: string
+      }
+
+      if (!response.ok) {
+        setError(result.error ?? `Failed to submit registration (status ${response.status}).`)
+        setSubmitting(false)
+        return
+      }
+
+      setSubmitting(false)
+      setSubmitted(true)
+    } catch {
+      setError('Network error. Please try again.')
+      setSubmitting(false)
+    }
   }
 
   if (submitted) {
@@ -40,6 +97,41 @@ export default function Register() {
           <em style={{ color: 'var(--gold)', fontStyle: 'normal', fontWeight: 300 }}>certified.</em>
         </h1>
         <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '32px' }} />
+
+        <div
+          style={{
+            maxWidth: '620px',
+            border: '1px solid rgba(201,161,77,0.2)',
+            backgroundColor: 'rgba(255,255,255,0.03)',
+            padding: '18px 20px',
+            marginBottom: '32px',
+          }}
+        >
+          <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+            {sellerPackage.certificateOutcome}
+          </p>
+          <p style={{ color: 'var(--off-white)', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
+            {sellerPackage.name}
+          </p>
+          <p style={{ color: '#a0aec0', fontSize: '12px', marginBottom: '12px' }}>
+            {sellerPackage.usageSubheading}
+          </p>
+          <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
+            {sellerPackage.priceLabel}
+          </p>
+          <p style={{ color: 'var(--off-white)', fontSize: '26px', fontWeight: 700, marginBottom: '8px' }}>
+            {sellerPackage.price}
+          </p>
+          <p style={{ color: 'var(--off-white)', fontSize: '13px', lineHeight: 1.6, marginBottom: '10px' }}>
+            {sellerPackage.valueMicrocopy}
+          </p>
+          <p style={{ color: '#a0aec0', fontSize: '14px', lineHeight: 1.7, marginBottom: '10px' }}>
+            {sellerPackage.description}
+          </p>
+          <p style={{ color: 'rgba(201,161,77,0.85)', fontSize: '12px', lineHeight: 1.7, margin: 0 }}>
+            {sellerPackage.systemTrigger}
+          </p>
+        </div>
 
         {/* Progress Bar */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -86,6 +178,21 @@ export default function Register() {
       {/* Form */}
       <section style={{ padding: '56px 80px', maxWidth: '860px' }}>
         <form onSubmit={step === STEPS.length - 1 ? handleSubmit : (e) => { e.preventDefault(); next() }}>
+          <input
+            name="company_website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: '-9999px',
+              width: '1px',
+              height: '1px',
+              opacity: 0,
+              pointerEvents: 'none',
+            }}
+          />
 
           {/* STEP 1 — Property */}
           {step === 0 && (
@@ -94,19 +201,19 @@ export default function Register() {
               <div style={gridStyle}>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={labelStyle}>Street Address</label>
-                  <input style={inputStyle} type="text" placeholder="e.g. 12 Jacaranda Street, Sandton" required />
+                  <input name="street_address" style={inputStyle} type="text" placeholder="e.g. 12 Jacaranda Street, Sandton" required />
                 </div>
                 <div>
                   <label style={labelStyle}>Suburb</label>
-                  <input style={inputStyle} type="text" placeholder="e.g. Bryanston" required />
+                  <input name="suburb" style={inputStyle} type="text" placeholder="e.g. Bryanston" required />
                 </div>
                 <div>
                   <label style={labelStyle}>City</label>
-                  <input style={inputStyle} type="text" placeholder="e.g. Johannesburg" required />
+                  <input name="city" style={inputStyle} type="text" placeholder="e.g. Johannesburg" required />
                 </div>
                 <div>
                   <label style={labelStyle}>Province</label>
-                  <select style={inputStyle} required>
+                  <select name="province" style={inputStyle} required>
                     <option value="">Select province</option>
                     {['Gauteng','Western Cape','KwaZulu-Natal','Eastern Cape','Limpopo','Mpumalanga','North West','Free State','Northern Cape'].map(p => (
                       <option key={p} value={p}>{p}</option>
@@ -115,7 +222,15 @@ export default function Register() {
                 </div>
                 <div>
                   <label style={labelStyle}>Erf Number</label>
-                  <input style={inputStyle} type="text" placeholder="e.g. ERF 1234" />
+                  <input name="erf_number" style={inputStyle} type="text" placeholder="e.g. ERF 1234" />
+                </div>
+                <div>
+                  <label style={labelStyle}>Transaction Type</label>
+                  <select name="transaction_type" style={inputStyle} defaultValue="Pre Listing" required>
+                    {['Pre Listing', 'Active Listing', 'Pre Purchase', 'Post Purchase', 'Transfer Follow-Up', 'Compliance Review'].map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -128,19 +243,27 @@ export default function Register() {
               <div style={gridStyle}>
                 <div>
                   <label style={labelStyle}>Full Name</label>
-                  <input style={inputStyle} type="text" placeholder="e.g. John Smith" required />
+                  <input name="full_name" style={inputStyle} type="text" placeholder="e.g. John Smith" required />
                 </div>
                 <div>
                   <label style={labelStyle}>ID / Registration Number</label>
-                  <input style={inputStyle} type="text" placeholder="e.g. 8001015009087" />
+                  <input name="id_number" style={inputStyle} type="text" placeholder="e.g. 8001015009087" />
                 </div>
                 <div>
                   <label style={labelStyle}>Email Address</label>
-                  <input style={inputStyle} type="email" placeholder="e.g. john@email.com" required />
+                  <input name="email" style={inputStyle} type="email" placeholder="e.g. john@email.com" required />
                 </div>
                 <div>
                   <label style={labelStyle}>Contact Number</label>
-                  <input style={inputStyle} type="tel" placeholder="e.g. 082 555 1234" required />
+                  <input name="phone" style={inputStyle} type="tel" placeholder="e.g. 082 555 1234" required />
+                </div>
+                <div>
+                  <label style={labelStyle}>Role In Transaction</label>
+                  <select name="role_in_transaction" style={inputStyle} defaultValue="Seller / Owner" required>
+                    {['Seller / Owner', 'Estate Agent', 'Buyer', 'Conveyancer', 'Other Representative'].map(role => (
+                      <option key={role} value={role}>{role}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -148,11 +271,11 @@ export default function Register() {
               <div style={gridStyle}>
                 <div>
                   <label style={labelStyle}>Contact Name</label>
-                  <input style={inputStyle} type="text" placeholder="Person to liaise with for inspection" required />
+                  <input name="contact_name" style={inputStyle} type="text" placeholder="Person to liaise with for inspection" required />
                 </div>
                 <div>
                   <label style={labelStyle}>Contact Number</label>
-                  <input style={inputStyle} type="tel" placeholder="e.g. 011 555 1234" required />
+                  <input name="contact_phone" style={inputStyle} type="tel" placeholder="e.g. 011 555 1234" required />
                 </div>
               </div>
             </div>
@@ -165,19 +288,19 @@ export default function Register() {
               <div style={gridStyle}>
                 <div>
                   <label style={labelStyle}>Agent Name</label>
-                  <input style={inputStyle} type="text" placeholder="e.g. Sarah Nkosi" />
+                  <input name="agent_name" style={inputStyle} type="text" placeholder="e.g. Sarah Nkosi" />
                 </div>
                 <div>
                   <label style={labelStyle}>Agency</label>
-                  <input style={inputStyle} type="text" placeholder="e.g. Pam Golding Properties" />
+                  <input name="agency" style={inputStyle} type="text" placeholder="e.g. Pam Golding Properties" />
                 </div>
                 <div>
                   <label style={labelStyle}>Agent Email</label>
-                  <input style={inputStyle} type="email" placeholder="e.g. sarah@pamgolding.co.za" />
+                  <input name="agent_email" style={inputStyle} type="email" placeholder="e.g. sarah@pamgolding.co.za" />
                 </div>
                 <div>
                   <label style={labelStyle}>Agent Contact Number</label>
-                  <input style={inputStyle} type="tel" placeholder="e.g. 083 555 9876" />
+                  <input name="agent_phone" style={inputStyle} type="tel" placeholder="e.g. 083 555 9876" />
                 </div>
               </div>
 
@@ -200,15 +323,15 @@ export default function Register() {
               <div style={gridStyle}>
                 <div>
                   <label style={labelStyle}>Preferred Date</label>
-                  <input style={inputStyle} type="date" required />
+                  <input name="preferred_date" style={inputStyle} type="date" required />
                 </div>
                 <div>
                   <label style={labelStyle}>Alternative Date</label>
-                  <input style={inputStyle} type="date" />
+                  <input name="alternative_date" style={inputStyle} type="date" />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={labelStyle}>Additional Notes</label>
-                  <textarea style={{ ...inputStyle, height: '120px', resize: 'vertical' }} placeholder="Any access instructions, gate codes, or special requirements..." />
+                  <textarea name="additional_notes" style={{ ...inputStyle, height: '120px', resize: 'vertical' }} placeholder="Any access instructions, gate codes, or special requirements..." />
                 </div>
               </div>
             </div>
@@ -222,14 +345,20 @@ export default function Register() {
               </button>
             ) : <div />}
 
-            <button type="submit" style={nextBtnStyle}>
-              {step === STEPS.length - 1 ? 'Submit Registration' : 'Next →'}
+            <button type="submit" disabled={submitting} style={nextBtnStyle}>
+              {step === STEPS.length - 1 ? (submitting ? 'Submitting...' : 'Submit Registration') : 'Next →'}
             </button>
           </div>
 
+          {error && (
+            <p style={{ color: '#b42318', fontSize: '13px', marginTop: '16px' }}>
+              {error}
+            </p>
+          )}
+
           {step === STEPS.length - 1 && (
             <p style={{ color: '#a0aec0', fontSize: '12px', marginTop: '16px' }}>
-              By submitting this form you agree to FPIA's terms of service. An inspector will be assigned within 1 business day.
+              By submitting this form you agree to FPIA&rsquo;s terms of service. An inspector will be assigned within 1 business day.
             </p>
           )}
 

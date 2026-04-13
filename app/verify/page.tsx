@@ -11,7 +11,6 @@ export default function Verify() {
   const [quotePhone, setQuotePhone] = useState('')
   const [quoteEmail, setQuoteEmail] = useState('')
   const [otpDeclared, setOtpDeclared] = useState(false)
-  const [quoteSubmitted, setQuoteSubmitted] = useState(false)
   const [quoteError, setQuoteError] = useState('')
 
   function handleSubmit(e: React.FormEvent) {
@@ -29,8 +28,15 @@ export default function Verify() {
       setQuoteError('You must confirm a valid OTP is in place before requesting a quote.')
       return
     }
-    // TODO: wire up to API
-    setQuoteSubmitted(true)
+
+    const params = new URLSearchParams()
+    if (quoteName.trim()) params.set('name', quoteName.trim())
+    if (quoteEmail.trim()) params.set('email', quoteEmail.trim())
+    if (quoteAddress.trim()) params.set('requestedProperty', quoteAddress.trim())
+    if (quotePhone.trim()) params.set('phone', quotePhone.trim())
+    params.set('source', 'verify-page')
+
+    router.push(`/request-inspection?${params.toString()}`)
   }
 
   return (
@@ -45,7 +51,7 @@ export default function Verify() {
         </h1>
         <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '24px' }} />
         <p style={{ color: '#a0aec0', fontSize: '16px', maxWidth: '480px', lineHeight: 1.7 }}>
-          Enter a valid FPIA certificate number or scan the official QR code to verify the property's certified status and inspection record.
+          Enter a valid FPIA certificate number or scan the official QR code to verify the property&rsquo;s certified status and inspection record.
         </p>
       </section>
 
@@ -160,62 +166,56 @@ export default function Verify() {
             Property not yet certified? As a buyer within your OTP suspensive period, you can request FPIA arrange and quote for an inspection on your behalf.
           </p>
 
-          {!quoteSubmitted ? (
-            <form onSubmit={handleQuoteSubmit}>
-              <label style={labelStyle}>Property Address</label>
-              <input style={inputStyle} type="text" placeholder="e.g. 12 Jacaranda Street, Sandton" value={quoteAddress} onChange={(e) => setQuoteAddress(e.target.value)} required />
+          <form onSubmit={handleQuoteSubmit}>
+            <label style={labelStyle}>Property Address</label>
+            <input style={inputStyle} type="text" placeholder="e.g. 12 Jacaranda Street, Sandton" value={quoteAddress} onChange={(e) => setQuoteAddress(e.target.value)} required />
 
-              <label style={labelStyle}>Your Full Name</label>
-              <input style={inputStyle} type="text" placeholder="e.g. John Smith" value={quoteName} onChange={(e) => setQuoteName(e.target.value)} required />
+            <label style={labelStyle}>Your Full Name</label>
+            <input style={inputStyle} type="text" placeholder="e.g. John Smith" value={quoteName} onChange={(e) => setQuoteName(e.target.value)} required />
 
-              <label style={labelStyle}>Contact Number</label>
-              <input style={inputStyle} type="tel" placeholder="e.g. 082 555 1234" value={quotePhone} onChange={(e) => setQuotePhone(e.target.value)} required />
+            <label style={labelStyle}>Contact Number</label>
+            <input style={inputStyle} type="tel" placeholder="e.g. 082 555 1234" value={quotePhone} onChange={(e) => setQuotePhone(e.target.value)} required />
 
-              <label style={labelStyle}>Email Address</label>
-              <input style={inputStyle} type="email" placeholder="e.g. john@email.com" value={quoteEmail} onChange={(e) => setQuoteEmail(e.target.value)} required />
+            <label style={labelStyle}>Email Address</label>
+            <input style={inputStyle} type="email" placeholder="e.g. john@email.com" value={quoteEmail} onChange={(e) => setQuoteEmail(e.target.value)} required />
 
-              <div style={{
-                backgroundColor: 'var(--off-white)',
-                border: '1px solid rgba(201,161,77,0.3)',
-                padding: '16px',
-                marginBottom: '20px',
-                display: 'flex',
-                gap: '12px',
-                alignItems: 'flex-start',
-              }}>
-                <input
-                  type="checkbox"
-                  id="otp-declaration"
-                  checked={otpDeclared}
-                  onChange={(e) => setOtpDeclared(e.target.checked)}
-                  style={{ marginTop: '3px', accentColor: 'var(--gold)', flexShrink: 0 }}
-                  required
-                />
-                <label htmlFor="otp-declaration" style={{ fontSize: '12px', color: 'var(--navy)', lineHeight: 1.6, cursor: 'pointer' }}>
-                  I confirm that I have a valid, signed Offer to Purchase for this property that is currently within its suspensive period.
-                </label>
-              </div>
-
-              {quoteError && <p style={{ color: '#C62828', fontSize: '12px', marginBottom: '12px' }}>{quoteError}</p>}
-
-              <button type="submit" style={{
-                ...btnStyle,
-                backgroundColor: otpDeclared ? 'var(--gold)' : '#d1d5db',
-                color: otpDeclared ? 'var(--navy)' : '#9ca3af',
-                cursor: otpDeclared ? 'pointer' : 'not-allowed',
-              }}>
-                Request a Quote →
-              </button>
-            </form>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '32px 0' }}>
-              <div style={{ fontSize: '40px', color: 'var(--gold)', marginBottom: '16px' }}>✓</div>
-              <h3 style={{ color: 'var(--navy)', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Quote Request Received</h3>
-              <p style={{ color: '#6C7077', fontSize: '14px', lineHeight: 1.7 }}>
-                An FPIA representative will contact you within 1 business day to discuss the inspection and provide a quote.
-              </p>
+            <div style={{
+              backgroundColor: 'var(--off-white)',
+              border: '1px solid rgba(201,161,77,0.3)',
+              padding: '16px',
+              marginBottom: '20px',
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'flex-start',
+            }}>
+              <input
+                type="checkbox"
+                id="otp-declaration"
+                checked={otpDeclared}
+                onChange={(e) => setOtpDeclared(e.target.checked)}
+                style={{ marginTop: '3px', accentColor: 'var(--gold)', flexShrink: 0 }}
+                required
+              />
+              <label htmlFor="otp-declaration" style={{ fontSize: '12px', color: 'var(--navy)', lineHeight: 1.6, cursor: 'pointer' }}>
+                I confirm that I have a valid, signed Offer to Purchase for this property that is currently within its suspensive period.
+              </label>
             </div>
-          )}
+
+            <p style={{ color: '#6C7077', fontSize: '12px', lineHeight: 1.6, margin: '0 0 12px 0' }}>
+              This will take you to the inspection request flow with your details carried through.
+            </p>
+
+            {quoteError && <p style={{ color: '#C62828', fontSize: '12px', marginBottom: '12px' }}>{quoteError}</p>}
+
+            <button type="submit" style={{
+              ...btnStyle,
+              backgroundColor: otpDeclared ? 'var(--gold)' : '#d1d5db',
+              color: otpDeclared ? 'var(--navy)' : '#9ca3af',
+              cursor: otpDeclared ? 'pointer' : 'not-allowed',
+            }}>
+              Continue to Inspection Request →
+            </button>
+          </form>
         </div>
 
       </section>

@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local preview artifacts
+.next-start-*.log
+tmp-shots/
+.tmp-shots/

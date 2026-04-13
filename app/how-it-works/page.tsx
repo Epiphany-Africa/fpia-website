@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function HowItWorks() {
   return (
     <main style={{ backgroundColor: 'var(--off-white)', color: 'var(--navy)', fontFamily: "'DM Sans', sans-serif" }}>
@@ -38,14 +40,14 @@ export default function HowItWorks() {
           {
             num: '04',
             title: 'Certificate Issued & Ledger Recorded',
-            body: 'A digital FPIA Certificate is generated upon inspection completion. The certificate is assigned one of five statuses: Certified, Conditional, Pending, In Progress, or Not Certified. The record is written to the immutable ledger — tamper-proof and timestamped.',
+            body: 'A digital FPIA Certificate is generated upon inspection completion. The registry records one of four canonical trust outcomes: Verified, Conditional, Revoked, or Not Certified. The record is written to the immutable ledger — tamper-proof and timestamped.',
             note: 'Certificate is valid for 12 months from date of issue.'
           },
           {
             num: '05',
             title: 'QR Code Activated',
             body: 'A unique QR code is linked to the property certificate. Buyers, agents, banks, and conveyancers can scan the code at any point to verify the current certification status in real time — no login required.',
-            note: 'QR codes are publicly verifiable at fpia.co.za/verify'
+            note: 'QR codes are publicly verifiable at fairproperties.org.za/verify'
           },
           {
             num: '06',
@@ -78,7 +80,7 @@ export default function HowItWorks() {
           Ready to certify your property?
         </h2>
         <p style={{ color: '#a0aec0', marginBottom: '40px', fontSize: '16px' }}>Start the process today — our team will contact you within 1 business day.</p>
-        <a href="/" style={{
+        <Link href="/register" style={{
           backgroundColor: 'var(--gold)',
           color: 'var(--navy)',
           padding: '14px 36px',
@@ -87,7 +89,7 @@ export default function HowItWorks() {
           letterSpacing: '1px',
           textDecoration: 'none',
           textTransform: 'uppercase'
-        }}>Register a Property</a>
+        }}>Register a Property</Link>
       </section>
 
     </main>

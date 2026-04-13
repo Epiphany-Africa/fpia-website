@@ -45,7 +45,7 @@ export default function ContactPage() {
             maxWidth: '700px',
             marginBottom: '20px',
           }}>
-            Let's talk about your property.
+            Let&rsquo;s talk about your property.
           </h1>
           <p style={{
             color: 'var(--slate)',
@@ -53,7 +53,7 @@ export default function ContactPage() {
             lineHeight: 1.8,
             maxWidth: '560px',
           }}>
-            Whether you're a buyer, seller, agent, or insurer — we're here to help you understand what FPIA certification means for your transaction.
+            Whether you&rsquo;re a buyer, seller, agent, or insurer — we&rsquo;re here to help you understand what FPIA certification means for your transaction.
           </p>
         </section>
 
@@ -172,7 +172,7 @@ export default function ContactPage() {
                   Message received.
                 </h3>
                 <p style={{ color: 'var(--slate)', lineHeight: 1.7 }}>
-                  We'll be in touch within one business day.
+                  We&rsquo;ll be in touch within one business day.
                 </p>
               </div>
             ) : (

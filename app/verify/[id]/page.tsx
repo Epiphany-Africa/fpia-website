@@ -1,27 +1,19 @@
-import DownloadPdfButton from './DownloadPdfButton'
-import CopyHashButton from './CopyHashButton'
-import QRCode from 'qrcode'
+import Link from 'next/link'
 import Image from 'next/image'
+import QRCode from 'qrcode'
 import type { CSSProperties } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import ConditionalActionPanel from './ConditionalActionPanel'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-type Status = 'Certified' | 'Conditional' | 'NotCertified' | 'Revoked'
-
-type AuditItem = {
-  label: string
-  value: string
-}
-
-type CategoryItem = {
-  name: string
-  status: 'Pass' | 'Conditional' | 'Fail'
-}
+import TrustBadge from '@/components/TrustBadge'
+import { resolveCertificateAuthorityPresentation } from '@/lib/authority/resolveCertificateAuthorityPresentation'
+import {
+  getCanonicalTrustState,
+  type TrustOutcome,
+} from '@/lib/certification/getCanonicalTrustState'
+import { getConditionalExplanation } from '@/lib/certification/getConditionalExplanation'
+import { getFpiaProduct } from '@/lib/products/fpiaProducts'
+import { loadPublicVerificationRecord } from '@/lib/verification/loadPublicVerificationRecord'
+import CopyHashButton from './CopyHashButton'
+import RequestInspectionCaptureForm from './RequestInspectionCaptureForm'
+import ShareRecordPanel from './ShareRecordPanel'
 
 type RegistryRow = {
   id: string
@@ -35,127 +27,56 @@ type RegistryRow = {
   report_hash: string | null
   locked_at: string | null
   workflow_status: string | null
-  lock_status: string | null
-  inspector_signed_off_by: string | null
-  inspector_signed_off_at: string | null
-  reviewed_by: string | null
-  reviewed_at: string | null
-  certified_by: string | null
-  certified_at: string | null
-  final_hash: string | null
   review_outcome: string | null
-  review_notes: string | null
+  certified_at: string | null
+  reviewed_at: string | null
+  final_hash: string | null
   submitted_for_review_at: string | null
   certificate_number: string | null
 }
 
-type PropertyRow = {
-  id: string
-  title: string | null
-  address: string | null
-  city: string | null
-  province: string | null
-  postal_code: string | null
-  status: string | null
-  transaction_stage: string | null
-  property_type: string | null
-  notes: string | null
-  risk_score: number | null
-  created_at: string | null
-  unit_number?: string | null
-  complex_name?: string | null
-  estate_name?: string | null
-  building_name?: string | null
-}
+type CertificateSnapshot = {
+  checklist?: unknown
+  inspector?: {
+    inspector_name?: string | null
+  } | null
+} | null
 
 type CertificateRow = {
   id: string
   case_id: string
-  issued_by: string | null
   issued_at: string | null
-  certificate_type: string | null
-  inspection_status: string | null
   verification_ref: string | null
   recommendation: string | null
-  snapshot: any
+  snapshot: CertificateSnapshot
   certificate_state: string | null
   revoked_at: string | null
   revoked_reason: string | null
   inspector_name: string | null
-  inspector_id: string | null
-  inspector_title: string | null
-  signature_name: string | null
   integrity_hash: string | null
-  hash_version: string | null
-  signature_image_url: string | null
-  stamp_image_url: string | null
   certificate_number: string | null
-  trust_score: number | null
+  inspection_status: string | null
+  fail_items: number | null
+  material_items: number | null
+  observation_items: number | null
 }
 
 type AuditLogRow = {
   id: string
-  property_id: string | null
   event_type: string | null
-  status_label: string | null
-  event_message: string | null
-  previous_hash: string | null
-  new_hash: string | null
   created_at: string
-  report_id: string | null
-  action: string | null
-  performed_by: string | null
 }
 
-type InspectorRow = {
+type CaseEventRow = {
   id: string
-  full_name: string
-  inspector_code: string
-  badge_number: string
-  company_name: string
-  signature_file_path: string | null
-  stamp_file_path: string | null
-  is_active: boolean
+  event_type: string | null
+  event_label: string | null
   created_at: string
 }
 
-function normalizeStatus(
-  registry: RegistryRow | null,
-  certificate: CertificateRow | null
-): Status {
-  if (!registry) return 'NotCertified'
-
-  const certificateState = (certificate?.certificate_state ?? '').toLowerCase()
-  const inspectionStatus = (certificate?.inspection_status ?? '').toLowerCase()
-  const registryLocked = Boolean(registry.is_locked)
-  const reviewOutcome = (registry.review_outcome ?? '').toLowerCase()
-  const workflowStatus = (registry.workflow_status ?? '').toLowerCase()
-
-  if (certificate?.revoked_at || certificateState === 'revoked') {
-    return 'Revoked'
-  }
-
-  if (!registryLocked) {
-    return 'NotCertified'
-  }
-
-  if (certificateState === 'issued' && inspectionStatus === 'conditional') {
-    return 'Conditional'
-  }
-
-  if (certificateState === 'issued' && inspectionStatus === 'pass') {
-    return 'Certified'
-  }
-
-  if (
-    reviewOutcome === 'approved' &&
-    workflowStatus === 'certified' &&
-    registryLocked
-  ) {
-    return 'Certified'
-  }
-
-  return 'NotCertified'
+type AuditItem = {
+  label: string
+  value: string
 }
 
 function formatDate(input: string | null | undefined) {
@@ -188,15 +109,36 @@ function formatDateTime(input: string | null | undefined) {
 
 function buildAuditTrail(
   registry: RegistryRow | null,
-  auditRows: AuditLogRow[] | null
+  auditRows: AuditLogRow[] | null,
+  certificate?: CertificateRow | null,
+  caseEvents?: CaseEventRow[] | null
 ): AuditItem[] {
   const rows = auditRows ?? []
+  const events = caseEvents ?? []
+
+  if (!registry && events.length > 0) {
+    return events
+      .map((event) => ({
+        label: event.event_label ?? event.event_type ?? 'Case Event',
+        value: formatDateTime(event.created_at),
+      }))
+      .slice(-3)
+  }
+
+  if (!registry && certificate) {
+    return [
+      { label: 'Certificate Issued', value: formatDateTime(certificate.issued_at) },
+      {
+        label: 'Certificate Reference',
+        value: certificate.verification_ref ?? 'Not available',
+      },
+    ]
+  }
 
   if (!registry && rows.length === 0) {
     return [
       { label: 'Lookup Performed', value: formatDateTime(new Date().toISOString()) },
       { label: 'Registry Match', value: 'No active certification found' },
-      { label: 'Last Verified', value: formatDateTime(new Date().toISOString()) },
     ]
   }
 
@@ -209,8 +151,6 @@ function buildAuditTrail(
           ? 'Report Approved'
           : row.event_type === 'REPORT_CERTIFIED'
           ? 'Report Certified'
-          : row.event_type === 'REPORT_RELOCKED'
-          ? 'Report Re-Locked'
           : row.event_type === 'CERTIFICATION_INVALIDATED'
           ? 'Certification Invalidated'
           : row.event_type ?? 'Registry Event',
@@ -226,132 +166,103 @@ function buildAuditTrail(
       value: formatDateTime(registry?.issued_at ?? registry?.submitted_for_review_at),
     },
     {
-      label: 'Record Locked',
-      value: formatDateTime(registry?.locked_at),
-    },
-    {
       label: 'Last Verified',
       value: formatDateTime(registry?.certified_at ?? registry?.reviewed_at),
     },
   ]
 }
 
-function buildCategories(certificate: CertificateRow | null, status: Status): CategoryItem[] {
-  const checklist = certificate?.snapshot?.checklist
-
-  if (Array.isArray(checklist) && checklist.length > 0) {
-    const grouped = new Map<string, CategoryItem['status']>()
-
-    for (const item of checklist) {
-      const section = String(item?.section ?? 'General')
-      const result = String(item?.result ?? '').toLowerCase()
-
-      let mapped: CategoryItem['status'] = 'Conditional'
-      if (result === 'pass') mapped = 'Pass'
-      if (result === 'fail') mapped = 'Fail'
-      if (result === 'observation') mapped = 'Conditional'
-
-      const existing = grouped.get(section)
-
-      if (!existing) {
-        grouped.set(section, mapped)
-        continue
-      }
-
-      if (existing === 'Fail') continue
-      if (existing === 'Conditional' && mapped === 'Pass') continue
-
-      if (mapped === 'Fail') {
-        grouped.set(section, 'Fail')
-      } else if (mapped === 'Conditional') {
-        grouped.set(section, 'Conditional')
-      }
-    }
-
-    return Array.from(grouped.entries()).map(([name, groupedStatus]) => ({
-      name,
-      status: groupedStatus,
-    }))
-  }
-
-  if (status === 'Revoked') {
-    return [{ name: 'Certification Status', status: 'Fail' }]
-  }
-
-  if (status === 'NotCertified') {
-    return [{ name: 'Certification Status', status: 'Fail' }]
-  }
-
-  if (status === 'Conditional') {
-    return [{ name: 'Certification Status', status: 'Conditional' }]
-  }
-
-  return [{ name: 'Certification Status', status: 'Pass' }]
-}
-
-export default async function VerifyProperty({
+export default async function VerifyPropertyPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const normalizedId = id.toUpperCase()
+  const {
+    registry,
+    property,
+    certificate,
+    caseRecord,
+    auditRows,
+    caseEvents,
+    authority,
+    authorityAssets,
+    legacyInspector,
+    verificationReference,
+    verificationUrl,
+    embedBadgeUrl,
+    issuerIdentityWarning,
+  } = await loadPublicVerificationRecord(id)
 
-  const { data: registryData, error: registryError } = await supabase
-    .from('report_registry')
-    .select('*')
-    .or(`certificate_number.eq.${normalizedId},report_code.eq.${normalizedId}`)
-    .maybeSingle()
+  const trustState = getCanonicalTrustState({
+    certificateState: certificate?.certificate_state,
+    caseStatus: registry?.status ?? caseRecord?.status,
+    complianceStage: caseRecord?.compliance_stage,
+    inspectionStatus: certificate?.inspection_status,
+    reviewOutcome: registry?.review_outcome,
+    workflowStatus: registry?.workflow_status,
+    revokedAt: certificate?.revoked_at,
+    isLocked: registry?.is_locked,
+  })
 
-  const registry = (registryData as RegistryRow | null) ?? null
-
-  let property: PropertyRow | null = null
-  let certificate: CertificateRow | null = null
-  let auditRows: AuditLogRow[] = []
-  let inspector: InspectorRow | null = null
-
-  if (registry && !registryError) {
-    const [{ data: propertyData }, { data: certificateData }, { data: auditData }] =
-      await Promise.all([
-        supabase
-          .from('properties')
-          .select('*')
-          .eq('id', registry.property_id)
-          .maybeSingle(),
-        supabase
-          .from('issued_certificates')
-          .select('*')
-          .or(
-            registry.certificate_number
-              ? `certificate_number.eq.${registry.certificate_number},verification_ref.eq.${registry.report_code}`
-              : `verification_ref.eq.${registry.report_code}`
-          )
-          .order('issued_at', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from('report_audit_log')
-          .select('*')
-          .eq('report_id', registry.id)
-          .order('created_at', { ascending: true }),
-      ])
-
-    property = (propertyData as PropertyRow | null) ?? null
-    certificate = (certificateData as CertificateRow | null) ?? null
-    auditRows = (auditData as AuditLogRow[] | null) ?? []
-
-    if (registry.inspector_id) {
-      const { data: inspectorData } = await supabase
-        .from('inspectors')
-        .select('*')
-        .eq('id', registry.inspector_id)
-        .maybeSingle()
-
-      inspector = (inspectorData as InspectorRow | null) ?? null
-    }
+  const trustSummary: Record<TrustOutcome, string> = {
+    CONDITIONAL:
+      'This property has an active authority-issued certificate with recorded conditions still outstanding.',
+    FINAL_VERIFIED:
+      'This property is recorded as valid and fully verified in the FPIA registry.',
+    SUPERSEDED:
+      'A newer authority-issued certificate has replaced this record in the FPIA trust system.',
+    NOT_ISSUED: 'No active verified inspection record is currently listed.',
+    REVOKED: 'A previously issued record is no longer valid for reliance.',
   }
 
-  const status = normalizeStatus(registry, certificate)
+  const trustMeaning: Record<TrustOutcome, string> = {
+    CONDITIONAL:
+      'This property has been assessed and issued a conditional certificate. Certain findings or requirements remain outstanding before full certification can be achieved.',
+    FINAL_VERIFIED:
+      'This property has achieved full certification and meets all required conditions at the time of verification.',
+    SUPERSEDED:
+      'This certificate remains part of the audit history, but it has been replaced by a newer authority-issued record and should not be used as the current reliance document.',
+    NOT_ISSUED:
+      'This property does not currently have an active verified record.',
+    REVOKED:
+      'This certificate has been revoked and should not be relied upon.',
+  }
+
+  const buyerGuidance: Record<TrustOutcome, string> = {
+    CONDITIONAL:
+      'Review the recorded findings and confirm whether the required work will be completed before transfer.',
+    FINAL_VERIFIED:
+      'No outstanding issues affecting certification were recorded at the time of inspection.',
+    SUPERSEDED:
+      'Use the latest certificate number or verification reference now associated with this property. This older record is retained for audit history only.',
+    NOT_ISSUED:
+      'No verified inspection record is currently listed. A formal inspection should be obtained before relying on property condition.',
+    REVOKED:
+      'This record should not be relied upon. A current inspection is required before proceeding.',
+  }
+
+  const nextSteps: Record<TrustOutcome, string[]> = {
+    CONDITIONAL: [
+      'Review the listed findings.',
+      'Confirm whether issues will be resolved before transfer.',
+    ],
+    FINAL_VERIFIED: ['Proceed with confidence based on current inspection.'],
+    SUPERSEDED: ['Use the most recent authority-issued certificate for reliance.'],
+    NOT_ISSUED: ['Request an inspection before proceeding.'],
+    REVOKED: ['Do not rely on this record — request updated inspection.'],
+  }
+
+  const conditionalExplanation =
+    trustState === 'CONDITIONAL'
+      ? getConditionalExplanation({
+          checklist: certificate?.snapshot?.checklist,
+          failItems: certificate?.fail_items,
+          materialItems: certificate?.material_items,
+          observationItems: certificate?.observation_items,
+          recommendation: certificate?.recommendation,
+        })
+      : null
 
   const verificationHash =
     registry?.final_hash ??
@@ -359,22 +270,30 @@ export default async function VerifyProperty({
     certificate?.integrity_hash ??
     'No active verification hash'
 
-  const hashDisplay =
-    verificationHash.length > 36
-      ? `${verificationHash.slice(0, 18)}...${verificationHash.slice(-8)}`
-      : verificationHash
-
-  const verificationUrl = `https://www.fairproperties.org.za/verify/${id}`
-
   const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
-    width: 180,
+    width: 144,
     margin: 1,
   })
 
-  const auditTrail = buildAuditTrail(registry, auditRows)
-  const categories = buildCategories(certificate, status)
+  const auditTrail = buildAuditTrail(registry, auditRows, certificate, caseEvents)
+  const latestAudit = auditTrail.at(-1)
+  const {
+    authorityName,
+    authorityTitle,
+    authorityCode,
+    authorityBadgeNumber,
+    authorityCompanyName,
+  } = resolveCertificateAuthorityPresentation({
+    normalizedId: id.toUpperCase(),
+    authority,
+    authorityAssets,
+    legacyInspector,
+    certificate,
+  })
 
   const identityParts = [
+    caseRecord?.unit_number,
+    caseRecord?.scheme_name,
     property?.unit_number,
     property?.building_name,
     property?.complex_name,
@@ -382,1120 +301,1079 @@ export default async function VerifyProperty({
   ].filter(Boolean)
 
   const addressLine1 = identityParts.join(' ')
-  const addressLine2 = property?.address ?? ''
-
+  const addressLine2 = property?.address ?? caseRecord?.property_address ?? ''
   const propertyAddress =
     addressLine1 || addressLine2
-      ? [addressLine1, addressLine2].filter(Boolean).join('\n')
-      : status === 'NotCertified'
-      ? 'No active certified property record found'
-      : 'Unknown property'
+      ? [addressLine1, addressLine2].filter(Boolean).join(', ')
+      : 'Address not available'
 
-  const provinceParts = [
-    property?.city,
-    property?.province,
-    property?.postal_code,
-  ].filter(Boolean)
+  const propertyLocation = [property?.city, property?.province, property?.postal_code]
+    .filter(Boolean)
+    .join(', ')
 
-  const propertyProvince =
-    provinceParts.length > 0
-      ? provinceParts.join(', ')
-      : status === 'NotCertified'
-      ? 'Registry lookup only'
-      : 'Location not available'
-
-  const inspectorDisplay = inspector
-    ? `${inspector.full_name}\n${inspector.badge_number}`
-    : certificate?.inspector_name ??
-      registry?.inspector_signed_off_by ??
-      'FPIA Inspector'
-
-  const validUntil =
-    status === 'Certified'
-      ? 'Active until revoked or superseded'
-      : status === 'Conditional'
-      ? 'Conditionally active subject to recorded conditions'
-      : status === 'Revoked'
-      ? 'No longer valid'
-      : 'Not applicable'
-
-  const ledger =
+  const registryPresence = registry || certificate ? 'Record found' : 'No active record'
+  const ledgerReference =
     registry?.property_code ??
     registry?.report_code ??
     certificate?.verification_ref ??
-    'No active ledger entry'
+    'Not recorded'
+  const propertyCode = registry?.property_code ?? registry?.report_code ?? 'Not recorded'
+  const issueDate = formatDate(certificate?.issued_at ?? registry?.issued_at)
+  const registryDate = formatDate(
+    registry?.certified_at ?? registry?.reviewed_at ?? registry?.issued_at ?? certificate?.issued_at
+  )
 
-  const mock = {
-    id: registry?.certificate_number ?? registry?.report_code ?? id,
-    address: propertyAddress,
-    province: propertyProvince,
-    status,
-    inspectionDate: formatDate(registry?.issued_at ?? certificate?.issued_at),
-    inspector: inspector
-      ? `${inspector.full_name}\n${inspector.badge_number}`
-      : certificate?.inspector_title
-      ? `${inspectorDisplay}\n${certificate.inspector_title}`
-      : inspectorDisplay,
-    validUntil,
-    ledger,
-    auditTrail,
-    categories,
+  const registryStatusText: Record<TrustOutcome, string> = {
+    CONDITIONAL: 'Recorded with active conditions',
+    FINAL_VERIFIED: 'Recorded and active in the FPIA registry',
+    SUPERSEDED: 'Superseded by a newer authority-issued record',
+    NOT_ISSUED: 'No active registry record',
+    REVOKED: 'Record revoked and no longer valid',
   }
-
-  const statusContent: Record<Status, { title: string; message: string }> = {
-    Certified: {
-      title: 'This property is currently certified.',
-      message:
-        'This verification record confirms that the certificate has been authenticated against the official FPIA registry and reflects the current live status of the property. This page constitutes the authoritative verification record. Any downloaded, printed, or shared copies should be treated as reference documents only and must be validated against this live record.',
-    },
-    Conditional: {
-      title: 'This property is conditionally certified.',
-      message:
-        'This verification record confirms that a conditional certificate has been issued. Certification remains subject to outstanding recorded conditions, remedial actions, or limitations controlled through the FPIA verification process.',
-    },
-    NotCertified: {
-      title: 'This property is not currently certified.',
-      message:
-        'No valid active certification was found for this property on the official FPIA registry based on the certificate reference provided.',
-    },
-    Revoked: {
-      title: 'This certificate has been revoked.',
-      message:
-        'A previously issued FPIA certificate existed for this property, but it is no longer valid. Please rely only on the current registry outcome and revocation details where provided.',
-    },
+  const relianceStatusText: Record<TrustOutcome, string> = {
+    CONDITIONAL: 'Valid with active conditions',
+    FINAL_VERIFIED: 'Valid for reliance',
+    SUPERSEDED: 'Superseded',
+    NOT_ISSUED: 'Not issued',
+    REVOKED: 'Revoked',
   }
+  const authorityRegistryText =
+    authority?.status?.toLowerCase() === 'active'
+      ? 'Verified active authority registry identity'
+      : authority
+      ? `Authority registry status: ${authority.status ?? 'not confirmed'}`
+      : issuerIdentityWarning
+      ? 'Legacy issuer details presented'
+      : 'Issuer identity not fully available'
 
-  const statementStyles: Record<
-    Status,
-    { border: string; titleColor: string; backgroundColor: string }
-  > = {
-    Certified: {
-      border: '1px solid rgba(201,161,77,0.3)',
-      titleColor: '#1a7f37',
-      backgroundColor: '#fff',
-    },
-    Conditional: {
-      border: '1px solid rgba(201,161,77,0.35)',
-      titleColor: '#B7791F',
-      backgroundColor: '#fffaf2',
-    },
-    NotCertified: {
-      border: '1px solid rgba(198,40,40,0.28)',
-      titleColor: '#C62828',
-      backgroundColor: '#fff8f8',
-    },
-    Revoked: {
-      border: '1px solid rgba(120, 20, 20, 0.35)',
-      titleColor: '#7A1C1C',
-      backgroundColor: '#fff5f5',
-    },
-  }
+  const hasIntegrityRecord = verificationHash !== 'No active verification hash'
+  const integrityCheckText = hasIntegrityRecord
+    ? 'Verified — no changes detected'
+    : 'No active integrity record'
+  const recordLockText = registry?.is_locked
+    ? 'Locked — record cannot be altered'
+    : 'Not locked'
+  const showRegistryVerifiedSignal =
+    Boolean(registry) &&
+    (trustState === 'FINAL_VERIFIED' || trustState === 'CONDITIONAL')
 
-  const statusStyles: Record<string, CSSProperties> = {
-    Certified: {
-      background: '#E8F5E9',
-      color: '#2E7D32',
-      border: '1px solid #2E7D32',
+  const verificationIntegrityItems: {
+    label: string
+    value: string
+    icon: IntegrityIconKind
+    tone: IntegrityTone
+  }[] = [
+    {
+      label: 'Registry Status',
+      value: registryStatusText[trustState],
+      icon: 'check-circle',
+      tone: getIntegrityTone(trustState),
     },
-    Conditional: {
-      background: '#FFF4E5',
-      color: '#B7791F',
-      border: '1px solid #B7791F',
+    {
+      label: 'Integrity Check',
+      value: integrityCheckText,
+      icon: 'shield',
+      tone: hasIntegrityRecord ? 'positive' : 'negative',
     },
-    NotCertified: {
-      background: '#FFEBEE',
-      color: '#C62828',
-      border: '1px solid #C62828',
+    {
+      label: 'Record Lock',
+      value: recordLockText,
+      icon: 'lock',
+      tone: registry?.is_locked ? 'positive' : 'neutral',
     },
-    Revoked: {
-      background: '#FDECEC',
-      color: '#7A1C1C',
-      border: '1px solid #7A1C1C',
+    {
+      label: 'Ledger Entry',
+      value: ledgerReference,
+      icon: 'check-circle',
+      tone: ledgerReference === 'Not recorded' ? 'neutral' : 'positive',
     },
-  }
+  ]
 
-  const integrityValueColor =
-    mock.status === 'Certified'
-      ? 'var(--off-white)'
-      : mock.status === 'Conditional'
-      ? '#FFF4E5'
-      : '#E8E2E2'
+  const issueCount =
+    (certificate?.fail_items ?? 0) +
+    (certificate?.material_items ?? 0) +
+    (certificate?.observation_items ?? 0)
 
-  const auditBorderColor =
-    mock.status === 'Certified'
-      ? '2px solid rgba(46,125,50,0.6)'
-      : mock.status === 'Conditional'
-      ? '2px solid rgba(183,121,31,0.6)'
-      : '2px solid rgba(198,40,40,0.6)'
+  const snapshotRows =
+    trustState === 'NOT_ISSUED'
+      ? [
+          { label: 'Inspection record', value: 'Not available', note: 'No verified inspection has been recorded.' },
+          { label: 'Priority issues', value: 'Not assessed', note: 'No current inspection findings are available.' },
+          { label: 'Material to transfer', value: 'Unknown', note: 'A formal inspection is required for a reliable position.' },
+        ]
+      : [
+          {
+            label: 'Recorded issues',
+            value: String(issueCount),
+            note:
+              issueCount === 0
+                ? 'No outstanding recorded issues.'
+                : 'Total findings currently recorded against this property.',
+          },
+          {
+            label: 'Priority issues',
+            value: String(certificate?.fail_items ?? 0),
+            note: 'Items requiring the highest level of attention.',
+          },
+          {
+            label: 'Material to transfer',
+            value: String(certificate?.material_items ?? 0),
+            note: 'Items likely to matter during OTP or transfer decisions.',
+          },
+        ]
+
+  const showNextActionForm =
+    trustState === 'CONDITIONAL' ||
+    trustState === 'NOT_ISSUED' ||
+    trustState === 'REVOKED'
+
+  const nextActionProduct = showNextActionForm
+    ? getFpiaProduct(
+        trustState === 'CONDITIONAL' ? 'upgrade_product' : 'inspection_product'
+      )
+    : null
+
+  const hasCertificateView = Boolean(registry || certificate)
 
   return (
     <main
       style={{
-        backgroundColor: 'var(--off-white)',
+        backgroundColor: '#f4f5f2',
         color: 'var(--navy)',
-        fontFamily: "'DM Sans', sans-serif",
         minHeight: '100vh',
       }}
     >
       <div
         style={{
-          position: 'relative',
-          maxWidth: '800px',
-          margin: '60px auto',
-          padding: '0 24px',
+          maxWidth: '960px',
+          margin: '0 auto',
+          padding: 'clamp(28px, 5vw, 48px) clamp(14px, 4vw, 24px) clamp(56px, 8vw, 80px)',
         }}
       >
-        <img
-          src="/fpia-watermark.png"
-          alt="FPIA Watermark"
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '70%',
-            opacity: 0.05,
-            pointerEvents: 'none',
-            userSelect: 'none',
-            zIndex: 0,
-          }}
-        />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div
-            style={{
-              backgroundColor: 'var(--navy)',
-              borderRadius: '4px 4px 0 0',
-              padding: '24px 40px 28px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <section style={registryHeaderStyle}>
+          <div style={registryHeaderTopStyle}>
+            <div style={registryLogoShellStyle}>
               <Image
                 src="/fpia-logo.png"
-                alt="FPIA Logo"
-                width={320}
-                height={90}
+                alt="Fair Properties Inspection Authority"
+                width={240}
+                height={70}
                 priority
                 style={{
+                  width: 'clamp(152px, 40vw, 220px)',
+                  height: 'auto',
                   objectFit: 'contain',
-                  width: 'auto',
-                  height: '68px',
-                  display: 'block',
                 }}
               />
+            </div>
+            <div style={{ flex: '1 1 520px' }}>
+              <p style={eyebrowStyle}>Public Registry Record</p>
+              <h1 style={pageTitleStyle}>Official Property Condition Record</h1>
+              <p style={pageIntroStyle}>
+                Public verification for an authority-backed FPIA record. Accountability built in through the issuing authority registry, the verification ledger, and record integrity controls.
+              </p>
+            </div>
+          </div>
 
-              <div>
-                <p
-                  style={{
-                    color: 'var(--gold)',
-                    fontSize: '11px',
-                    letterSpacing: '3px',
-                    textTransform: 'uppercase',
-                    marginBottom: '8px',
-                  }}
-                >
-                  FPIA Verified Property Record
-                </p>
-                <p style={{ color: '#a0aec0', fontSize: '14px', margin: 0 }}>
-                  #{mock.id}
-                </p>
-              </div>
+          <div style={registryHeaderMetaGridStyle}>
+            <div>
+              <p style={sectionLabelStyle}>Reference Number</p>
+              <p style={headerMetaValueStyle}>{verificationReference}</p>
+            </div>
+            <div>
+              <p style={sectionLabelStyle}>Reliance Status</p>
+              <p style={headerMetaValueStyle}>{relianceStatusText[trustState]}</p>
+            </div>
+            <div>
+              <p style={sectionLabelStyle}>Registry Recorded</p>
+              <p style={headerMetaValueStyle}>{registryDate}</p>
+            </div>
+            <div>
+              <p style={sectionLabelStyle}>Authority Registry</p>
+              <p style={headerMetaValueStyle}>{authorityRegistryText}</p>
+            </div>
+          </div>
+        </section>
+
+        <section style={statusPanelStyle}>
+          <div style={statusHeaderRowStyle}>
+            <div style={{ flex: '1 1 280px' }}>
+              <p style={sectionLabelStyle}>Trust Status</p>
+              <p style={statusSummaryStyle}>{trustSummary[trustState]}</p>
             </div>
 
-            <span
-              style={{
-                ...statusStyles[mock.status],
-                padding: '6px 16px',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 600,
-              }}
-            >
-              ✔{' '}
-              {mock.status === 'NotCertified'
-                ? 'NOT CERTIFIED'
-                : mock.status === 'Conditional'
-                ? 'CONDITIONAL'
-                : mock.status === 'Revoked'
-                ? 'REVOKED'
-                : 'CERTIFIED'}
-            </span>
+            <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+              <TrustBadge trustState={trustState} />
+              {showRegistryVerifiedSignal ? (
+                <p style={registryVerifiedSignalStyle}>Authority Registry Verified</p>
+              ) : null}
+            </div>
           </div>
 
-          <div
-            style={{
-              backgroundColor: statementStyles[mock.status].backgroundColor,
-              border: statementStyles[mock.status].border,
-              padding: '20px 24px',
-              marginBottom: '16px',
-            }}
-          >
-            <p
-              style={{
-                fontSize: '12px',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                margin: '0 0 10px 0',
-                fontWeight: 700,
-              }}
-            >
-              Verification Outcome
-            </p>
-
-            {certificate?.revoked_reason && mock.status === 'Revoked' && (
-              <p style={{ margin: '0 0 10px 0', color: '#7A1C1C', fontWeight: 600 }}>
-                Reason: {certificate.revoked_reason}
-              </p>
-            )}
-
-            {certificate?.recommendation && mock.status === 'Conditional' && (
-              <p style={{ margin: '0 0 10px 0', color: '#B7791F', fontWeight: 600 }}>
-                Conditions: {certificate.recommendation}
-              </p>
-            )}
-
-            <p
-              style={{
-                fontSize: '16px',
-                color: statementStyles[mock.status].titleColor,
-                lineHeight: 1.5,
-                margin: '0 0 10px 0',
-                fontWeight: 600,
-              }}
-            >
-              {statusContent[mock.status].title}
-            </p>
-
-            <p
-              style={{
-                fontSize: '14px',
-                color: 'var(--navy)',
-                lineHeight: 1.6,
-                margin: 0,
-              }}
-            >
-              {statusContent[mock.status].message}
-            </p>
+          <div style={definitionGridStyle}>
+            <div style={definitionItemStyle}>
+              <p style={sectionLabelStyle}>What This Means</p>
+              <p style={definitionValueStyle}>{trustMeaning[trustState]}</p>
+            </div>
+            <div style={definitionItemStyle}>
+              <p style={sectionLabelStyle}>What This Means For You</p>
+              <p style={definitionValueStyle}>{buyerGuidance[trustState]}</p>
+            </div>
           </div>
 
-          {mock.status === 'Conditional' && (
-            <div
-              style={{
-                backgroundColor: '#fffaf2',
-                border: '1px solid rgba(183,121,31,0.28)',
-                padding: '20px 24px',
-                marginBottom: '16px',
-              }}
-            >
-              <p
-                style={{
-                  fontSize: '12px',
-                  letterSpacing: '2px',
-                  textTransform: 'uppercase',
-                  color: 'var(--gold)',
-                  margin: '0 0 10px 0',
-                  fontWeight: 700,
-                }}
-              >
-                Conditional Certification Path
+          <div style={actionRowStyle}>
+            {hasCertificateView ? (
+              <Link href={`/certificate/${id}`} style={primaryButtonStyle}>
+                View Certificate
+              </Link>
+            ) : null}
+            <Link href="/verify" style={secondaryButtonStyle}>
+              Verify Another Property
+            </Link>
+          </div>
+        </section>
+
+        <section style={cardStyle}>
+          <p style={sectionLabelStyle}>Verified Authority</p>
+          <div style={authorityPanelStyle}>
+            <div style={authorityPanelCardStyle}>
+              <p style={sectionLabelStyle}>Issuing Officer</p>
+              <p style={recordPrimaryValueStyle}>{authorityName}</p>
+              <p style={authorityMetaStyle}>{authorityTitle}</p>
+              <p style={authorityMicrocopyStyle}>
+                This public record is tied to the accountable authority identity that issued or controlled the certificate within the FPIA registry.
               </p>
-
-              <p
-                style={{
-                  fontSize: '15px',
-                  color: '#B7791F',
-                  lineHeight: 1.6,
-                  margin: '0 0 10px 0',
-                  fontWeight: 600,
-                }}
-              >
-                This property has been issued a Conditional Certificate due to outstanding recorded conditions that affect full certification status.
-              </p>
-
-              <div
-                style={{
-                  marginTop: '14px',
-                  padding: '12px 14px',
-                  backgroundColor: '#fff',
-                  border: '1px solid rgba(183,121,31,0.18)',
-                  borderRadius: '4px',
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: '11px',
-                    letterSpacing: '1.5px',
-                    textTransform: 'uppercase',
-                    color: '#B7791F',
-                    margin: '0 0 6px 0',
-                    fontWeight: 700,
-                  }}
-                >
-                  Certification Status
-                </p>
-
-                <p
-                  style={{
-                    fontSize: '14px',
-                    color: 'var(--navy)',
-                    lineHeight: 1.6,
-                    margin: 0,
-                    fontWeight: 500,
-                  }}
-                >
-                  This property does not currently meet full certification requirements due to unresolved inspection findings.
-                </p>
+            </div>
+            <div style={authorityMetricsGridStyle}>
+              <div style={authorityMetricCardStyle}>
+                <p style={sectionLabelStyle}>Inspector Code</p>
+                <p style={recordValueStyle}>{authorityCode}</p>
               </div>
+              <div style={authorityMetricCardStyle}>
+                <p style={sectionLabelStyle}>Badge Number</p>
+                <p style={recordValueStyle}>{authorityBadgeNumber ?? 'Not recorded'}</p>
+              </div>
+              <div style={authorityMetricCardStyle}>
+                <p style={sectionLabelStyle}>Authority Office</p>
+                <p style={recordValueStyle}>{authorityCompanyName}</p>
+              </div>
+              <div style={authorityMetricCardStyle}>
+                <p style={sectionLabelStyle}>Registry Standing</p>
+                <p style={recordValueStyle}>{authorityRegistryText}</p>
+              </div>
+            </div>
+          </div>
+          {issuerIdentityWarning ? (
+            <p style={{ ...integrityMicrocopyStyle, marginTop: '12px', color: '#7F1D1D' }}>
+              {issuerIdentityWarning}
+            </p>
+          ) : null}
+        </section>
 
-              <p
-                style={{
-                  fontSize: '14px',
-                  color: 'var(--navy)',
-                  lineHeight: 1.7,
-                  margin: '14px 0 0 0',
-                }}
-              >
-                Full certification can only be achieved once all recorded conditions are resolved, verified, and formally approved by the Fair Properties Inspection Authority.
-              </p>
-
-              {certificate?.recommendation && (
-                <div
-                  style={{
-                    marginTop: '14px',
-                    padding: '12px 14px',
-                    backgroundColor: '#fff',
-                    border: '1px solid rgba(183,121,31,0.18)',
-                    borderRadius: '4px',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: '11px',
-                      letterSpacing: '1.5px',
-                      textTransform: 'uppercase',
-                      color: '#B7791F',
-                      margin: '0 0 6px 0',
-                      fontWeight: 700,
-                    }}
-                  >
-                    Outstanding Certification Conditions
-                  </p>
-
-                  <p
-                    style={{
-                      fontSize: '13px',
-                      color: '#B7791F',
-                      margin: '0 0 8px 0',
-                      fontWeight: 600,
-                    }}
-                  >
-                    The following conditions must be resolved and verified before full certification can be granted. These conditions may affect safety, compliance, or property value.
-                  </p>
-
-                  <p
-                    style={{
-                      fontSize: '14px',
-                      color: 'var(--navy)',
-                      lineHeight: 1.6,
-                      margin: 0,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {certificate.recommendation}
-                  </p>
+        <section style={cardStyle}>
+          <p style={sectionLabelStyle}>Verification Integrity</p>
+          <div style={integrityGridStyle}>
+            {verificationIntegrityItems.map((item) => (
+              <div key={item.label} style={integrityItemStyle}>
+                <div style={integrityItemHeaderStyle}>
+                  <IntegrityIcon kind={item.icon} tone={item.tone} />
+                  <p style={integrityLabelStyle}>{item.label}</p>
                 </div>
-              )}
+                <p style={integrityValueStyle}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+          <p style={integrityMicrocopyStyle}>
+            This verification record is stored as part of the FPIA registry and
+            is protected against unauthorized modification. Any changes to the
+            underlying data will invalidate this record.
+          </p>
+        </section>
 
-              <p
-                style={{
-                  fontSize: '14px',
-                  color: 'var(--navy)',
-                  lineHeight: 1.7,
-                  margin: '16px 0 0 0',
-                }}
-              >
-                To progress toward full certification, the certificate holder must resolve the above conditions and submit supporting evidence for review, or request a formal reinspection through FPIA.
-              </p>
-
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: '#B7791F',
-                  marginTop: '16px',
-                  fontWeight: 600,
-                }}
-              >
-                Certification status will remain conditional until all requirements are fulfilled and verified.
-              </p>
-
-              <ConditionalActionPanel
-                certificateRef={mock.id}
-                propertyId={property?.id}
-                registryId={registry?.id}
-              />
+        <section style={cardStyle}>
+          <p style={sectionLabelStyle}>Property Reference</p>
+          <div style={recordGridStyle}>
+            <div style={recordItemWideStyle}>
+              <p style={sectionLabelStyle}>Registered Address</p>
+              <p style={recordPrimaryValueStyle}>{propertyAddress}</p>
+              {propertyLocation ? <p style={locationStyle}>{propertyLocation}</p> : null}
             </div>
-          )}
-
-          {mock.status === 'Revoked' && (
-            <div
-              style={{
-                backgroundColor: '#fff5f5',
-                border: '1px solid rgba(122,28,28,0.28)',
-                padding: '20px 24px',
-                marginBottom: '16px',
-              }}
-            >
-              <p
-                style={{
-                  fontSize: '12px',
-                  letterSpacing: '2px',
-                  textTransform: 'uppercase',
-                  color: 'var(--gold)',
-                  margin: '0 0 10px 0',
-                  fontWeight: 700,
-                }}
-              >
-                Revocation Review Path
-              </p>
-
-              <p
-                style={{
-                  fontSize: '15px',
-                  color: '#7A1C1C',
-                  lineHeight: 1.6,
-                  margin: '0 0 10px 0',
-                  fontWeight: 600,
-                }}
-              >
-                This certificate is no longer valid and may only be restored through formal review or reinspection.
-              </p>
-
-              <p
-                style={{
-                  fontSize: '14px',
-                  color: 'var(--navy)',
-                  lineHeight: 1.7,
-                  margin: 0,
-                }}
-              >
-                If the revocation is disputed or underlying issues have been corrected, the certificate holder may request review, submit evidence, or book a fresh inspection.
-              </p>
-
-              {certificate?.revoked_reason && (
-                <div
-                  style={{
-                    marginTop: '14px',
-                    padding: '12px 14px',
-                    backgroundColor: '#fff',
-                    border: '1px solid rgba(122,28,28,0.18)',
-                    borderRadius: '4px',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: '11px',
-                      letterSpacing: '1.5px',
-                      textTransform: 'uppercase',
-                      color: '#7A1C1C',
-                      margin: '0 0 6px 0',
-                      fontWeight: 700,
-                    }}
-                  >
-                    Revocation Reason
-                  </p>
-
-                  <p
-                    style={{
-                      fontSize: '14px',
-                      color: 'var(--navy)',
-                      lineHeight: 1.6,
-                      margin: 0,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {certificate.revoked_reason}
-                  </p>
-                </div>
-              )}
-
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '12px',
-                  flexWrap: 'wrap',
-                  marginTop: '16px',
-                }}
-              >
-                <button
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#7A1C1C',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Submit Review Request
-                </button>
-
-                <button
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#fff',
-                    color: '#7A1C1C',
-                    border: '1px solid #7A1C1C',
-                    borderRadius: '4px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Upload Supporting Evidence
-                </button>
-
-                <button
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#fff',
-                    color: 'var(--navy)',
-                    border: '1px solid rgba(11,31,51,0.18)',
-                    borderRadius: '4px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Book Reinspection
-                </button>
-              </div>
+            <div>
+              <p style={sectionLabelStyle}>Property Code</p>
+              <p style={recordValueStyle}>{propertyCode}</p>
             </div>
-          )}
-
-          <div
-            style={{
-              backgroundColor: 'var(--navy)',
-              border: '1px solid rgba(201,161,77,0.22)',
-              padding: '18px 24px',
-              marginBottom: '16px',
-            }}
-          >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr 1.4fr auto',
-                gap: '20px',
-                alignItems: 'end',
-              }}
-            >
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateRows: '32px 32px',
-                  alignItems: 'end',
-                }}
-              >
-                <p
-                  style={{
-                    ...integrityLabelStyle,
-                    margin: 0,
-                    lineHeight: '16px',
-                  }}
-                >
-                  Lock Status
-                </p>
-                <p
-                  style={{
-                    ...integrityValueStyle,
-                    color: integrityValueColor,
-                    margin: 0,
-                    lineHeight: '20px',
-                  }}
-                >
-                  {registry?.is_locked ? 'Locked' : 'Not Locked'}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateRows: '32px 32px',
-                  alignItems: 'end',
-                }}
-              >
-                <p
-                  style={{
-                    ...integrityLabelStyle,
-                    margin: 0,
-                    lineHeight: '16px',
-                  }}
-                >
-                  Registry Record
-                </p>
-                <p
-                  style={{
-                    ...integrityValueStyle,
-                    color: integrityValueColor,
-                    margin: 0,
-                    lineHeight: '20px',
-                  }}
-                >
-                  {mock.status === 'NotCertified' ? 'Not Found' : 'Found'}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateRows: '32px 32px',
-                  alignItems: 'end',
-                }}
-              >
-                <p
-                  style={{
-                    ...integrityLabelStyle,
-                    margin: 0,
-                    lineHeight: '16px',
-                  }}
-                >
-                  Ledger Reference
-                </p>
-                <p
-                  style={{
-                    ...integrityValueStyle,
-                    color: integrityValueColor,
-                    margin: 0,
-                    lineHeight: '20px',
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {mock.ledger}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateRows: '32px 32px',
-                  alignItems: 'end',
-                }}
-              >
-                <p
-                  style={{
-                    ...integrityLabelStyle,
-                    margin: 0,
-                    lineHeight: '16px',
-                  }}
-                >
-                  Integrity Hash
-                </p>
-                <p
-                  style={{
-                    ...integrityValueStyle,
-                    color: integrityValueColor,
-                    margin: 0,
-                    lineHeight: '20px',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {hashDisplay}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  height: '64px',
-                }}
-              >
-                <CopyHashButton value={verificationHash} />
-              </div>
+            <div>
+              <p style={sectionLabelStyle}>Certificate / Verification Reference</p>
+              <p style={recordValueStyle}>{verificationReference}</p>
+            </div>
+            <div>
+              <p style={sectionLabelStyle}>Issue Date</p>
+              <p style={recordValueStyle}>{issueDate}</p>
+            </div>
+            <div>
+              <p style={sectionLabelStyle}>Registry Date</p>
+              <p style={recordValueStyle}>{registryDate}</p>
             </div>
           </div>
+        </section>
 
-          <div
-            style={{
-              backgroundColor: '#fff',
-              border: '1px solid rgba(11,31,51,0.08)',
-              padding: '24px',
-              marginBottom: '16px',
-            }}
-          >
-            <p
-              style={{
-                fontSize: '12px',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                margin: '0 0 18px 0',
-                fontWeight: 700,
-              }}
-            >
-              Audit Trail
+        {trustState === 'CONDITIONAL' ? (
+          <section style={cardStyle}>
+            <p style={sectionLabelStyle}>Conditional Record Notes</p>
+            <p style={conditionalHeadingStyle}>Why this property is conditionally certified</p>
+            <p style={definitionValueStyle}>
+              {conditionalExplanation?.summary ??
+                'Recorded findings or unresolved requirements remain outstanding before full certification can be achieved.'}
             </p>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: '20px',
-              }}
-            >
-              {mock.auditTrail.map((item, i) => (
-                <div
-                  key={i}
-                  style={{
-                    borderLeft: auditBorderColor,
-                    paddingLeft: '14px',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: '11px',
-                      letterSpacing: '1.5px',
-                      textTransform: 'uppercase',
-                      color: '#6C7077',
-                      margin: '0 0 8px 0',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {item.label}
-                  </p>
-
-                  <p
-                    style={{
-                      fontSize: '14px',
-                      color: 'var(--navy)',
-                      margin: 0,
-                      fontWeight: 600,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {item.value}
-                  </p>
+            <div style={snapshotGridStyle}>
+              {snapshotRows.map((item) => (
+                <div key={item.label} style={snapshotPanelStyle}>
+                  <p style={snapshotLabelStyle}>{item.label}</p>
+                  <p style={snapshotValueStyle}>{item.value}</p>
+                  <p style={snapshotNoteStyle}>{item.note}</p>
                 </div>
               ))}
             </div>
-          </div>
 
-          <div
-            style={{
-              backgroundColor: '#fff',
-              border: '1px solid rgba(11,31,51,0.08)',
-              padding: '24px',
-              marginBottom: '16px',
-            }}
-          >
-            <p
-              style={{
-                fontSize: '12px',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                margin: '0 0 18px 0',
-                fontWeight: 700,
-              }}
-            >
-              QR Verification
-            </p>
+            <div style={conditionalNextStepsStyle}>
+              <p style={sectionLabelStyle}>Required Next Steps</p>
+              <ul style={nextStepsListStyle}>
+                {nextSteps[trustState].map((item) => (
+                  <li key={item} style={nextStepItemStyle}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        ) : null}
 
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '24px',
-              }}
-            >
-              <img
-                src={qrCodeDataUrl}
-                alt={`QR code for certificate ${mock.id}`}
+        <details style={technicalPanelStyle}>
+          <summary style={technicalSummaryStyle}>Technical Verification Details</summary>
+
+          <div style={{ padding: '0 clamp(16px, 4vw, 24px) clamp(18px, 4vw, 24px)' }}>
+            <div style={technicalGridStyle}>
+              <div>
+                <p style={technicalLabelStyle}>Registry Presence</p>
+                <p style={technicalValueStyle}>{registryPresence}</p>
+              </div>
+              <div>
+                <p style={technicalLabelStyle}>Ledger Reference</p>
+                <p style={technicalValueStyle}>{ledgerReference}</p>
+              </div>
+              <div>
+                <p style={technicalLabelStyle}>Audit Indicator</p>
+                <p style={technicalValueStyle}>
+                  {latestAudit
+                    ? `${auditTrail.length} recorded event${auditTrail.length === 1 ? '' : 's'}`
+                    : 'No recorded audit events'}
+                </p>
+                {latestAudit ? <p style={technicalMetaStyle}>Latest: {latestAudit.value}</p> : null}
+              </div>
+              <div>
+                <p style={technicalLabelStyle}>Inspection Date</p>
+                <p style={technicalValueStyle}>{formatDate(registry?.issued_at ?? certificate?.issued_at)}</p>
+              </div>
+            </div>
+
+            <div style={hashPanelStyle}>
+              <div style={{ flex: '1 1 420px' }}>
+                <p style={technicalLabelStyle}>Integrity Hash</p>
+                <p style={hashValueStyle}>{verificationHash}</p>
+              </div>
+              <CopyHashButton value={verificationHash} />
+            </div>
+
+            <div style={technicalIdPanelStyle}>
+              <p style={technicalLabelStyle}>Internal Record IDs</p>
+              <div style={technicalIdGridStyle}>
+                <div>
+                  <p style={technicalMetaLabelStyle}>Registry ID</p>
+                  <p style={technicalMetaValueStyle}>{registry?.id ?? 'Not available'}</p>
+                </div>
+                <div>
+                  <p style={technicalMetaLabelStyle}>Certificate ID</p>
+                  <p style={technicalMetaValueStyle}>{certificate?.id ?? 'Not available'}</p>
+                </div>
+                <div>
+                  <p style={technicalMetaLabelStyle}>Case ID</p>
+                  <p style={technicalMetaValueStyle}>
+                    {certificate?.case_id ?? caseRecord?.id ?? 'Not available'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div style={technicalLowerGridStyle}>
+              <div
                 style={{
-                  width: '140px',
-                  height: '140px',
-                  padding: '10px',
-                  backgroundColor: '#fff',
                   border: '1px solid rgba(11,31,51,0.08)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  backgroundColor: '#fbfbfa',
+                  padding: 'clamp(16px, 3.4vw, 18px)',
                 }}
-              />
-
-              <div>
-                <p
-                  style={{
-                    fontSize: '15px',
-                    color: 'var(--navy)',
-                    fontWeight: 600,
-                    margin: '0 0 10px 0',
-                  }}
-                >
-                  Scan to verify this property record
-                </p>
-
-                <p
-                  style={{
-                    fontSize: '13px',
-                    color: '#6C7077',
-                    lineHeight: 1.6,
-                    margin: '0 0 10px 0',
-                  }}
-                >
-                  This QR code links directly to the official FPIA verification record, which serves as the live source of truth for this certificate.
-                </p>
-
-                <p
-                  style={{
-                    fontSize: '12px',
-                    color: '#6C7077',
-                    margin: 0,
-                    fontFamily: 'monospace',
-                    wordBreak: 'break-all',
-                  }}
-                >
-                  {verificationUrl}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '20px' }}>
-            <DownloadPdfButton
-              id={mock.id}
-              status={mock.status}
-              address={mock.address}
-              province={propertyProvince}
-              hash={verificationHash}
-              qrCode={qrCodeDataUrl}
-              issuedDate={registry?.issued_at ?? certificate?.issued_at}
-              validUntil={
-                mock.status === 'Certified'
-                  ? 'Active until revoked or superseded'
-                  : mock.status === 'Conditional'
-                  ? 'Conditionally active subject to recorded conditions'
-                  : mock.status === 'Revoked'
-                  ? 'No longer valid'
-                  : 'Not currently applicable'
-              }
-              inspectorName={inspector?.full_name ?? certificate?.inspector_name}
-              inspectorRole={certificate?.inspector_title ?? 'Authorised Certification Officer'}
-              inspectorCode={inspector?.inspector_code ?? certificate?.inspector_id}
-              badgeNumber={inspector?.badge_number}
-              companyName={inspector?.company_name}
-              certificateType={certificate?.certificate_type}
-              recommendation={certificate?.recommendation}
-              signatureImageUrl={
-                inspector?.inspector_code
-                  ? `/signatures/${inspector.inspector_code}.png`
-                  : certificate?.signature_image_url
-              }
-              stampImageUrl="/stamps/FPIA-OFFICIAL.png"
-            />
-          </div>
-
-          <div
-            style={{
-              backgroundColor: '#fff',
-              padding: '40px',
-              borderLeft: '1px solid #eee',
-              borderRight: '1px solid #eee',
-            }}
-          >
-            <p
-              style={{
-                fontSize: '11px',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                color: '#999',
-                marginBottom: '8px',
-              }}
-            >
-              Property
-            </p>
-
-            <h2
-              style={{
-                fontFamily: "'DM Serif Display', serif",
-                fontSize: '28px',
-                marginBottom: '4px',
-                whiteSpace: 'pre-line',
-              }}
-            >
-              {mock.address}
-            </h2>
-
-            <p style={{ color: '#666', marginBottom: '40px' }}>{mock.province}</p>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '0',
-                borderTop: '1px solid #eee',
-              }}
-            >
-              {[
-                { label: 'Inspection Date', value: mock.inspectionDate },
-                { label: 'Inspector', value: mock.inspector },
-                { label: 'Certificate Valid Until', value: mock.validUntil },
-                { label: 'Ledger Entry', value: mock.ledger },
-              ].map((row, i) => (
+              >
+                <p style={technicalLabelStyle}>Verification QR</p>
                 <div
-                  key={i}
-                  style={{
-                    padding: '20px 0',
-                    borderBottom: '1px solid #eee',
-                    paddingRight: '24px',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: '11px',
-                      letterSpacing: '1px',
-                      textTransform: 'uppercase',
-                      color: '#999',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    {row.label}
-                  </p>
-
-                  <p
-                    style={{
-                      fontWeight: 600,
-                      color: 'var(--navy)',
-                      fontSize: '15px',
-                      lineHeight: 1.5,
-                      margin: 0,
-                      wordBreak: 'break-word',
-                      whiteSpace: 'pre-line',
-                    }}
-                  >
-                    {row.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div
-            style={{
-              backgroundColor: '#fff',
-              padding: '40px',
-              borderLeft: '1px solid #eee',
-              borderRight: '1px solid #eee',
-              borderTop: '1px solid #eee',
-            }}
-          >
-            <p
-              style={{
-                fontSize: '11px',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                color: '#999',
-                marginBottom: '24px',
-              }}
-            >
-              Compliance Categories
-            </p>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '16px',
-              }}
-            >
-              {mock.categories.map((cat, i) => (
-                <div
-                  key={i}
                   style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '12px 16px',
-                    backgroundColor: 'var(--off-white)',
-                    borderRadius: '4px',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <span style={{ fontSize: '14px', color: 'var(--navy)' }}>
-                    {cat.name}
-                  </span>
-
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      color:
-                        cat.status === 'Pass'
-                          ? '#2E7D32'
-                          : cat.status === 'Conditional'
-                          ? '#B7791F'
-                          : '#C62828',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {cat.status === 'Pass'
-                      ? '✔'
-                      : cat.status === 'Conditional'
-                      ? '•'
-                      : '✕'}{' '}
-                    {cat.status}
-                  </span>
+                  <Image
+                    src={qrCodeDataUrl}
+                    alt={`QR code for verification reference ${verificationReference}`}
+                    width={96}
+                    height={96}
+                    style={{ width: '96px', height: '96px', backgroundColor: '#fff', padding: '6px', border: '1px solid rgba(11,31,51,0.08)' }}
+                  />
+                  <p style={{ ...technicalMetaStyle, maxWidth: '280px', margin: 0 }}>
+                    Scan to open this verification page directly.
+                  </p>
                 </div>
-              ))}
+              </div>
+
+              <div
+                style={{
+                  border: '1px solid rgba(11,31,51,0.08)',
+                  backgroundColor: '#fbfbfa',
+                  padding: 'clamp(16px, 3.4vw, 18px)',
+                }}
+              >
+                <p style={technicalLabelStyle}>Share Record</p>
+                <ShareRecordPanel
+                  verifyUrl={verificationUrl}
+                  verificationReference={verificationReference}
+                  embedUrl={embedBadgeUrl}
+                />
+              </div>
             </div>
           </div>
+        </details>
 
-          <div
-            style={{
-              backgroundColor: 'var(--navy)',
-              borderRadius: '0 0 4px 4px',
-              padding: '24px 40px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <p style={{ color: '#a0aec0', fontSize: '12px' }}>
-              Verified on the FPIA immutable ledger · fairproperties.org.za
+        {showNextActionForm ? (
+          <section style={cardStyle}>
+            <p style={sectionLabelStyle}>Next Action</p>
+            <p style={definitionValueStyle}>
+              {trustState === 'CONDITIONAL'
+                ? 'To pursue full certification, the outstanding items must be resolved and verified.'
+                : trustState === 'REVOKED'
+                ? 'This record is no longer valid. A new inspection is required before a current status can be relied upon.'
+                : 'No active verified record is currently listed. A formal inspection is required to create one.'}
             </p>
+            {nextActionProduct ? (
+              <p style={supportingTextStyle}>
+                System route: {nextActionProduct.name} · {nextActionProduct.priceLabel} · {nextActionProduct.price}
+              </p>
+            ) : null}
+            <RequestInspectionCaptureForm propertyReference={verificationReference} />
+          </section>
+        ) : null}
 
-            <p style={{ color: 'var(--gold)', fontSize: '12px', fontWeight: 600 }}>
-              {mock.ledger}
-            </p>
-          </div>
-        </div>
+        <p style={authorityFootnoteStyle}>
+          FPIA operates as an independent property verification authority. This
+          public record is tied to the issuing authority registry, the locked
+          verification ledger, and the inspection outcome recorded at the time
+          of issue. Accountability built in.
+        </p>
       </div>
-
-      <p
-        style={{
-          textAlign: 'center',
-          color: '#999',
-          fontSize: '12px',
-          paddingBottom: '60px',
-        }}
-      >
-        Issued and verified by the Fair Properties Inspection Authority (FPIA), South Africa.
-      </p>
     </main>
   )
 }
 
+const eyebrowStyle: CSSProperties = {
+  color: '#55606d',
+  fontSize: '11px',
+  letterSpacing: '2.4px',
+  textTransform: 'uppercase',
+  margin: '0 0 12px 0',
+  fontWeight: 700,
+}
+
+const pageTitleStyle: CSSProperties = {
+  margin: '0 0 10px 0',
+  color: 'var(--navy)',
+  fontFamily: "'DM Serif Display', serif",
+  fontSize: 'clamp(30px, 6vw, 36px)',
+  lineHeight: 1.12,
+}
+
+const pageIntroStyle: CSSProperties = {
+  color: '#55606d',
+  fontSize: '14px',
+  lineHeight: 1.7,
+  margin: 0,
+  maxWidth: '720px',
+}
+
+const cardStyle: CSSProperties = {
+  backgroundColor: '#fff',
+  border: '1px solid rgba(11,31,51,0.1)',
+  padding: 'clamp(18px, 4vw, 24px)',
+  marginBottom: '18px',
+  overflow: 'hidden',
+}
+
+const registryHeaderStyle: CSSProperties = {
+  ...cardStyle,
+  padding: 'clamp(18px, 4vw, 24px) clamp(18px, 4vw, 24px) clamp(16px, 3.5vw, 20px)',
+}
+
+const registryHeaderTopStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '24px',
+  flexWrap: 'wrap',
+  marginBottom: '18px',
+}
+
+const registryLogoShellStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '12px 16px',
+  backgroundColor: '#0B1F33',
+  border: '1px solid rgba(201,161,77,0.16)',
+  borderRadius: '4px',
+  boxShadow: '0 8px 18px rgba(11,31,51,0.08)',
+}
+
+const registryHeaderMetaGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+  gap: '16px',
+  paddingTop: '18px',
+  borderTop: '1px solid rgba(11,31,51,0.08)',
+}
+
+const headerMetaValueStyle: CSSProperties = {
+  fontSize: '14px',
+  lineHeight: 1.6,
+  color: 'var(--navy)',
+  margin: 0,
+  fontWeight: 600,
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+}
+
+const statusPanelStyle: CSSProperties = {
+  ...cardStyle,
+  padding: '24px',
+}
+
+const sectionLabelStyle: CSSProperties = {
+  fontSize: '11px',
+  letterSpacing: '1.8px',
+  textTransform: 'uppercase',
+  color: '#6C7077',
+  margin: '0 0 10px 0',
+  fontWeight: 700,
+}
+
+const locationStyle: CSSProperties = {
+  fontSize: '14px',
+  color: '#6C7077',
+  margin: '6px 0 0 0',
+}
+
+const statusHeaderRowStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  gap: '24px',
+  flexWrap: 'wrap',
+  marginBottom: '20px',
+}
+
+const statusSummaryStyle: CSSProperties = {
+  fontSize: 'clamp(18px, 4.8vw, 21px)',
+  lineHeight: 1.4,
+  color: 'var(--navy)',
+  fontWeight: 600,
+  margin: 0,
+  maxWidth: '720px',
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+}
+
+const definitionGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: '16px',
+  paddingTop: '20px',
+  borderTop: '1px solid rgba(11,31,51,0.08)',
+}
+
+const definitionItemStyle: CSSProperties = {
+  border: '1px solid rgba(11,31,51,0.08)',
+  backgroundColor: '#fbfbfa',
+  padding: '18px',
+}
+
+const definitionValueStyle: CSSProperties = {
+  fontSize: '16px',
+  color: 'var(--navy)',
+  lineHeight: 1.7,
+  margin: 0,
+  maxWidth: '760px',
+  fontWeight: 500,
+}
+
+const supportingTextStyle: CSSProperties = {
+  fontSize: '14px',
+  color: '#55606d',
+  lineHeight: 1.7,
+  margin: '12px 0 0 0',
+  maxWidth: '760px',
+}
+
+const registryVerifiedSignalStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  margin: '12px 0 0 12px',
+  padding: '7px 10px',
+  borderRadius: '999px',
+  border: '1px solid rgba(26, 127, 55, 0.22)',
+  backgroundColor: '#F3FBF5',
+  color: '#166534',
+  fontSize: '11px',
+  fontWeight: 700,
+  letterSpacing: '1.4px',
+  textTransform: 'uppercase',
+}
+
+const authorityPanelStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: '16px',
+  alignItems: 'start',
+}
+
+const authorityPanelCardStyle: CSSProperties = {
+  border: '1px solid rgba(11,31,51,0.08)',
+  backgroundColor: '#fbfbfa',
+  padding: '18px',
+}
+
+const authorityMetricsGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+  gap: '14px',
+}
+
+const authorityMetricCardStyle: CSSProperties = {
+  border: '1px solid rgba(11,31,51,0.08)',
+  backgroundColor: '#fbfbfa',
+  padding: '18px',
+  minHeight: '116px',
+}
+
+const authorityMetaStyle: CSSProperties = {
+  fontSize: '14px',
+  color: '#55606d',
+  margin: '8px 0 0 0',
+  lineHeight: 1.6,
+}
+
+const authorityMicrocopyStyle: CSSProperties = {
+  fontSize: '14px',
+  color: '#55606d',
+  margin: '12px 0 0 0',
+  lineHeight: 1.7,
+}
+
+const integrityGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: '14px',
+}
+
+const integrityItemStyle: CSSProperties = {
+  border: '1px solid rgba(11,31,51,0.08)',
+  backgroundColor: '#fbfbfa',
+  padding: '18px',
+  minHeight: '124px',
+}
+
+const integrityItemHeaderStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  marginBottom: '12px',
+}
+
 const integrityLabelStyle: CSSProperties = {
   fontSize: '11px',
-  letterSpacing: '2px',
+  letterSpacing: '1.8px',
   textTransform: 'uppercase',
-  color: 'var(--gold)',
-  margin: '0 0 6px 0',
+  color: '#6C7077',
+  margin: 0,
   fontWeight: 700,
 }
 
 const integrityValueStyle: CSSProperties = {
-  fontSize: '14px',
+  fontSize: '16px',
+  lineHeight: 1.6,
+  color: 'var(--navy)',
   margin: 0,
   fontWeight: 600,
+}
+
+const integrityMicrocopyStyle: CSSProperties = {
+  fontSize: '14px',
+  color: '#55606d',
+  lineHeight: 1.7,
+  margin: '16px 0 0 0',
+  maxWidth: '760px',
+}
+
+const actionRowStyle: CSSProperties = {
+  display: 'flex',
+  gap: '12px',
+  flexWrap: 'wrap',
+  alignItems: 'stretch',
+  marginTop: '20px',
+}
+
+const recordGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+  gap: '16px',
+}
+
+const recordItemWideStyle: CSSProperties = {
+  gridColumn: '1 / -1',
+}
+
+const recordPrimaryValueStyle: CSSProperties = {
+  fontFamily: "'DM Serif Display', serif",
+  fontSize: 'clamp(20px, 5vw, 24px)',
+  lineHeight: 1.2,
+  color: 'var(--navy)',
+  margin: 0,
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+}
+
+const recordValueStyle: CSSProperties = {
+  fontSize: '15px',
+  lineHeight: 1.6,
+  color: 'var(--navy)',
+  margin: 0,
+  fontWeight: 600,
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+}
+
+const conditionalHeadingStyle: CSSProperties = {
+  fontSize: '20px',
+  lineHeight: 1.4,
+  color: 'var(--navy)',
+  margin: '0 0 12px 0',
+  fontWeight: 600,
+}
+
+const snapshotGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: '16px',
+  marginTop: '18px',
+}
+
+const snapshotPanelStyle: CSSProperties = {
+  border: '1px solid rgba(11,31,51,0.08)',
+  backgroundColor: '#fbfbfa',
+  padding: '18px',
+  minHeight: '132px',
+}
+
+const snapshotLabelStyle: CSSProperties = {
+  fontSize: '11px',
+  letterSpacing: '1.8px',
+  textTransform: 'uppercase',
+  color: '#6C7077',
+  margin: '0 0 10px 0',
+  fontWeight: 700,
+}
+
+const snapshotValueStyle: CSSProperties = {
+  fontFamily: "'DM Serif Display', serif",
+  fontSize: '30px',
+  lineHeight: 1,
+  color: 'var(--navy)',
+  margin: '0 0 10px 0',
+}
+
+const snapshotNoteStyle: CSSProperties = {
+  fontSize: '13px',
+  color: '#55606d',
+  lineHeight: 1.65,
+  margin: 0,
+}
+
+const conditionalNextStepsStyle: CSSProperties = {
+  marginTop: '20px',
+  paddingTop: '18px',
+  borderTop: '1px solid rgba(11,31,51,0.08)',
+}
+
+const nextStepsListStyle: CSSProperties = {
+  listStyle: 'none',
+  padding: 0,
+  margin: 0,
+  display: 'grid',
+  gap: '12px',
+}
+
+const nextStepItemStyle: CSSProperties = {
+  fontSize: '15px',
+  lineHeight: 1.65,
+  color: 'var(--navy)',
+  padding: '14px 16px',
+  border: '1px solid rgba(11,31,51,0.08)',
+  backgroundColor: '#fbfbfa',
+}
+
+const primaryButtonStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flex: '1 1 220px',
+  minHeight: '44px',
+  padding: '11px 16px',
+  backgroundColor: '#0B1F33',
+  color: '#fff',
+  borderRadius: '6px',
+  textDecoration: 'none',
+  fontWeight: 600,
+}
+
+const secondaryButtonStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flex: '1 1 220px',
+  minHeight: '44px',
+  padding: '11px 16px',
+  backgroundColor: '#fff',
+  color: 'var(--navy)',
+  border: '1px solid rgba(11,31,51,0.16)',
+  borderRadius: '6px',
+  textDecoration: 'none',
+  fontWeight: 600,
+}
+
+const technicalPanelStyle: CSSProperties = {
+  ...cardStyle,
+  padding: 0,
+  overflow: 'hidden',
+}
+
+const technicalSummaryStyle: CSSProperties = {
+  listStyle: 'none',
+  cursor: 'pointer',
+  padding: '18px clamp(16px, 4vw, 24px)',
+  fontSize: '15px',
+  fontWeight: 700,
+  color: 'var(--navy)',
+  borderBottom: '1px solid rgba(11,31,51,0.08)',
+}
+
+const technicalGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+  gap: '18px',
+  marginBottom: '18px',
+}
+
+const technicalLowerGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: '16px',
+}
+
+const technicalLabelStyle: CSSProperties = {
+  fontSize: '11px',
+  letterSpacing: '2px',
+  textTransform: 'uppercase',
+  color: '#6C7077',
+  margin: '0 0 8px 0',
+  fontWeight: 700,
+}
+
+const technicalValueStyle: CSSProperties = {
+  fontSize: '15px',
+  color: 'var(--navy)',
+  margin: 0,
+  lineHeight: 1.6,
+  fontWeight: 600,
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+}
+
+const technicalMetaStyle: CSSProperties = {
+  fontSize: '13px',
+  color: '#55606d',
+  lineHeight: 1.6,
+  margin: '6px 0 0 0',
+}
+
+const technicalIdPanelStyle: CSSProperties = {
+  marginBottom: '18px',
+  padding: '18px',
+  backgroundColor: '#fbfbfa',
+  border: '1px solid rgba(11,31,51,0.08)',
+}
+
+const technicalIdGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+  gap: '16px',
+}
+
+const technicalMetaLabelStyle: CSSProperties = {
+  fontSize: '11px',
+  letterSpacing: '1.6px',
+  textTransform: 'uppercase',
+  color: '#6C7077',
+  margin: '0 0 6px 0',
+  fontWeight: 700,
+}
+
+const technicalMetaValueStyle: CSSProperties = {
+  fontSize: '13px',
+  lineHeight: 1.7,
+  color: 'var(--navy)',
+  margin: 0,
+  fontFamily: 'monospace',
+  wordBreak: 'break-all',
+}
+
+const hashPanelStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  gap: '16px',
+  flexWrap: 'wrap',
+  marginBottom: '18px',
+  padding: '18px',
+  backgroundColor: '#fbfbfa',
+  border: '1px solid rgba(11,31,51,0.08)',
+}
+
+const hashValueStyle: CSSProperties = {
+  fontSize: '13px',
+  color: 'var(--navy)',
+  margin: 0,
+  lineHeight: 1.7,
+  fontFamily: 'monospace',
+  wordBreak: 'break-word',
+  overflowWrap: 'anywhere',
+}
+
+const authorityFootnoteStyle: CSSProperties = {
+  fontSize: '13px',
+  lineHeight: 1.7,
+  color: '#55606d',
+  margin: 0,
+  maxWidth: '760px',
+}
+
+type IntegrityTone = 'positive' | 'warning' | 'negative' | 'neutral'
+type IntegrityIconKind = 'shield' | 'lock' | 'check-circle'
+
+function getIntegrityTone(trustState: TrustOutcome): IntegrityTone {
+  if (trustState === 'FINAL_VERIFIED') return 'positive'
+  if (trustState === 'CONDITIONAL') return 'warning'
+  if (trustState === 'SUPERSEDED') return 'neutral'
+  if (trustState === 'REVOKED' || trustState === 'NOT_ISSUED') return 'negative'
+  return 'neutral'
+}
+
+function IntegrityIcon({
+  kind,
+  tone,
+}: {
+  kind: IntegrityIconKind
+  tone: IntegrityTone
+}) {
+  const { iconColor, iconBackground } = getIntegrityToneStyles(tone)
+
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '28px',
+        height: '28px',
+        borderRadius: '999px',
+        backgroundColor: iconBackground,
+        color: iconColor,
+        flexShrink: 0,
+      }}
+    >
+      {kind === 'shield' ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 3L18 5.5V11C18 15.1 15.45 18.9 12 20.5C8.55 18.9 6 15.1 6 11V5.5L12 3Z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : null}
+      {kind === 'lock' ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M8 10V7.5C8 5.57 9.57 4 11.5 4C13.43 4 15 5.57 15 7.5V10"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+          <rect
+            x="6"
+            y="10"
+            width="11"
+            height="10"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          />
+        </svg>
+      ) : null}
+      {kind === 'check-circle' ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
+          <path
+            d="M8.8 12.2L11.2 14.6L15.6 10.2"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : null}
+    </span>
+  )
+}
+
+function getIntegrityToneStyles(tone: IntegrityTone) {
+  if (tone === 'positive') {
+    return { iconColor: '#166534', iconBackground: '#ECFDF3' }
+  }
+
+  if (tone === 'warning') {
+    return { iconColor: '#8A5A12', iconBackground: '#FFF7ED' }
+  }
+
+  if (tone === 'negative') {
+    return { iconColor: '#7F1D1D', iconBackground: '#FFF1F2' }
+  }
+
+  return { iconColor: '#55606d', iconBackground: '#F3F4F6' }
 }

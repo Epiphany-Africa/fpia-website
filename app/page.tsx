@@ -1,4 +1,26 @@
+import Image from 'next/image'
 import Link from 'next/link'
+import TrustBadge from '@/components/TrustBadge'
+import { fpiaProducts } from '@/lib/products/fpiaProducts'
+
+const productLayerOrder = [
+  'seller_precert_package',
+  'inspection_product',
+  'upgrade_product',
+] as const
+
+const productCardButtonStyle = {
+  backgroundColor: '#0B1F33',
+  color: '#FFFFFF',
+  border: 'none',
+  borderRadius: '6px',
+  padding: '12px 16px',
+  fontWeight: 600,
+  width: '100%',
+  textDecoration: 'none',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+} as const
 
 const audiences = [
   {
@@ -89,15 +111,15 @@ export default function HomePage() {
       {/* ── HERO ── */}
       <section style={{ backgroundColor: 'var(--navy)' }} className="relative overflow-hidden">
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(var(--gold) 1px, transparent 1px), linear-gradient(90deg, var(--gold) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        <div className="relative max-w-7xl mx-auto px-6 py-4 md:py-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '60px' }}>
-          <div style={{ flex: 1 }}>
+        <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-5 py-12 sm:px-6 md:py-16 lg:flex-row lg:items-center lg:justify-between lg:gap-[60px]">
+          <div className="flex-1">
             <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-6 font-medium">Independent Property Certification · South Africa</p>
-            <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-5xl md:text-7xl leading-tight max-w-3xl mb-6">
+            <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="mb-6 max-w-3xl text-4xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
               Know the true condition<br />
             <em style={{ color: 'var(--gold)' }}>before you commit.</em>
             </h1>
 
-            <p className="text-white/70 text-lg max-w-xl leading-relaxed mb-6">
+            <p className="mb-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
               Independent inspection, certified reports, and real-time verification that prevent failed deals, hidden defects, and post-transfer disputes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -108,14 +130,38 @@ export default function HomePage() {
                 Register a Property
               </Link>
             </div>
-            <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(201,161,77,0.2)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(201,161,77,0.2)' }} className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <span style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase' }}>Beta Partner</span>
               <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '16px' }}>|</span>
               <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontStyle: 'italic' }}>Century 21 South Africa</span>
             </div>
           </div>
-          <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }} className="hidden md:flex">
-            <img src="/images/fpc-badge.png" alt="Fair Property Certified" style={{ width: '200px', height: '200px', objectFit: 'contain' }} />
+          <div style={{ flexShrink: 0 }} className="flex flex-col items-center gap-4 lg:min-w-[250px]">
+            <div
+              style={{
+                width: 'min(270px, 64vw)',
+                height: 'min(270px, 64vw)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '999px',
+                background: 'radial-gradient(circle at center, rgba(11,31,51,0.94) 0%, var(--navy) 72%)',
+                boxShadow: '0 0 0 1px rgba(201,161,77,0.08)',
+              }}
+            >
+              <Image
+                src="/images/fpia-badge.svg"
+                alt="Fair Properties Inspection Authority certification seal"
+                width={320}
+                height={320}
+                style={{
+                  width: 'min(226px, 56vw)',
+                  height: 'min(226px, 56vw)',
+                  objectFit: 'contain',
+                  filter: 'saturate(0.98) brightness(0.98) contrast(1.02)',
+                }}
+              />
+            </div>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', textAlign: 'center' }}>Fair Property Certified™</p>
           </div>
         </div>
@@ -138,10 +184,10 @@ export default function HomePage() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          'Defects discovered too late',
-          'Price renegotiations collapse deals',
-          'Buyers inherit hidden costs',
-          'No single verified source of truth',
+          'Hidden defects derail deals at closing',
+          'Late repricing strips control from sellers',
+          'Buyers absorb costs they never saw',
+          'No trusted record of property condition',
         ].map((item) => (
         <div
           key={item}
@@ -159,10 +205,112 @@ export default function HomePage() {
 
       {/* ── TRUST BAR ── */}
       <section style={{ backgroundColor: 'var(--gold)' }} className="py-4">
-        <div className="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-8 text-navy text-xs font-semibold tracking-widest uppercase">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-4 gap-y-3 px-5 text-center text-[11px] font-semibold uppercase tracking-widest text-navy sm:px-6 md:flex md:flex-wrap md:justify-center md:gap-8 md:text-xs">
           {['Independent Inspection', 'Tamper-Proof Records', 'QR Verified', 'OTP Secured', 'Full Chain Transparency'].map(t => (
             <span key={t}>✦ {t}</span>
           ))}
+        </div>
+      </section>
+
+      <section style={{ backgroundColor: 'white' }} className="py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
+            Product Layer
+          </p>
+          <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
+            Structured inspection and certification products.
+          </h2>
+          <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-12">
+            FPIA operates as a staged product system. Each product has a defined outcome, a fixed fee, and a clear point in the workflow where it is triggered.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {productLayerOrder
+              .flatMap((productId) => {
+                const product = fpiaProducts.find((item) => item.id === productId)
+                return product ? [product] : []
+              })
+              .map((product) => (
+              <div
+                key={product.id}
+                style={{
+                  border: '1px solid rgba(11,31,51,0.1)',
+                  backgroundColor: '#fff',
+                }}
+                className="p-8 flex flex-col h-full"
+              >
+                <div className="mb-[18px] md:min-h-[128px]">
+                  <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
+                    {product.certificateOutcome}
+                  </p>
+                  <h3
+                    style={{
+                      fontFamily: 'DM Serif Display, serif',
+                      color: 'var(--navy)',
+                      lineHeight: 1.08,
+                      letterSpacing: '-0.01em',
+                      textWrap: 'balance',
+                    }}
+                    className="text-[1.65rem] mb-3"
+                  >
+                    {product.name}
+                  </h3>
+                  <p style={{ color: 'var(--slate)' }} className="text-[13px] leading-6">
+                    {product.usageSubheading}
+                  </p>
+                </div>
+
+                <div style={{ marginBottom: '18px' }}>
+                  <p
+                    style={{ color: 'var(--gold)' }}
+                    className="text-[11px] tracking-[0.22em] uppercase mb-2 font-medium"
+                  >
+                    {product.priceLabel}
+                  </p>
+                  <p
+                    style={{ color: 'var(--navy)', lineHeight: 0.95 }}
+                    className="text-[2.2rem] font-semibold mb-3"
+                  >
+                    {product.price}
+                  </p>
+                  <p style={{ color: 'var(--slate)' }} className="text-sm leading-relaxed">
+                    {product.valueMicrocopy}
+                  </p>
+                </div>
+
+                <div className="md:min-h-[112px]">
+                  <p style={{ color: 'var(--slate)' }} className="text-sm leading-relaxed">
+                    {product.description}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 'auto',
+                    paddingTop: '18px',
+                    borderTop: '1px solid rgba(11,31,51,0.08)',
+                  }}
+                >
+                  <p
+                    style={{ color: 'rgba(11,31,51,0.55)' }}
+                    className="text-[10px] tracking-[0.22em] uppercase mb-2 font-medium"
+                  >
+                    Triggered In System
+                  </p>
+                  <p style={{ color: 'var(--slate)' }} className="text-[13px] leading-6 mb-5">
+                    {product.systemTrigger}
+                  </p>
+                  <Link
+                    href={product.ctaHref}
+                    style={productCardButtonStyle}
+                    className="inline-flex items-center justify-center text-sm hover:bg-[#0E2A47]"
+                  >
+                    {product.ctaLabel}
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -213,7 +361,7 @@ export default function HomePage() {
             </div>
           </div>
           <p style={{ borderTop: '1px solid rgba(201,161,77,0.2)', paddingTop: '32px', color: 'var(--gold)', fontFamily: 'DM Serif Display, serif' }} className="text-xl md:text-2xl">
-            FPIA doesn't just certify properties — it prevents transaction failure.
+            FPIA doesn&rsquo;t just certify properties — it prevents transaction failure.
           </p>
         </div>
       </section>
@@ -222,7 +370,7 @@ export default function HomePage() {
       <section style={{ backgroundColor: 'var(--off-white)' }} className="pt-16 pb-12">
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">Real World Impact</p>
-          <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-16">
+          <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-10 md:mb-16">
             A typical property deal — before FPIA.
           </h2>
           <div className="flex flex-col gap-8">
@@ -244,7 +392,7 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <div style={{ borderLeft: '1px solid rgba(11,31,51,0.08)', paddingLeft: '24px' }}>
+                <div className="border-t border-[rgba(11,31,51,0.08)] pt-5 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
                   <p style={{ color: 'var(--navy)', fontFamily: 'DM Mono, monospace' }} className="text-xs tracking-widest uppercase mb-3">The Result</p>
                   <ul className="space-y-2">
                     {['The buyer walks away', 'The seller relists at a lower price', 'The agent loses the deal', 'Weeks are lost — and trust is broken'].map(item => (
@@ -271,7 +419,7 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <div style={{ borderLeft: '1px solid rgba(201,161,77,0.2)', paddingLeft: '24px' }}>
+                <div className="border-t border-[rgba(201,161,77,0.2)] pt-5 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
                   <p style={{ color: 'var(--gold)', fontFamily: 'DM Mono, monospace' }} className="text-xs tracking-widest uppercase mb-3">The Result</p>
                   <ul className="space-y-2">
                     {['Faster agreement', 'No renegotiation', 'Smooth transfer', 'Protected value for all parties'].map(item => (
@@ -306,24 +454,24 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <div style={{ border: '1px solid rgba(201,161,77,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }}>
-            <div style={{ backgroundColor: 'rgba(201,161,77,0.1)', borderBottom: '1px solid rgba(201,161,77,0.2)' }} className="px-6 py-4 flex items-center justify-between">
+          <div style={{ border: '1px solid rgba(201,161,77,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="overflow-hidden">
+            <div style={{ backgroundColor: 'rgba(201,161,77,0.1)', borderBottom: '1px solid rgba(201,161,77,0.2)' }} className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <span style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--gold)' }} className="text-lg tracking-widest">FPIA CERTIFICATE</span>
               <span className="text-white/40 text-xs font-mono">#ZA-2024-00142</span>
             </div>
-            <div className="p-6 grid md:grid-cols-3 gap-8">
+            <div className="grid gap-8 p-5 md:grid-cols-3 md:p-6">
               <div>
                 <p className="text-xs uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Property</p>
                 <p style={{ color: 'var(--off-white)' }} className="font-semibold text-lg">14 Protea Avenue, Sandton</p>
                 <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>Gauteng, 2196</p>
-                <span className="status-certified text-xs font-semibold px-3 py-1 rounded-full">✔ Certified</span>
+                <TrustBadge trustState="FINAL_VERIFIED" variant="compact" />
               </div>
               <div>
                 <table className="w-full text-xs">
                   <tbody>
                     {[
                       ['Inspection Date', '14 March 2024'],
-                      ['Inspector', 'S. van der Merwe — SACPCMP Reg.'],
+                      ['Inspector', 'Stephanus van der Merwe — SACPCMP Reg.'],
                       ['Certificate Valid', '12 months'],
                       ['Ledger Entry', 'Block #88,241'],
                     ].map(([k, v]) => (
@@ -336,7 +484,7 @@ export default function HomePage() {
                 </table>
               </div>
               <div className="flex flex-col justify-between">
-                <div style={{ border: '1px dashed rgba(201,161,77,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="p-4 flex items-center gap-4 mb-6">
+                <div style={{ border: '1px dashed rgba(201,161,77,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="mb-6 flex flex-col items-start gap-4 p-4 sm:flex-row sm:items-center">
                   <div style={{ width: 64, height: 64, backgroundColor: 'white', padding: '4px', flexShrink: 0 }}>
                     {qrCode}
                   </div>
@@ -349,9 +497,14 @@ export default function HomePage() {
                   <p style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }} className="text-xs mb-4">
                     This is the exact experience your buyers will have.
                   </p>
-                  <Link href="/verify/ZA-2024-00142" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity">
-                    View Verified Property →
-                  </Link>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <Link href="/verify/ZA-2024-00142" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity">
+                      Verify Property →
+                    </Link>
+                    <Link href="/certificate/ZA-2024-00142" style={{ border: '1px solid rgba(201,161,77,0.35)', color: 'var(--off-white)' }} className="inline-block px-6 py-3 text-sm font-semibold tracking-wide hover:border-[rgba(201,161,77,0.6)] transition-colors">
+                      View Certificate
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -426,13 +579,13 @@ export default function HomePage() {
             The FPIA Certificate — your proof of property truth.
           </h2>
           <hr className="gold-rule w-16 mb-12" />
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
             <div>
               <p style={{ color: 'var(--slate)' }} className="text-base leading-relaxed mb-6">
                 Every certified property receives a digital record that captures its full condition — independently verified and instantly accessible.
               </p>
               <ul className="space-y-3">
-                {['Timestamped inspection record', 'Compliance category breakdown', 'COC artefact tracking', 'Unique QR code per property', 'Tamper-proof ledger entry', 'Five-status certification system'].map(item => (
+                {['Timestamped inspection record', 'Compliance category breakdown', 'COC artefact tracking', 'Unique QR code per property', 'Tamper-proof ledger entry', 'Four canonical trust outcomes'].map(item => (
                   <li key={item} className="flex items-center gap-3 text-sm" style={{ color: 'var(--navy)' }}>
                     <span style={{ color: 'var(--gold)' }}>✦</span> {item}
                   </li>
@@ -445,24 +598,24 @@ export default function HomePage() {
                 Verify a Property Now
               </Link>
             </div>
-            <div style={{ border: '1px solid rgba(11,31,51,0.15)', backgroundColor: 'white' }} className="shadow-xl">
-              <div style={{ backgroundColor: 'var(--navy)' }} className="px-6 py-4 flex items-center justify-between">
+            <div style={{ border: '1px solid rgba(11,31,51,0.15)', backgroundColor: 'white' }} className="overflow-hidden shadow-xl">
+              <div style={{ backgroundColor: 'var(--navy)' }} className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <span style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--gold)' }} className="text-lg tracking-widest">FPIA CERTIFICATE</span>
                 <span className="text-white/50 text-xs font-mono">#ZA-2024-00142</span>
               </div>
               <hr className="gold-rule" />
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-6">
+              <div className="p-5 sm:p-6">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Property</p>
                     <p style={{ color: 'var(--navy)' }} className="font-semibold">14 Protea Avenue, Sandton</p>
                     <p className="text-sm text-slate-500">Gauteng, 2196</p>
                   </div>
-                  <span className="status-certified text-xs font-semibold px-3 py-1 rounded-full">✔ Certified</span>
+                  <TrustBadge trustState="FINAL_VERIFIED" variant="compact" />
                 </div>
                 <table className="w-full text-xs mb-6">
                   <tbody>
-                    {[['Inspection Date', '14 March 2024'], ['Inspector', 'S. van der Merwe — SACPCMP Reg.'], ['Certificate Valid', '12 months'], ['Ledger Entry', 'Block #88,241']].map(([k, v]) => (
+                    {[['Inspection Date', '14 March 2024'], ['Inspector', 'Stephanus van der Merwe — SACPCMP Reg.'], ['Certificate Valid', '12 months'], ['Ledger Entry', 'Block #88,241']].map(([k, v]) => (
                       <tr key={k} style={{ borderBottom: '1px solid rgba(11,31,51,0.06)' }}>
                         <td className="py-2 text-slate-500 pr-4">{k}</td>
                         <td style={{ color: 'var(--navy)' }} className="py-2 font-medium">{v}</td>
@@ -470,13 +623,13 @@ export default function HomePage() {
                     ))}
                   </tbody>
                 </table>
-                <div style={{ backgroundColor: 'var(--off-white)', border: '1px dashed rgba(11,31,51,0.2)' }} className="p-4 flex items-center gap-4">
+                <div style={{ backgroundColor: 'var(--off-white)', border: '1px dashed rgba(11,31,51,0.2)' }} className="flex flex-col items-start gap-4 p-4 sm:flex-row sm:items-center">
                   <div style={{ width: 64, height: 64, backgroundColor: 'white', padding: '4px', flexShrink: 0 }}>
                     {qrCode}
                   </div>
                   <div>
                     <p className="text-xs font-semibold" style={{ color: 'var(--navy)' }}>Scan to verify</p>
-                    <p className="text-xs text-slate-400 mt-1">fpia.co.za/verify/ZA-2024-00142</p>
+                    <p className="text-xs text-slate-400 mt-1">fairproperties.org.za/verify/ZA-2024-00142</p>
                   </div>
                 </div>
               </div>
@@ -489,7 +642,7 @@ export default function HomePage() {
       <section id="register" style={{ backgroundColor: 'var(--gold)' }} className="py-20">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
-            Protect your property transaction before it's too late.
+            Protect your property transaction before it&rsquo;s too late.
           </h2>
           <p
             style={{ color: 'rgba(11,31,51,0.7)' }}

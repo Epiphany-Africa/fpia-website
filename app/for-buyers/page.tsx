@@ -1,4 +1,30 @@
+import Link from 'next/link'
+import TrustBadge from '@/components/TrustBadge'
+
 export default function ForBuyers() {
+  const trustOutcomes = [
+    {
+      trustState: 'FINAL_VERIFIED' as const,
+      meaning: 'Active verified record',
+      desc: 'All required certification conditions were met at the time of verification.',
+    },
+    {
+      trustState: 'CONDITIONAL' as const,
+      meaning: 'Active conditional record',
+      desc: 'The property has been assessed, but recorded findings or requirements remain outstanding.',
+    },
+    {
+      trustState: 'REVOKED' as const,
+      meaning: 'Inactive revoked record',
+      desc: 'A prior certificate exists, but it is no longer valid and should not be relied upon.',
+    },
+    {
+      trustState: 'NOT_ISSUED' as const,
+      meaning: 'No active record listed',
+      desc: 'No verified certification record is currently listed for the property reference supplied.',
+    },
+  ]
+
   return (
     <main style={{ backgroundColor: 'var(--off-white)', color: 'var(--navy)', fontFamily: "'DM Sans', sans-serif" }}>
 
@@ -6,11 +32,11 @@ export default function ForBuyers() {
       <section style={{ backgroundColor: 'var(--navy)', padding: '100px 80px 80px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>For Buyers</p>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '56px', color: 'var(--off-white)', lineHeight: 1.1, marginBottom: '24px' }}>
-          Know exactly what<br />you're buying.
+          Know exactly what<br />you&rsquo;re buying.
         </h1>
         <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '24px' }} />
         <p style={{ color: '#a0aec0', fontSize: '18px', maxWidth: '560px', lineHeight: 1.7 }}>
-          A FPIA certificate gives you independent, verified proof of a property's condition before you sign — protecting you from hidden defects and post-transfer disputes.
+          A FPIA certificate gives you independent, verified proof of a property&rsquo;s condition before you sign — protecting you from hidden defects and post-transfer disputes.
         </p>
       </section>
 
@@ -18,7 +44,7 @@ export default function ForBuyers() {
       <section style={{ padding: '80px', maxWidth: '900px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>The Problem</p>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', marginBottom: '24px' }}>
-          What you don't know can cost you.
+          What you don&rsquo;t know can cost you.
         </h2>
         <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '32px' }} />
         <p style={{ fontSize: '16px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
@@ -53,23 +79,61 @@ export default function ForBuyers() {
         </div>
       </section>
 
-      {/* Five statuses */}
+      {/* Trust outcomes */}
       <section style={{ padding: '80px', maxWidth: '900px' }}>
-        <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>Certification Statuses</p>
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', marginBottom: '24px' }}>What the certificate tells you.</h2>
-        <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '40px' }} />
-        {[
-          { status: '✔ Certified', style: 'status-certified', desc: 'Property passed all compliance categories. Full COC artefacts on record. Safe to proceed.' },
-          { status: '⚠ Conditional', style: 'status-conditional', desc: 'Minor items flagged. Conditions must be resolved before or after transfer — terms agreed in OTP.' },
-          { status: '⏳ Pending', style: 'status-pending', desc: 'Inspection complete but outstanding documentation required before certificate is issued.' },
-          { status: '🔄 In Progress', style: 'status-inprogress', desc: 'Inspection has been scheduled or is currently underway. Check back for the final result.' },
-          { status: '✖ Not Certified', style: 'status-notcertified', desc: 'Property failed one or more compliance categories. Significant defects identified — proceed with caution.' },
-        ].map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '24px', borderTop: '1px solid #ddd', padding: '24px 0' }}>
-            <span className={item.style} style={{ padding: '4px 12px', borderRadius: '4px', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>{item.status}</span>
-            <p style={{ fontSize: '15px', color: '#444', lineHeight: 1.7 }}>{item.desc}</p>
+        <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>Registry Outcome Reference</p>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', marginBottom: '16px' }}>Official trust-status definitions.</h2>
+        <p style={{ fontSize: '15px', color: '#55606d', lineHeight: 1.7, maxWidth: '720px', marginBottom: '32px' }}>
+          Use this reference to interpret the status shown on any FPIA property condition record.
+        </p>
+
+        <div style={{ border: '1px solid rgba(11,31,51,0.12)', backgroundColor: '#fff' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '220px minmax(0, 1fr)',
+              gap: '24px',
+              padding: '14px 24px',
+              backgroundColor: 'rgba(11,31,51,0.03)',
+              borderBottom: '1px solid rgba(11,31,51,0.08)',
+            }}
+          >
+            <p style={{ color: '#6C7077', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>
+              Trust Status
+            </p>
+            <p style={{ color: '#6C7077', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>
+              Registry Meaning
+            </p>
           </div>
-        ))}
+
+          {trustOutcomes.map((item, i) => (
+            <div
+              key={item.trustState}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '220px minmax(0, 1fr)',
+                gap: '24px',
+                alignItems: 'center',
+                minHeight: '96px',
+                padding: '20px 24px',
+                borderBottom: i < trustOutcomes.length - 1 ? '1px solid rgba(11,31,51,0.08)' : 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', minHeight: '48px' }}>
+                <TrustBadge trustState={item.trustState} variant="registry" />
+              </div>
+
+              <div>
+                <p style={{ fontSize: '15px', color: 'var(--navy)', fontWeight: 600, margin: '0 0 6px 0' }}>
+                  {item.meaning}
+                </p>
+                <p style={{ fontSize: '14px', color: '#55606d', lineHeight: 1.7, margin: 0 }}>
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* CTA */}
@@ -78,7 +142,7 @@ export default function ForBuyers() {
           Verify before you sign.
         </h2>
         <p style={{ color: 'var(--navy)', marginBottom: '40px', fontSize: '16px' }}>Scan a property QR code or enter a certificate number to check status instantly.</p>
-        <a href="/verify" style={{
+        <Link href="/verify" style={{
           backgroundColor: 'var(--navy)',
           color: 'var(--off-white)',
           padding: '14px 36px',
@@ -87,7 +151,7 @@ export default function ForBuyers() {
           letterSpacing: '1px',
           textDecoration: 'none',
           textTransform: 'uppercase'
-        }}>Verify a Property</a>
+        }}>Verify a Property</Link>
       </section>
 
     </main>

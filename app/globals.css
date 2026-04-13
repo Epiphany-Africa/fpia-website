@@ -19,21 +19,19 @@
 }
 
 html { scroll-behavior: smooth; }
+html, body {
+  min-width: 320px;
+}
 
 body {
   background-color: var(--off-white);
   color: var(--navy);
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 .gold-rule {
   border: none;
   border-top: 2px solid var(--gold);
 }
-
-.status-certified    { background: #E8F5E9; color: #2E7D32; border: 1px solid #2E7D32; }
-.status-conditional  { background: #FFFDE7; color: #F57F17; border: 1px solid #F9A825; }
-.status-pending      { background: #E3F2FD; color: #1565C0; border: 1px solid #1565C0; }
-.status-inprogress   { background: #F3E5F5; color: #6A1B9A; border: 1px solid #6A1B9A; }
-.status-notcertified { background: #FFEBEE; color: #C62828; border: 1px solid #C62828; }
