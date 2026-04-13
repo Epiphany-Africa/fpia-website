@@ -29,7 +29,7 @@ export default function ForBuyers() {
     <main style={{ backgroundColor: 'var(--off-white)', color: 'var(--navy)', fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* Hero */}
-      <section style={{ backgroundColor: 'var(--navy)', padding: '100px 80px 80px' }}>
+      <section className="fpia-buyers-hero" style={{ backgroundColor: 'var(--navy)', padding: '100px 80px 80px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>For Buyers</p>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '56px', color: 'var(--off-white)', lineHeight: 1.1, marginBottom: '24px' }}>
           Know exactly what<br />you&rsquo;re buying.
@@ -41,7 +41,7 @@ export default function ForBuyers() {
       </section>
 
       {/* Risk section */}
-      <section style={{ padding: '80px', maxWidth: '900px' }}>
+      <section className="fpia-buyers-section" style={{ padding: '80px', maxWidth: '900px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>The Problem</p>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', marginBottom: '24px' }}>
           What you don&rsquo;t know can cost you.
@@ -56,13 +56,13 @@ export default function ForBuyers() {
       </section>
 
       {/* What FPIA does */}
-      <section style={{ backgroundColor: 'var(--navy)', padding: '80px' }}>
+      <section className="fpia-buyers-solution" style={{ backgroundColor: 'var(--navy)', padding: '80px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>The Solution</p>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', color: 'var(--off-white)', marginBottom: '24px' }}>
           What FPIA gives you.
         </h2>
         <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '48px' }} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
+        <div className="fpia-buyers-solution-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
           {[
             { title: 'Independent Verification', body: 'Your inspector is appointed by FPIA — never by the seller. No conflict of interest, no incentive to overlook defects.' },
             { title: 'Full Condition Record', body: 'Every compliance category documented with photographic evidence, timestamped and stored on an immutable ledger.' },
@@ -80,7 +80,7 @@ export default function ForBuyers() {
       </section>
 
       {/* Trust outcomes */}
-      <section style={{ padding: '80px', maxWidth: '900px' }}>
+      <section className="fpia-buyers-section" style={{ padding: '80px', maxWidth: '900px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>Registry Outcome Reference</p>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', marginBottom: '16px' }}>Official trust-status definitions.</h2>
         <p style={{ fontSize: '15px', color: '#55606d', lineHeight: 1.7, maxWidth: '720px', marginBottom: '32px' }}>
@@ -89,6 +89,7 @@ export default function ForBuyers() {
 
         <div style={{ border: '1px solid rgba(11,31,51,0.12)', backgroundColor: '#fff' }}>
           <div
+            className="fpia-buyers-table-header"
             style={{
               display: 'grid',
               gridTemplateColumns: '220px minmax(0, 1fr)',
@@ -108,6 +109,7 @@ export default function ForBuyers() {
 
           {trustOutcomes.map((item, i) => (
             <div
+              className="fpia-buyers-table-row"
               key={item.trustState}
               style={{
                 display: 'grid',
@@ -137,7 +139,7 @@ export default function ForBuyers() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: 'var(--gold)', padding: '80px', textAlign: 'center' }}>
+      <section className="fpia-buyers-cta" style={{ backgroundColor: 'var(--gold)', padding: '80px', textAlign: 'center' }}>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', color: 'var(--navy)', marginBottom: '16px' }}>
           Verify before you sign.
         </h2>
@@ -154,6 +156,60 @@ export default function ForBuyers() {
         }}>Verify a Property</Link>
       </section>
 
+      <style>{`
+        @media (max-width: 980px) {
+          .fpia-buyers-hero,
+          .fpia-buyers-section,
+          .fpia-buyers-solution,
+          .fpia-buyers-cta {
+            padding-left: 32px !important;
+            padding-right: 32px !important;
+          }
+
+          .fpia-buyers-solution-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .fpia-buyers-table-header,
+          .fpia-buyers-table-row {
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
+          }
+
+          .fpia-buyers-table-row {
+            min-height: 0 !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .fpia-buyers-hero,
+          .fpia-buyers-section,
+          .fpia-buyers-solution,
+          .fpia-buyers-cta {
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+          }
+
+          .fpia-buyers-hero {
+            padding-top: 44px !important;
+            padding-bottom: 36px !important;
+          }
+
+          .fpia-buyers-section,
+          .fpia-buyers-solution,
+          .fpia-buyers-cta {
+            padding-top: 36px !important;
+            padding-bottom: 40px !important;
+          }
+
+          .fpia-buyers-solution-grid {
+            grid-template-columns: 1fr !important;
+            gap: 22px !important;
+          }
+        }
+      `}</style>
     </main>
   )
 }

@@ -182,7 +182,7 @@ function RequestInspectionPageContent() {
     <main style={{ backgroundColor: 'var(--navy)', minHeight: '100vh' }}>
 
       {/* Hero */}
-      <section style={{ padding: '64px 80px 48px', borderBottom: '1px solid rgba(201,161,77,0.15)' }}>
+      <section className="fpia-request-hero" style={{ padding: '64px 80px 48px', borderBottom: '1px solid rgba(201,161,77,0.15)' }}>
         <p style={{ fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '16px' }}>
           Request an Inspection
         </p>
@@ -213,7 +213,7 @@ function RequestInspectionPageContent() {
         )}
 
         {/* Steps indicator */}
-        <div style={{ display: 'flex', gap: '32px', marginTop: '32px' }}>
+        <div className="fpia-request-steps" style={{ display: 'flex', gap: '32px', marginTop: '32px' }}>
           {(['property', 'contact', 'confirm'] as Step[]).map((s, i) => (
             <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
@@ -237,8 +237,9 @@ function RequestInspectionPageContent() {
         </div>
       </section>
 
-      <section style={{ padding: '32px 80px 0' }}>
+      <section className="fpia-request-products-shell" style={{ padding: '32px 80px 0' }}>
         <div
+          className="fpia-request-products"
           style={{
             maxWidth: '980px',
             display: 'grid',
@@ -315,14 +316,14 @@ function RequestInspectionPageContent() {
       </section>
 
       {/* Form */}
-      <section style={{ padding: '60px 80px', maxWidth: '760px' }}>
+      <section className="fpia-request-form-shell" style={{ padding: '60px 80px', maxWidth: '760px' }}>
 
         {/* STEP 1 — Property */}
         {step === 'property' && (
           <div>
             <h2 style={stepTitleStyle}>Property Address</h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '20px' }}>
+            <div className="fpia-request-address-row" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '20px' }}>
               <div>
                 <label style={labelStyle}>Street Number</label>
                 <input
@@ -447,7 +448,7 @@ function RequestInspectionPageContent() {
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="fpia-request-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={labelStyle}>Full Name</label>
                   <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" style={inputStyle} />
@@ -463,7 +464,7 @@ function RequestInspectionPageContent() {
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" style={inputStyle} />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="fpia-request-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={labelStyle}>Preferred Inspection Date</label>
                   <input type="date" min={today} value={preferredDate} onChange={e => setPreferredDate(e.target.value)} style={inputStyle} />
@@ -497,7 +498,7 @@ function RequestInspectionPageContent() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px', marginTop: '40px' }}>
+            <div className="fpia-request-actions" style={{ display: 'flex', gap: '16px', marginTop: '40px' }}>
               <button onClick={() => setStep('property')} style={btnSecondaryStyle}>
                 ← Back
               </button>
@@ -535,7 +536,7 @@ function RequestInspectionPageContent() {
                 { label: 'Alternative Date', value: altDate || '—' },
                 { label: 'Notes', value: buildRequestNotes() || '—' },
               ].map((item) => (
-                <div key={item.label} style={{
+                <div key={item.label} className="fpia-request-confirm-row" style={{
                   padding: '14px 18px',
                   border: '1px solid rgba(201,161,77,0.15)',
                   display: 'grid',
@@ -567,7 +568,7 @@ function RequestInspectionPageContent() {
               <p style={{ color: '#fc8181', fontSize: '13px', marginBottom: '16px' }}>{error}</p>
             )}
 
-            <div style={{ display: 'flex', gap: '16px' }}>
+            <div className="fpia-request-actions" style={{ display: 'flex', gap: '16px' }}>
               <button onClick={() => setStep('contact')} style={btnSecondaryStyle}>
                 ← Back
               </button>
@@ -582,6 +583,61 @@ function RequestInspectionPageContent() {
           </div>
         )}
       </section>
+
+      <style jsx>{`
+        @media (max-width: 980px) {
+          .fpia-request-hero,
+          .fpia-request-products-shell,
+          .fpia-request-form-shell {
+            padding-left: 32px !important;
+            padding-right: 32px !important;
+          }
+
+          .fpia-request-products {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .fpia-request-steps {
+            flex-direction: column;
+            gap: 14px !important;
+          }
+
+          .fpia-request-address-row,
+          .fpia-request-two-col,
+          .fpia-request-confirm-row {
+            grid-template-columns: 1fr !important;
+          }
+
+          .fpia-request-actions {
+            flex-direction: column-reverse;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .fpia-request-hero,
+          .fpia-request-products-shell,
+          .fpia-request-form-shell {
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+          }
+
+          .fpia-request-hero {
+            padding-top: 44px !important;
+            padding-bottom: 36px !important;
+          }
+
+          .fpia-request-products-shell {
+            padding-top: 22px !important;
+          }
+
+          .fpia-request-form-shell {
+            padding-top: 36px !important;
+            padding-bottom: 44px !important;
+          }
+        }
+      `}</style>
     </main>
   )
 }

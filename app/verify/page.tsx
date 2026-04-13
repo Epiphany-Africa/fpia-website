@@ -43,7 +43,7 @@ export default function Verify() {
     <main style={{ backgroundColor: 'var(--off-white)', minHeight: '100vh' }}>
 
       {/* Hero */}
-      <section style={{ backgroundColor: 'var(--navy)', padding: '80px 80px 64px' }}>
+      <section className="fpia-verify-hero" style={{ backgroundColor: 'var(--navy)', padding: '80px 80px 64px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>Verify a Property</p>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '52px', color: 'var(--off-white)', lineHeight: 1.1, marginBottom: '16px' }}>
           Check certification<br />
@@ -56,10 +56,10 @@ export default function Verify() {
       </section>
 
       {/* Three options */}
-      <section style={{ padding: '64px 80px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '40px' }}>
+      <section className="fpia-verify-options" style={{ padding: '64px 80px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '40px' }}>
 
         {/* Option 1 — Certificate Number */}
-        <div style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', padding: '40px' }}>
+        <div className="fpia-verify-option" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', padding: '40px' }}>
           <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>Option 01</p>
           <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', color: 'var(--navy)', marginBottom: '8px' }}>Enter Certificate Number</h2>
           <p style={{ color: '#6C7077', fontSize: '14px', lineHeight: 1.7, marginBottom: '32px' }}>
@@ -102,7 +102,7 @@ export default function Verify() {
         </div>
 
         {/* Option 2 — QR Code */}
-        <div style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', padding: '40px' }}>
+        <div className="fpia-verify-option" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', padding: '40px' }}>
           <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>Option 02</p>
           <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', color: 'var(--navy)', marginBottom: '8px' }}>Scan QR Code</h2>
           <p style={{ color: '#6C7077', fontSize: '14px', lineHeight: 1.7, marginBottom: '32px' }}>
@@ -144,7 +144,7 @@ export default function Verify() {
         </div>
 
         {/* Option 3 — Get Certified */}
-        <div style={{ backgroundColor: '#fff', border: '1px solid rgba(201,161,77,0.4)', padding: '40px', position: 'relative' }}>
+        <div className="fpia-verify-option fpia-verify-option-otp" style={{ backgroundColor: '#fff', border: '1px solid rgba(201,161,77,0.4)', padding: '40px', position: 'relative' }}>
           <div style={{
             position: 'absolute',
             top: '-12px',
@@ -156,7 +156,7 @@ export default function Verify() {
             letterSpacing: '2px',
             textTransform: 'uppercase',
             padding: '4px 12px',
-          }}>
+          }} className="fpia-verify-otp-flag">
             OTP Period Only
           </div>
 
@@ -179,7 +179,7 @@ export default function Verify() {
             <label style={labelStyle}>Email Address</label>
             <input style={inputStyle} type="email" placeholder="e.g. john@email.com" value={quoteEmail} onChange={(e) => setQuoteEmail(e.target.value)} required />
 
-            <div style={{
+            <div className="fpia-verify-declaration" style={{
               backgroundColor: 'var(--off-white)',
               border: '1px solid rgba(201,161,77,0.3)',
               padding: '16px',
@@ -221,19 +221,82 @@ export default function Verify() {
       </section>
 
       {/* How it works strip */}
-      <section style={{ backgroundColor: 'var(--navy)', padding: '48px 80px', display: 'flex', gap: '64px', alignItems: 'flex-start' }}>
+      <section className="fpia-verify-steps-strip" style={{ backgroundColor: 'var(--navy)', padding: '48px 80px', display: 'flex', gap: '64px', alignItems: 'flex-start' }}>
         {[
           { num: '01', title: 'Find the code', body: 'Certificate number is on the listing, show board, or OTP documents.' },
           { num: '02', title: 'Enter or scan', body: 'Type the number above or scan the QR code with your phone.' },
           { num: '03', title: 'See the record', body: 'Instantly view the full certification status and compliance categories.' },
         ].map((item) => (
-          <div key={item.num} style={{ flex: 1 }}>
+          <div key={item.num} className="fpia-verify-step" style={{ flex: 1 }}>
             <span style={{ color: 'var(--gold)', fontSize: '24px', fontWeight: 700, display: 'block', marginBottom: '8px' }}>{item.num}</span>
             <h3 style={{ color: 'var(--off-white)', fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>{item.title}</h3>
             <p style={{ color: '#a0aec0', fontSize: '14px', lineHeight: 1.7 }}>{item.body}</p>
           </div>
         ))}
       </section>
+
+      <style jsx>{`
+        @media (max-width: 980px) {
+          .fpia-verify-hero,
+          .fpia-verify-options,
+          .fpia-verify-steps-strip {
+            padding-left: 32px !important;
+            padding-right: 32px !important;
+          }
+
+          .fpia-verify-options {
+            grid-template-columns: 1fr !important;
+          }
+
+          .fpia-verify-steps-strip {
+            flex-direction: column;
+            gap: 28px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .fpia-verify-hero,
+          .fpia-verify-options,
+          .fpia-verify-steps-strip {
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+          }
+
+          .fpia-verify-hero {
+            padding-top: 44px !important;
+            padding-bottom: 36px !important;
+          }
+
+          .fpia-verify-options {
+            padding-top: 32px !important;
+            padding-bottom: 32px !important;
+            gap: 22px !important;
+          }
+
+          .fpia-verify-option {
+            padding: 22px !important;
+          }
+
+          .fpia-verify-option-otp {
+            padding-top: 44px !important;
+          }
+
+          .fpia-verify-otp-flag {
+            left: 18px !important;
+          }
+
+          .fpia-verify-declaration {
+            flex-direction: column;
+            gap: 10px !important;
+          }
+
+          .fpia-verify-steps-strip {
+            padding-top: 32px !important;
+            padding-bottom: 36px !important;
+            gap: 22px !important;
+          }
+        }
+      `}</style>
 
     </main>
   )

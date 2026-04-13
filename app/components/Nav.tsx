@@ -153,18 +153,24 @@ export default function Nav() {
 
   return (
     <>
-      <nav className="fpia-nav-shell">
-        <div className="fpia-nav-inner">
+      <nav
+        className="sticky top-0 z-[100] border-b border-[rgba(201,161,77,0.18)] backdrop-blur-[12px]"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(11, 31, 51, 0.98) 0%, rgba(11, 31, 51, 0.96) 100%)',
+        }}
+      >
+        <div className="relative z-[1] mx-auto flex min-h-[70px] max-w-[1320px] items-center justify-between gap-4 px-[14px] sm:min-h-[74px] sm:px-4 md:min-h-[80px] md:px-5">
           <Link
             href="/"
-            className="fpia-nav-brand"
+            className="flex min-w-0 items-center gap-3 no-underline sm:gap-4"
             aria-label="FPIA home"
             onClick={() => {
               setDesktopOpen(false)
               setMobileOpen(false)
             }}
           >
-            <div className="fpia-nav-logo">
+            <div className="w-[138px] flex-shrink-0 sm:w-[160px] md:w-[190px]">
               <Image
                 src="/fpia-logo.png"
                 alt="FPIA Logo"
@@ -178,13 +184,17 @@ export default function Nav() {
                 }}
               />
             </div>
-            <div className="fpia-nav-brand-copy">
-              <span className="fpia-nav-kicker">Fair Properties Inspection Authority</span>
+            <div className="hidden min-[1040px]:flex min-w-0 flex-col">
+              <span
+                className="whitespace-nowrap text-[10px] uppercase leading-[1.2] tracking-[0.18em]"
+                style={{ color: 'rgba(201, 161, 77, 0.82)' }}
+              >
+                Fair Properties Inspection Authority
+              </span>
             </div>
           </Link>
 
-          {!isMobileViewport && (
-            <div className="fpia-nav-desktop">
+          <div className="relative z-[3] hidden items-center justify-end gap-[10px] md:flex">
             {mainLinks.map((link) => (
               <Link
                 key={link.href}
@@ -193,27 +203,34 @@ export default function Nav() {
                   setDesktopOpen(false)
                   setMobileOpen(false)
                 }}
-                className={`fpia-nav-link ${path === link.href ? 'is-active' : ''}`}
+                className={`inline-flex min-h-[38px] items-center justify-center rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors ${
+                  path === link.href ? 'is-active' : ''
+                }`}
                 style={navLinkStyle(path === link.href)}
               >
                 {link.label}
               </Link>
             ))}
 
-            <div ref={dropdownRef} className="fpia-nav-dropdown">
+            <div ref={dropdownRef} className="relative">
               <button
                 type="button"
                 aria-haspopup="menu"
                 aria-expanded={desktopOpen}
                 onClick={() => setDesktopOpen((current) => !current)}
-                className={`fpia-nav-link fpia-nav-link-button ${dropdownActive ? 'is-active' : ''}`}
+                className={`inline-flex min-h-[38px] cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] ${
+                  dropdownActive ? 'is-active' : ''
+                }`}
                 style={navLinkStyle(dropdownActive)}
               >
-                For You <span className="fpia-nav-caret">▾</span>
+                For You <span className="text-[10px]">▾</span>
               </button>
 
               {desktopOpen && (
-                <div role="menu" className="fpia-nav-dropdown-panel">
+                <div
+                  role="menu"
+                  className="absolute left-1/2 top-[calc(100%+12px)] z-20 min-w-[236px] -translate-x-1/2 rounded-[18px] border border-[rgba(201,161,77,0.26)] bg-[#0f2845] p-[10px] shadow-[0_22px_50px_rgba(0,0,0,0.22)]"
+                >
                   {dropdownLinks.map((link) => (
                     <Link
                       key={link.href}
@@ -221,12 +238,12 @@ export default function Nav() {
                       onClick={() => {
                         setDesktopOpen(false)
                         setMobileOpen(false)
-                          }}
-                          className={`fpia-nav-dropdown-item ${path === link.href ? 'is-active' : ''}`}
-                          style={dropdownItemStyle(path === link.href)}
-                        >
-                          {link.label}
-                        </Link>
+                      }}
+                      className={`${path === link.href ? 'is-active' : ''} block rounded-xl px-[14px] py-3 text-[12px] font-bold text-white no-underline transition-colors`}
+                      style={dropdownItemStyle(path === link.href)}
+                    >
+                      {link.label}
+                    </Link>
                   ))}
                 </div>
               )}
@@ -238,7 +255,9 @@ export default function Nav() {
                 setDesktopOpen(false)
                 setMobileOpen(false)
               }}
-              className={`fpia-nav-link ${path === '/contact' ? 'is-active' : ''}`}
+              className={`inline-flex min-h-[38px] items-center justify-center rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] ${
+                path === '/contact' ? 'is-active' : ''
+              }`}
               style={navLinkStyle(path === '/contact')}
             >
               Contact
@@ -250,402 +269,137 @@ export default function Nav() {
                 setDesktopOpen(false)
                 setMobileOpen(false)
               }}
-              className="fpia-nav-register"
+              className="inline-flex min-h-[42px] items-center justify-center whitespace-nowrap rounded-full bg-[var(--gold)] px-[18px] text-[11px] font-bold uppercase tracking-[0.14em] no-underline text-[var(--navy)]"
             >
               Register
             </Link>
-            </div>
-          )}
+          </div>
 
-          {isMobileViewport && (
-            <button
-              type="button"
-              data-mobile-nav-trigger="true"
-              aria-expanded={mobileOpenEffective}
-              aria-label={mobileOpenEffective ? 'Close navigation' : 'Open navigation'}
-              className="fpia-mobile-trigger"
-              onClick={() => setMobileOpen((current) => !current)}
-            >
-              <span />
-              <span />
-              <span />
-            </button>
-          )}
+          <button
+            type="button"
+            data-mobile-nav-trigger="true"
+            aria-expanded={mobileOpenEffective}
+            aria-label={mobileOpenEffective ? 'Close navigation' : 'Open navigation'}
+            className="inline-flex h-11 w-11 items-center justify-center gap-[5px] rounded-[14px] border border-[rgba(201,161,77,0.24)] bg-[rgba(255,255,255,0.03)] md:hidden"
+            onClick={() => setMobileOpen((current) => !current)}
+            style={{ flexDirection: 'column' }}
+          >
+            <span className="h-[1.5px] w-[18px] rounded-full bg-[var(--gold)]" />
+            <span className="h-[1.5px] w-[18px] rounded-full bg-[var(--gold)]" />
+            <span className="h-[1.5px] w-[18px] rounded-full bg-[var(--gold)]" />
+          </button>
         </div>
       </nav>
 
-      {mobileOpenEffective && <div className="fpia-mobile-overlay" aria-hidden="true" />}
+      {mobileOpenEffective && (
+        <div
+          className="fixed inset-0 z-[109] bg-[rgba(7,18,31,0.42)] backdrop-blur-[6px]"
+          aria-hidden="true"
+        />
+      )}
 
-      {isMobileViewport && (
+      {mobileOpenEffective ? (
         <div
           ref={mobilePanelRef}
-          className={`fpia-mobile-panel ${mobileOpenEffective ? 'is-open' : ''}`}
+          className="fixed inset-y-0 right-0 z-[110] w-[min(100vw,360px)] border-l border-[rgba(201,161,77,0.16)] p-4 pt-20 shadow-[-20px_0_48px_rgba(0,0,0,0.24)] md:hidden"
           aria-hidden={!mobileOpenEffective}
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(11, 31, 51, 0.995) 0%, rgba(12, 35, 58, 0.985) 100%)',
+          }}
         >
-        <div className="fpia-mobile-panel-header">
-          <div className="fpia-mobile-panel-kicker">Public Routes</div>
-          <div className="fpia-mobile-panel-title">FPIA</div>
-        </div>
+          <div className="mb-5 grid gap-1.5">
+            <div
+              className="text-[10px] font-bold uppercase tracking-[0.18em]"
+              style={{ color: 'rgba(201, 161, 77, 0.8)' }}
+            >
+              Public Routes
+            </div>
+            <div
+              className="text-[28px] leading-none text-white"
+              style={{ fontFamily: "'DM Serif Display', serif" }}
+            >
+              FPIA
+            </div>
+          </div>
 
-        <div className="fpia-mobile-group">
-          {mainLinks.map((link) => (
+          <div className="grid gap-2">
+            {mainLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                style={mobileLinkStyle}
+                onClick={() => {
+                  setDesktopOpen(false)
+                  setMobileOpen(false)
+                }}
+              >
+                {link.label}
+              </Link>
+            ))}
+
             <Link
-              key={link.href}
-              href={link.href}
-              className="fpia-mobile-link"
+              href="/contact"
               style={mobileLinkStyle}
               onClick={() => {
                 setDesktopOpen(false)
                 setMobileOpen(false)
               }}
             >
-              {link.label}
+              Contact
             </Link>
-          ))}
+          </div>
+
+          <div
+            className="my-[18px] h-px"
+            style={{
+              background:
+                'linear-gradient(90deg, rgba(201, 161, 77, 0), rgba(201, 161, 77, 0.36) 18%, rgba(201, 161, 77, 0.36) 82%, rgba(201, 161, 77, 0))',
+            }}
+          />
+
+          <div
+            className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em]"
+            style={{ color: 'rgba(201, 161, 77, 0.8)' }}
+          >
+            For You
+          </div>
+          <div className="grid gap-2">
+            {dropdownLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                style={mobileLinkStyle}
+                onClick={() => {
+                  setDesktopOpen(false)
+                  setMobileOpen(false)
+                }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div
+            className="my-[18px] h-px"
+            style={{
+              background:
+                'linear-gradient(90deg, rgba(201, 161, 77, 0), rgba(201, 161, 77, 0.36) 18%, rgba(201, 161, 77, 0.36) 82%, rgba(201, 161, 77, 0))',
+            }}
+          />
 
           <Link
-            href="/contact"
-            className="fpia-mobile-link"
-            style={mobileLinkStyle}
+            href="/register"
+            className="flex min-h-12 items-center justify-center rounded-[14px] bg-[var(--gold)] px-[14px] text-[13px] font-bold uppercase tracking-[0.12em] no-underline text-[var(--navy)]"
             onClick={() => {
               setDesktopOpen(false)
               setMobileOpen(false)
             }}
           >
-            Contact
+            Register a Property
           </Link>
         </div>
-
-        <div className="fpia-mobile-divider" />
-
-        <div className="fpia-mobile-section-label">For You</div>
-        <div className="fpia-mobile-group">
-          {dropdownLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="fpia-mobile-link"
-              style={mobileLinkStyle}
-              onClick={() => {
-                setDesktopOpen(false)
-                setMobileOpen(false)
-              }}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="fpia-mobile-divider" />
-
-        <Link
-          href="/register"
-          className="fpia-mobile-register"
-          onClick={() => {
-            setDesktopOpen(false)
-            setMobileOpen(false)
-          }}
-        >
-          Register a Property
-        </Link>
-        </div>
-      )}
-
-      <style jsx>{`
-        .fpia-nav-shell {
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          background:
-            linear-gradient(180deg, rgba(11, 31, 51, 0.98) 0%, rgba(11, 31, 51, 0.96) 100%);
-          border-bottom: 1px solid rgba(201, 161, 77, 0.18);
-          backdrop-filter: blur(12px);
-        }
-
-        .fpia-nav-inner {
-          max-width: 1320px;
-          margin: 0 auto;
-          min-height: 80px;
-          padding: 0 20px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 18px;
-          position: relative;
-          z-index: 1;
-        }
-
-        .fpia-nav-brand {
-          min-width: 0;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          text-decoration: none;
-        }
-
-        .fpia-nav-logo {
-          width: 190px;
-          flex-shrink: 0;
-        }
-
-        .fpia-nav-brand-copy {
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-          min-width: 0;
-        }
-
-        .fpia-nav-kicker {
-          font-size: 10px;
-          line-height: 1.2;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: rgba(201, 161, 77, 0.82);
-          white-space: nowrap;
-        }
-
-        .fpia-nav-desktop {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          justify-content: flex-end;
-          position: relative;
-          z-index: 3;
-        }
-
-        .fpia-nav-link {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 38px;
-          padding: 0 12px;
-          border-radius: 999px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-        }
-
-        .fpia-nav-link:hover,
-        .fpia-nav-link.is-active {
-          color: #ffffff;
-        }
-
-        .fpia-nav-link-button {
-          cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .fpia-nav-caret {
-          font-size: 10px;
-        }
-
-        .fpia-nav-dropdown {
-          position: relative;
-        }
-
-        .fpia-nav-dropdown-panel {
-          position: absolute;
-          top: calc(100% + 12px);
-          left: 50%;
-          transform: translateX(-50%);
-          min-width: 236px;
-          padding: 10px;
-          border-radius: 18px;
-          border: 1px solid rgba(201, 161, 77, 0.26);
-          background: #0f2845;
-          box-shadow: 0 22px 50px rgba(0, 0, 0, 0.22);
-          z-index: 20;
-        }
-
-        .fpia-nav-dropdown-item {
-          transition: background 0.18s ease;
-        }
-
-        .fpia-nav-dropdown-item:hover,
-        .fpia-nav-dropdown-item.is-active {
-          color: #fff;
-        }
-
-        .fpia-nav-register {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 42px;
-          padding: 0 18px;
-          border-radius: 999px;
-          background: var(--gold);
-          color: var(--navy);
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          text-decoration: none;
-          white-space: nowrap;
-        }
-
-        .fpia-mobile-trigger {
-          display: none;
-          width: 44px;
-          height: 44px;
-          padding: 0;
-          border-radius: 14px;
-          border: 1px solid rgba(201, 161, 77, 0.24);
-          background: rgba(255, 255, 255, 0.03);
-          cursor: pointer;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          gap: 5px;
-        }
-
-        .fpia-mobile-trigger span {
-          width: 18px;
-          height: 1.5px;
-          border-radius: 999px;
-          background: var(--gold);
-        }
-
-        .fpia-mobile-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 109;
-          background: rgba(7, 18, 31, 0.42);
-          backdrop-filter: blur(6px);
-        }
-
-        .fpia-mobile-panel {
-          position: fixed;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          z-index: 110;
-          width: min(360px, calc(100vw - 18px));
-          padding: 88px 18px 24px;
-          background:
-            linear-gradient(180deg, rgba(11, 31, 51, 0.995) 0%, rgba(12, 35, 58, 0.985) 100%);
-          border-left: 1px solid rgba(201, 161, 77, 0.16);
-          box-shadow: -20px 0 48px rgba(0, 0, 0, 0.24);
-          transform: translateX(100%);
-          transition: transform 0.22s ease;
-        }
-
-        .fpia-mobile-panel.is-open {
-          transform: translateX(0);
-        }
-
-        .fpia-mobile-panel-header {
-          display: grid;
-          gap: 6px;
-          margin-bottom: 20px;
-        }
-
-        .fpia-mobile-panel-kicker,
-        .fpia-mobile-section-label {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: rgba(201, 161, 77, 0.8);
-        }
-
-        .fpia-mobile-panel-title {
-          font-size: 28px;
-          line-height: 1;
-          font-family: 'DM Serif Display', serif;
-          color: #fff;
-        }
-
-        .fpia-mobile-group {
-          display: grid;
-          gap: 8px;
-        }
-
-        .fpia-mobile-link,
-        .fpia-mobile-register {
-          display: flex;
-          align-items: center;
-          min-height: 48px;
-          padding: 0 14px;
-          border-radius: 14px;
-          text-decoration: none;
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-        }
-
-        .fpia-mobile-link {
-          color: #ffffff;
-        }
-
-        .fpia-mobile-register {
-          justify-content: center;
-          background: var(--gold);
-          color: var(--navy);
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.12em;
-        }
-
-        .fpia-mobile-divider {
-          height: 1px;
-          margin: 18px 0;
-          background: linear-gradient(
-            90deg,
-            rgba(201, 161, 77, 0),
-            rgba(201, 161, 77, 0.36) 18%,
-            rgba(201, 161, 77, 0.36) 82%,
-            rgba(201, 161, 77, 0)
-          );
-        }
-
-        @media (max-width: 1040px) {
-          .fpia-nav-inner {
-            padding: 0 16px;
-          }
-
-          .fpia-nav-brand-copy {
-            display: none;
-          }
-        }
-
-        @media (max-width: 720px) {
-          .fpia-nav-inner {
-            min-height: 74px;
-          }
-
-          .fpia-nav-logo {
-            width: 160px;
-          }
-
-          .fpia-nav-desktop {
-            display: none;
-          }
-
-          .fpia-mobile-trigger {
-            display: inline-flex;
-          }
-        }
-
-        @media (max-width: 560px) {
-          .fpia-nav-inner {
-            min-height: 68px;
-            padding: 0 14px;
-          }
-
-          .fpia-nav-logo {
-            width: 138px;
-          }
-
-          .fpia-mobile-panel {
-            width: min(100vw, 100vw);
-            padding: 80px 16px 22px;
-          }
-        }
-      `}</style>
+      ) : null}
     </>
   )
 }

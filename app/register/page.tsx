@@ -90,7 +90,7 @@ export default function Register() {
     <main style={{ backgroundColor: 'var(--off-white)', minHeight: '100vh' }}>
 
       {/* Hero */}
-      <section style={{ backgroundColor: 'var(--navy)', padding: '64px 80px 48px' }}>
+      <section className="fpia-register-hero" style={{ backgroundColor: 'var(--navy)', padding: '64px 80px 48px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>Register a Property</p>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '48px', color: 'var(--off-white)', lineHeight: 1.1, marginBottom: '16px' }}>
           Get your property<br />
@@ -99,6 +99,7 @@ export default function Register() {
         <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '32px' }} />
 
         <div
+          className="fpia-register-product-card"
           style={{
             maxWidth: '620px',
             border: '1px solid rgba(201,161,77,0.2)',
@@ -134,9 +135,9 @@ export default function Register() {
         </div>
 
         {/* Progress Bar */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="fpia-register-progress" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {STEPS.map((label, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div key={i} className="fpia-register-progress-step" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{
                 width: '28px',
                 height: '28px',
@@ -162,7 +163,7 @@ export default function Register() {
                 {label}
               </span>
               {i < STEPS.length - 1 && (
-                <div style={{
+                <div className="fpia-register-progress-divider" style={{
                   width: '40px',
                   height: '1px',
                   backgroundColor: i < step ? 'var(--gold)' : '#3F5E7B',
@@ -176,7 +177,7 @@ export default function Register() {
       </section>
 
       {/* Form */}
-      <section style={{ padding: '56px 80px', maxWidth: '860px' }}>
+      <section className="fpia-register-form-shell" style={{ padding: '56px 80px', maxWidth: '860px' }}>
         <form onSubmit={step === STEPS.length - 1 ? handleSubmit : (e) => { e.preventDefault(); next() }}>
           <input
             name="company_website"
@@ -338,7 +339,7 @@ export default function Register() {
           )}
 
           {/* Navigation Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '48px', paddingTop: '32px', borderTop: '1px solid rgba(201,161,77,0.2)' }}>
+          <div className="fpia-register-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '48px', paddingTop: '32px', borderTop: '1px solid rgba(201,161,77,0.2)' }}>
             {step > 0 ? (
               <button type="button" onClick={back} style={backBtnStyle}>
                 ← Back
@@ -364,6 +365,60 @@ export default function Register() {
 
         </form>
       </section>
+      <style jsx>{`
+        @media (max-width: 980px) {
+          .fpia-register-hero,
+          .fpia-register-form-shell {
+            padding-left: 32px !important;
+            padding-right: 32px !important;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .fpia-register-progress {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+
+          .fpia-register-progress-step {
+            width: 100%;
+            flex-wrap: wrap;
+          }
+
+          .fpia-register-progress-divider {
+            display: none;
+          }
+
+          .fpia-register-actions {
+            flex-direction: column-reverse;
+            align-items: stretch !important;
+            gap: 12px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .fpia-register-hero,
+          .fpia-register-form-shell {
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+          }
+
+          .fpia-register-hero {
+            padding-top: 44px !important;
+            padding-bottom: 36px !important;
+          }
+
+          .fpia-register-form-shell {
+            padding-top: 32px !important;
+            padding-bottom: 40px !important;
+          }
+
+          .fpia-register-product-card {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
     </main>
   )
 }
@@ -379,7 +434,7 @@ const stepTitleStyle: React.CSSProperties = {
 
 const gridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
   gap: '24px',
 }
 

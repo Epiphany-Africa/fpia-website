@@ -24,7 +24,7 @@ export default function ContactPage() {
           <main style={{ backgroundColor: 'var(--navy)', minHeight: '100vh' }}>
 
         {/* Hero */}
-        <section style={{
+        <section className="fpia-contact-hero" style={{
           padding: '80px 80px 60px',
           borderBottom: '1px solid rgba(201,161,77,0.15)',
         }}>
@@ -58,7 +58,7 @@ export default function ContactPage() {
         </section>
 
         {/* Content */}
-        <section style={{
+        <section className="fpia-contact-content" style={{
           padding: '80px',
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
@@ -153,7 +153,7 @@ export default function ContactPage() {
           {/* Right — Form */}
           <div>
             {submitted ? (
-              <div style={{
+              <div className="fpia-contact-success" style={{
                 padding: '48px',
                 border: '1px solid rgba(201,161,77,0.3)',
                 backgroundColor: 'rgba(201,161,77,0.05)',
@@ -205,7 +205,7 @@ export default function ContactPage() {
                   </select>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="fpia-contact-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <label style={labelStyle}>Full Name</label>
                     <input
@@ -277,6 +277,47 @@ export default function ContactPage() {
             )}
           </div>
         </section>
+        <style jsx>{`
+          @media (max-width: 980px) {
+            .fpia-contact-hero,
+            .fpia-contact-content {
+              padding-left: 32px !important;
+              padding-right: 32px !important;
+            }
+
+            .fpia-contact-content {
+              grid-template-columns: 1fr !important;
+              gap: 40px !important;
+            }
+          }
+
+          @media (max-width: 640px) {
+            .fpia-contact-hero,
+            .fpia-contact-content {
+              padding-left: 18px !important;
+              padding-right: 18px !important;
+            }
+
+            .fpia-contact-hero {
+              padding-top: 44px !important;
+              padding-bottom: 36px !important;
+            }
+
+            .fpia-contact-content {
+              padding-top: 32px !important;
+              padding-bottom: 44px !important;
+              gap: 28px !important;
+            }
+
+            .fpia-contact-form-row {
+              grid-template-columns: 1fr !important;
+            }
+
+            .fpia-contact-success {
+              padding: 28px 22px !important;
+            }
+          }
+        `}</style>
       </main>     
   )
 }

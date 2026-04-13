@@ -5,7 +5,7 @@ export default function HowItWorks() {
     <main style={{ backgroundColor: 'var(--off-white)', color: 'var(--navy)', fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* Hero */}
-      <section style={{ backgroundColor: 'var(--navy)', padding: '100px 80px 80px' }}>
+      <section className="fpia-process-hero" style={{ backgroundColor: 'var(--navy)', padding: '100px 80px 80px' }}>
         <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>The Process</p>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '56px', color: 'var(--off-white)', lineHeight: 1.1, marginBottom: '24px' }}>
           How FPIA Works.
@@ -17,7 +17,7 @@ export default function HowItWorks() {
       </section>
 
       {/* Steps */}
-      <section style={{ padding: '80px' }}>
+      <section className="fpia-process-steps" style={{ padding: '80px' }}>
         {[
           {
             num: '01',
@@ -56,7 +56,7 @@ export default function HowItWorks() {
             note: 'Conveyancers receive a direct ledger reference for transfer documentation.'
           },
         ].map((step, i) => (
-          <div key={i} style={{
+          <div key={i} className="fpia-process-step-row" style={{
             display: 'grid',
             gridTemplateColumns: '120px 1fr',
             gap: '40px',
@@ -75,7 +75,7 @@ export default function HowItWorks() {
       </section>
 
       {/* CTA */}
-      <section style={{ backgroundColor: 'var(--navy)', padding: '80px', textAlign: 'center' }}>
+      <section className="fpia-process-cta" style={{ backgroundColor: 'var(--navy)', padding: '80px', textAlign: 'center' }}>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '40px', color: 'var(--off-white)', marginBottom: '16px' }}>
           Ready to certify your property?
         </h2>
@@ -92,6 +92,44 @@ export default function HowItWorks() {
         }}>Register a Property</Link>
       </section>
 
+      <style>{`
+        @media (max-width: 980px) {
+          .fpia-process-hero,
+          .fpia-process-steps,
+          .fpia-process-cta {
+            padding-left: 32px !important;
+            padding-right: 32px !important;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .fpia-process-step-row {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+            padding: 28px 0 !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .fpia-process-hero,
+          .fpia-process-steps,
+          .fpia-process-cta {
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+          }
+
+          .fpia-process-hero {
+            padding-top: 44px !important;
+            padding-bottom: 36px !important;
+          }
+
+          .fpia-process-steps,
+          .fpia-process-cta {
+            padding-top: 36px !important;
+            padding-bottom: 40px !important;
+          }
+        }
+      `}</style>
     </main>
   )
 }

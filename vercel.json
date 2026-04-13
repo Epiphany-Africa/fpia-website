@@ -1,8 +1,15 @@
 {
-  "routes": [
+  "redirects": [
     {
-      "src": "^/admin(/.*)?$",
-      "dest": "https://fpia-mvp.vercel.app/app$1"
+      "source": "/admin",
+      "destination": "/admin/app",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/admin/:path*",
+      "destination": "https://fpia-mvp.vercel.app/admin/:path*"
     }
   ]
 }
