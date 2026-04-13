@@ -6,6 +6,7 @@ import {
   getClientIp,
   logRegisterIntakeFailure,
 } from '@/lib/server/registerIntakeProtection'
+import { writeAdminEvent } from '@/lib/server/eventLog'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -112,7 +113,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('certificate_action_requests')
       .insert({
         certificate_ref: certificateRef,
@@ -125,19 +126,41 @@ export async function POST(req: Request) {
         message: message || null,
         status: 'submitted',
       })
+      .select('id')
+      .single()
 
-    if (error) {
+    if (error || !data?.id) {
       logRegisterIntakeFailure('insert_failed', {
         requestId,
         clientIp,
-        code: error.code ?? null,
-        message: error.message,
+        code: error?.code ?? null,
+        message: error?.message ?? null,
       })
 
       return NextResponse.json(
         { error: REQUEST_ERROR_MESSAGE },
         { status: 500 }
       )
+    }
+
+    try {
+      await writeAdminEvent(supabase as never, {
+        entityType: 'certificate_action_request',
+        entityId: data.id,
+        propertyId: propertyId || null,
+        eventType: 'certificate_action_requested',
+        eventLabel: 'Certificate action requested',
+        sourceSystem: 'fpia-website',
+        eventPayload: {
+          certificate_ref: certificateRef,
+          registry_id: registryId || null,
+          request_type: requestType,
+          requester_name: requesterName,
+          requester_email: requesterEmail,
+        },
+      })
+    } catch (eventError) {
+      console.error('Certificate action event log failed:', eventError)
     }
 
     return NextResponse.json({ ok: true })

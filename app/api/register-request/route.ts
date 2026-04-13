@@ -6,6 +6,7 @@ import {
   getClientIp,
   logRegisterIntakeFailure,
 } from "@/lib/server/registerIntakeProtection";
+import { writeAdminEvent } from "@/lib/server/eventLog";
 
 function normalizeRequiredString(value: unknown, maxLength: number) {
   if (typeof value !== "string") return null;
@@ -200,6 +201,27 @@ export async function POST(request: Request) {
         },
         { status: 500 }
       );
+    }
+
+    try {
+      await writeAdminEvent(supabase as never, {
+        entityType: "registration_request",
+        entityId: data.id,
+        eventType: "registration_request_submitted",
+        eventLabel: "Registration request submitted",
+        sourceSystem: "fpia-website",
+        eventPayload: {
+          full_name: fullName,
+          email,
+          role_in_transaction: roleInTransaction,
+          transaction_type: transactionType,
+          property_address: propertyAddress,
+          suburb,
+          city,
+        },
+      });
+    } catch (eventError) {
+      console.error("Registration request event log failed:", eventError);
     }
 
     return NextResponse.json({ ok: true, requestId: data.id });

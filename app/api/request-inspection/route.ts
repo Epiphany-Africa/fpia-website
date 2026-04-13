@@ -9,6 +9,7 @@ import {
   getClientIp,
   logRegisterIntakeFailure,
 } from '@/lib/server/registerIntakeProtection'
+import { writeAdminEvent, writeAssignmentLog } from '@/lib/server/eventLog'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -174,6 +175,26 @@ export async function POST(request: Request) {
 
     const inspectionRequestId = inspectionRequest.id
 
+    try {
+      await writeAdminEvent(supabase as never, {
+        entityType: 'inspection_request',
+        entityId: inspectionRequestId,
+        eventType: 'inspection_request_submitted',
+        eventLabel: 'Inspection request submitted',
+        sourceSystem: 'fpia-website',
+        eventPayload: {
+          property_address: propertyAddress,
+          suburb,
+          city,
+          province,
+          requestor_role: requestorRole,
+          preferred_date: preferredDate,
+        },
+      })
+    } catch (eventError) {
+      console.error('Inspection request event log failed:', eventError)
+    }
+
     const allocation = await allocateInspectionRequest({
       supabase: supabase as unknown as SupabaseLike,
       propertyAddress,
@@ -216,6 +237,40 @@ export async function POST(request: Request) {
         .eq('id', inspectionRequestId)
     } catch (allocationPersistenceError) {
       console.error('Allocation persistence failed:', allocationPersistenceError)
+    }
+
+    try {
+      await writeAssignmentLog(supabase as never, {
+        inspectionRequestId,
+        inspectorId: allocation.assignedInspector?.id ?? null,
+        assignmentStatus: allocation.allocationStatus,
+        distanceKm: allocation.assignedInspector?.distanceKm ?? null,
+        rankPosition: allocation.assignedInspector ? 1 : null,
+        expiresAt: allocation.assignmentExpiresAt,
+        metadata: {
+          within_radius: allocation.assignedInspector?.withinRadius ?? false,
+          inspector_count: allocation.inspectorCount,
+          lookup_latitude: allocation.lookupCoordinates?.latitude ?? null,
+          lookup_longitude: allocation.lookupCoordinates?.longitude ?? null,
+        },
+      })
+
+      await writeAdminEvent(supabase as never, {
+        entityType: 'inspection_request',
+        entityId: inspectionRequestId,
+        eventType: 'inspection_request_allocated',
+        eventLabel: 'Inspection request allocated',
+        sourceSystem: 'fpia-website',
+        eventPayload: {
+          allocation_status: allocation.allocationStatus,
+          assigned_inspector_id: allocation.assignedInspector?.id ?? null,
+          assigned_inspector_code: allocation.assignedInspector?.inspector_code ?? null,
+          distance_km: allocation.assignedInspector?.distanceKm ?? null,
+          inspector_count: allocation.inspectorCount,
+        },
+      })
+    } catch (eventError) {
+      console.error('Inspection allocation event log failed:', eventError)
     }
 
     const safeRequestorName = escapeHtml(requestorName)
