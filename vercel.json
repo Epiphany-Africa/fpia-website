@@ -2,14 +2,14 @@
   "redirects": [
     {
       "source": "/admin",
-      "destination": "/admin/app",
+      "destination": "https://admin.fairproperties.org.za/app",
       "permanent": false
     }
   ],
   "rewrites": [
     {
       "source": "/admin/:path*",
-      "destination": "https://fpia-mvp.vercel.app/admin/:path*"
+      "destination": "https://admin.fairproperties.org.za/:path*"
     }
   ]
 }
