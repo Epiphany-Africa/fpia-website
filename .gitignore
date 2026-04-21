@@ -42,5 +42,8 @@ next-env.d.ts
 
 # local preview artifacts
 .next-start-*.log
+dev-*.out.log
+dev-*.err.log
 tmp-shots/
 .tmp-shots/
+supabase/.temp/
