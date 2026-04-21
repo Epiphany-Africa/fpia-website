@@ -113,14 +113,14 @@ export default function HomePage() {
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(var(--gold) 1px, transparent 1px), linear-gradient(90deg, var(--gold) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-5 py-12 sm:px-6 md:py-16 lg:flex-row lg:items-center lg:justify-between lg:gap-[60px]">
           <div className="flex-1">
-            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-6 font-medium">Independent Property Certification · South Africa</p>
+            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-6 font-medium">Residential Property Accountability · South Africa</p>
             <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="mb-6 max-w-3xl text-4xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              Know the true condition<br />
-            <em style={{ color: 'var(--gold)' }}>before you commit.</em>
+              The accountability layer<br />
+            <em style={{ color: 'var(--gold)' }}>for residential property.</em>
             </h1>
 
             <p className="mb-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
-              Independent inspection, certified reports, and real-time verification that prevent failed deals, hidden defects, and post-transfer disputes.
+              FPIA creates the trusted record behind the deal: verified property data, certification pathways, and shared accountability before, during, and after transfer.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/verify/" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
@@ -179,7 +179,7 @@ export default function HomePage() {
           </h2>
 
             <p style={{ color: 'var(--slate)' }} className="text-base max-w-2xl leading-relaxed mb-12">
-              Incomplete disclosure, late-stage inspections, and unverified property information create avoidable risk for buyers, sellers, agents, and financiers.
+              Incomplete disclosure, missing records, and unverified property information create avoidable risk for buyers, sellers, agents, and financiers.
             </p>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -206,7 +206,7 @@ export default function HomePage() {
       {/* ── TRUST BAR ── */}
       <section style={{ backgroundColor: 'var(--gold)' }} className="py-4">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-4 gap-y-3 px-5 text-center text-[11px] font-semibold uppercase tracking-widest text-navy sm:px-6 md:flex md:flex-wrap md:justify-center md:gap-8 md:text-xs">
-          {['Independent Inspection', 'Tamper-Proof Records', 'QR Verified', 'OTP Secured', 'Full Chain Transparency'].map(t => (
+          {['Independent Verification', 'Tamper-Proof Records', 'QR Verified', 'OTP Secured', 'Full Chain Transparency'].map(t => (
             <span key={t}>✦ {t}</span>
           ))}
         </div>
@@ -218,10 +218,10 @@ export default function HomePage() {
             Product Layer
           </p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
-            Structured inspection and certification products.
+            Structured accountability products for every stage.
           </h2>
           <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-12">
-            FPIA operates as a staged product system. Each product has a defined outcome, a fixed fee, and a clear point in the workflow where it is triggered.
+            FPIA operates as a staged accountability system. Each product has a defined outcome, a fixed fee, and a clear point in the workflow where it is triggered.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -322,14 +322,14 @@ export default function HomePage() {
             What happens without FPIA?
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-2xl leading-relaxed mb-16">
-            Most property transactions rely on incomplete information, late-stage inspections, and trust that often breaks when it matters most.
+            Most property transactions rely on incomplete disclosure, missing records, and trust that often breaks when accountability is needed most.
           </p>
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             <div style={{ border: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="p-8">
               <h3 style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Mono, monospace' }} className="text-xs tracking-widest uppercase mb-6">Without FPIA</h3>
               <ul className="space-y-4">
                 {[
-                  'Defects only discovered late in the process',
+                  'Property risk surfaces too late in the process',
                   'Deals collapse during OTP or just before transfer',
                   'Price renegotiations erode seller value',
                   'Buyers inherit hidden repair costs',
@@ -346,8 +346,8 @@ export default function HomePage() {
               <h3 style={{ color: 'var(--gold)', fontFamily: 'DM Mono, monospace' }} className="text-xs tracking-widest uppercase mb-6">With FPIA</h3>
               <ul className="space-y-4">
                 {[
-                  'Full condition verified before listing or offer',
-                  'Transparent reports available to all parties',
+                  'Verified property context is established before key decisions',
+                  'Transparent records are available to all parties',
                   'Deals progress with confidence and fewer delays',
                   'Pricing supported by verified property condition',
                   'Tamper-proof record protects all stakeholders',
@@ -361,7 +361,7 @@ export default function HomePage() {
             </div>
           </div>
           <p style={{ borderTop: '1px solid rgba(201,161,77,0.2)', paddingTop: '32px', color: 'var(--gold)', fontFamily: 'DM Serif Display, serif' }} className="text-xl md:text-2xl">
-            FPIA doesn&rsquo;t just certify properties — it prevents transaction failure.
+            FPIA doesn&rsquo;t just certify properties — it installs accountability across the transaction.
           </p>
         </div>
       </section>
@@ -545,10 +545,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">The Process</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-4xl md:text-5xl mb-2">
-            From inspection to certification — in days, not weeks.
+            From property intake to trusted record — in days, not weeks.
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-xl mb-2">
-            Five steps to complete property certainty.
+            Five steps to establish property certainty.
           </p>
           <hr className="gold-rule w-16 mb-12" />
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
