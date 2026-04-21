@@ -1,12 +1,87 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
-export default function ContactPage() {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [role, setRole] = useState('')
-  const [message, setMessage] = useState('')
+type InquiryPreset = {
+  label: string
+  role: string
+  summary: string
+  message: string
+}
+
+const INQUIRY_PRESETS: Record<string, InquiryPreset> = {
+  'agency-account': {
+    label: 'Agency Account',
+    role: 'Agent',
+    summary: 'Agency retainer pricing and onboarding.',
+    message:
+      "I'm interested in an FPIA agency account. Please send the onboarding steps, pricing structure, and what is included in the monthly retainer.",
+  },
+  'insurer-pilot-a': {
+    label: 'Insurer Pilot A',
+    role: 'Insurer',
+    summary: 'Pre-policy baseline pilot: R45,000 for 20 properties over 60 days.',
+    message:
+      "I'm interested in Insurer Pilot A (Pre-policy baseline, R45,000 for 20 properties over 60 days). Please send the scope, rollout requirements, and commercial terms.",
+  },
+  'insurer-pilot-b': {
+    label: 'Insurer Pilot B',
+    role: 'Insurer',
+    summary: 'Claims-adjacent evidence pilot: R55,000 for 20 properties over 60 days.',
+    message:
+      "I'm interested in Insurer Pilot B (Claims-adjacent evidence, R55,000 for 20 properties over 60 days). Please send the pilot scope, onboarding requirements, and commercial terms.",
+  },
+  'insurer-pilot-custom': {
+    label: 'Insurer Pilot C',
+    role: 'Insurer',
+    summary: 'Custom portfolio intelligence pilot for 50+ properties.',
+    message:
+      "I'm interested in the custom insurer portfolio intelligence pilot for 50+ properties. Please contact me to scope the cohort, data outputs, and commercial structure.",
+  },
+  'originator-referral': {
+    label: 'Originator Referral Model',
+    role: 'Bond Originator',
+    summary: 'Referral programme with R500 per completed inspection.',
+    message:
+      "I'm interested in the FPIA originator referral model, including referral-code setup, payout terms, and onboarding steps.",
+  },
+  'originator-integration': {
+    label: 'Originator Integration Model',
+    role: 'Bond Originator',
+    summary: 'Integrated pre-approval workflow and dashboard model.',
+    message:
+      "I'm interested in the FPIA originator integration model. Please send the onboarding process, dashboard scope, and pricing structure.",
+  },
+  'property-passport': {
+    label: 'Property Passport',
+    role: 'Homeowner',
+    summary: 'Free homeowner document vault and record verification enquiry.',
+    message:
+      "I've created or want to create a Property Passport for my home. Please contact me about document verification, missing records, and how to turn my uploaded files into FPIA-verified records.",
+  },
+  renewal: {
+    label: 'Certificate Renewal',
+    role: 'Seller',
+    summary: 'R2,500 renewal inspection request.',
+    message:
+      "I need to renew an FPIA certificate and schedule the R2,500 renewal inspection. Please advise on the next available dates and required documents.",
+  },
+}
+
+function ContactPageForm() {
+  const searchParams = useSearchParams()
+  const inquiryKey = searchParams.get('inquiry')?.trim().toLowerCase() ?? ''
+  const inquiryPreset = INQUIRY_PRESETS[inquiryKey] ?? null
+
+  const [name, setName] = useState(() => searchParams.get('name')?.trim() ?? '')
+  const [email, setEmail] = useState(() => searchParams.get('email')?.trim() ?? '')
+  const [phone, setPhone] = useState(() => searchParams.get('phone')?.trim() ?? '')
+  const [role, setRole] = useState(
+    () => searchParams.get('role')?.trim() ?? inquiryPreset?.role ?? ''
+  )
+  const [message, setMessage] = useState(
+    () => searchParams.get('message')?.trim() ?? inquiryPreset?.message ?? ''
+  )
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)
 
@@ -20,8 +95,7 @@ export default function ContactPage() {
   }
 
   return (
-    
-          <main style={{ backgroundColor: 'var(--navy)', minHeight: '100vh' }}>
+    <main style={{ backgroundColor: 'var(--navy)', minHeight: '100vh' }}>
 
         {/* Hero */}
         <section className="fpia-contact-hero" style={{
@@ -55,6 +129,34 @@ export default function ContactPage() {
           }}>
             Whether you&rsquo;re a buyer, seller, agent, or insurer — we&rsquo;re here to help you understand what FPIA certification means for your transaction.
           </p>
+          {inquiryPreset ? (
+            <div
+              style={{
+                marginTop: '24px',
+                maxWidth: '560px',
+                padding: '16px 18px',
+                border: '1px solid rgba(201,161,77,0.22)',
+                backgroundColor: 'rgba(201,161,77,0.06)',
+              }}
+            >
+              <p style={{ ...labelStyle, color: 'var(--gold)', marginBottom: '6px' }}>
+                Selected enquiry
+              </p>
+              <p
+                style={{
+                  color: 'var(--off-white)',
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  marginBottom: '6px',
+                }}
+              >
+                {inquiryPreset.label}
+              </p>
+              <p style={{ color: 'var(--slate)', fontSize: '14px', lineHeight: 1.7, margin: 0 }}>
+                {inquiryPreset.summary}
+              </p>
+            </div>
+          ) : null}
         </section>
 
         {/* Content */}
@@ -185,6 +287,12 @@ export default function ContactPage() {
                 }}>
                   Send us a message
                 </h2>
+                {inquiryPreset ? (
+                  <p style={{ color: 'var(--slate)', fontSize: '14px', lineHeight: 1.7, margin: 0 }}>
+                    This form is prefilled for <strong style={{ color: 'var(--off-white)' }}>{inquiryPreset.label}</strong>.
+                    Adjust the details below before sending if needed.
+                  </p>
+                ) : null}
 
                 {/* Role selector */}
                 <div>
@@ -319,6 +427,31 @@ export default function ContactPage() {
           }
         `}</style>
       </main>     
+  )
+}
+
+export default function ContactPage() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          style={{
+            backgroundColor: 'var(--navy)',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '15px', color: 'var(--slate)' }}>
+            Loading contact form...
+          </p>
+        </main>
+      }
+    >
+      <ContactPageForm />
+    </Suspense>
   )
 }
 

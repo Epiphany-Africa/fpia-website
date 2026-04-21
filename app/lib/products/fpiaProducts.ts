@@ -25,7 +25,7 @@ export const fpiaProducts: FpiaProduct[] = [
     usageSubheading: 'When no verified record exists',
     certificateOutcome: 'Conditional Certificate',
     priceLabel: 'Fixed Fee',
-    price: 'R3,500',
+    price: 'R5,500',
     valueMicrocopy:
       'Independent inspection with a verifiable property condition record',
     description:

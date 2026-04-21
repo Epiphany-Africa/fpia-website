@@ -131,7 +131,7 @@ export default function HomePage() {
               </Link>
             </div>
             <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(201,161,77,0.2)' }} className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase' }}>Beta Partner</span>
+              <span style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase' }}>National Partner</span>
               <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '16px' }}>|</span>
               <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontStyle: 'italic' }}>Century 21 South Africa</span>
             </div>
@@ -638,45 +638,97 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── REGISTER CTA ── */}
-      <section id="register" style={{ backgroundColor: 'var(--gold)' }} className="py-20">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
-            Protect your property transaction before it&rsquo;s too late.
-          </h2>
-          <p
-            style={{ color: 'rgba(11,31,51,0.7)' }}
-            className="text-base mb-8 max-w-lg mx-auto"
+      {/* ── CLOSE OUT ── */}
+      <section
+        id="register"
+        style={{
+          backgroundColor: 'var(--off-white)',
+          borderTop: '1px solid rgba(11,31,51,0.08)',
+        }}
+        className="py-16 md:py-20"
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <div
+            style={{
+              backgroundColor: 'var(--navy)',
+              border: '1px solid rgba(201,161,77,0.18)',
+            }}
+            className="grid gap-8 px-6 py-8 md:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.85fr)] md:px-10 md:py-10"
           >
-            Join sellers, agents, and buyers using FPIA to prevent costly surprises,
-            failed deals, and post-transfer disputes.
-          </p>
+            <div>
+              <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
+                Next Move
+              </p>
+              <h2
+                style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }}
+                className="text-3xl leading-tight sm:text-4xl md:text-5xl mb-4"
+              >
+                Bring certainty in before the deal gets tested.
+              </h2>
+              <p
+                style={{ color: 'rgba(255,255,255,0.68)' }}
+                className="max-w-2xl text-base leading-relaxed mb-6"
+              >
+                FPIA works best before defects become negotiations, delays, or disputes.
+                Start with a property registration or request an inspection directly.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link
+                  href="/register"
+                  style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }}
+                  className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                >
+                  Register a Property
+                </Link>
+                <Link
+                  href="/request-inspection"
+                  style={{ border: '1px solid rgba(201,161,77,0.32)', color: 'var(--off-white)' }}
+                  className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold tracking-wide hover:border-[rgba(201,161,77,0.62)] transition-colors"
+                >
+                  Request Inspection
+                </Link>
+              </div>
+            </div>
 
-          <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
-            <input
-              type="email"
-              placeholder="Your email address"
+            <div
               style={{
-                border: '1px solid rgba(11,31,51,0.3)',
-                color: 'var(--navy)',
+                backgroundColor: 'rgba(255,255,255,0.03)',
+                borderLeft: '2px solid rgba(201,161,77,0.24)',
               }}
-              className="flex-1 px-4 py-3 text-sm bg-white/80 focus:outline-none focus:border-navy placeholder-slate-400"
-            />
-            <button
-              type="submit"
-              style={{ backgroundColor: 'var(--navy)', color: 'white' }}
-              className="px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity whitespace-nowrap"
+              className="flex flex-col justify-between gap-6 p-6"
             >
-              Register Now
-            </button>
-          </form>
-
-          <p
-            style={{ color: 'rgba(11,31,51,0.5)' }}
-            className="text-xs mt-4"
-          >
-            No commitment. Our team will contact you within 1 business day.
-          </p>
+              <div>
+                <p style={{ color: 'var(--gold)', fontFamily: 'DM Mono, monospace' }} className="text-xs tracking-widest uppercase mb-4">
+                  What Happens Next
+                </p>
+                <div className="space-y-3">
+                  {[
+                    'Property is logged and routed for intake review',
+                    'Inspection timing is confirmed with the relevant parties',
+                    'The record moves into the FPIA certification workflow',
+                  ].map((item) => (
+                    <div key={item} className="flex items-start gap-3 text-sm" style={{ color: 'rgba(255,255,255,0.76)' }}>
+                      <span style={{ color: 'var(--gold)', marginTop: '2px' }}>✦</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+                <p style={{ color: 'rgba(255,255,255,0.52)' }} className="text-xs leading-relaxed mb-3">
+                  Need to talk first? Use the partnership and enquiry routes for insurers,
+                  agencies, and bond originators.
+                </p>
+                <Link
+                  href="/contact"
+                  style={{ color: 'var(--gold)' }}
+                  className="text-sm font-semibold tracking-wide hover:opacity-80 transition-opacity"
+                >
+                  Open Contact →
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </>

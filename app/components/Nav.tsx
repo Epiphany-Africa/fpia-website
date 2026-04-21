@@ -17,6 +17,7 @@ const dropdownLinks = [
 const mainLinks = [
   { label: 'Home', href: '/' },
   { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Property Passport', href: '/property-passport' },
   { label: 'Registry', href: '/verify' },
 ]
 

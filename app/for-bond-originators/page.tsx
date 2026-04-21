@@ -1,4 +1,6 @@
 
+import { BondOriginatorProgrammeSection } from '@/components/pricing-sections'
+
 export default function ForBondOriginators() {
   return (
     <>
@@ -44,11 +46,13 @@ export default function ForBondOriginators() {
           </div>
         </section>
 
+        <BondOriginatorProgrammeSection />
+
         {/* CTA */}
         <section className="bg-[#0B1F33] px-5 py-16 text-center sm:px-8 md:py-24">
           <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">Refer with confidence.</h2>
           <p className="text-gray-400 mb-10">Partner with FPIA and add certification to your pre-approval checklist.</p>
-          <a href="/register" className="inline-flex w-full justify-center bg-[#C9A14D] px-8 py-4 text-sm font-semibold uppercase tracking-widest text-[#0B1F33] transition-colors hover:bg-[#b8903e] sm:w-auto sm:px-10">
+          <a href="/contact?inquiry=originator-integration" className="inline-flex w-full justify-center bg-[#C9A14D] px-8 py-4 text-sm font-semibold uppercase tracking-widest text-[#0B1F33] transition-colors hover:bg-[#b8903e] sm:w-auto sm:px-10">
             Enquire About Partnership
           </a>
         </section>

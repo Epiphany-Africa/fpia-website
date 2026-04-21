@@ -1,4 +1,7 @@
 
+import { AgentPricingSection } from '@/components/pricing-sections'
+import { AgentRewardsProgrammeSection } from '@/components/agent-rewards-section'
+
 export default function ForAgents() {
   return (
     <>
@@ -44,11 +47,14 @@ export default function ForAgents() {
           </div>
         </section>
 
+        <AgentPricingSection />
+        <AgentRewardsProgrammeSection />
+
         {/* CTA */}
         <section className="bg-[#0B1F33] px-5 py-16 text-center sm:px-8 md:py-24">
           <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">Partner with FPIA.</h2>
           <p className="text-gray-400 mb-10">Register as an agent partner and start certifying your listings today.</p>
-          <a href="/register" className="inline-flex w-full justify-center bg-[#C9A14D] px-8 py-4 text-sm font-semibold uppercase tracking-widest text-[#0B1F33] transition-colors hover:bg-[#b8903e] sm:w-auto sm:px-10">
+          <a href="/register?type=agent&tier=professional" className="inline-flex w-full justify-center bg-[#C9A14D] px-8 py-4 text-sm font-semibold uppercase tracking-widest text-[#0B1F33] transition-colors hover:bg-[#b8903e] sm:w-auto sm:px-10">
             Become a Partner
           </a>
         </section>

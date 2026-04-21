@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CertificateRenewalBanner } from '@/components/pricing-sections'
 import TrustBadge from '@/components/TrustBadge'
 
 export default function ForBuyers() {
@@ -137,6 +138,8 @@ export default function ForBuyers() {
           ))}
         </div>
       </section>
+
+      <CertificateRenewalBanner />
 
       {/* CTA */}
       <section className="fpia-buyers-cta" style={{ backgroundColor: 'var(--gold)', padding: '80px', textAlign: 'center' }}>

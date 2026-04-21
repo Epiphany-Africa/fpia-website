@@ -1,4 +1,6 @@
 
+import { CertificateRenewalBanner } from '@/components/pricing-sections'
+
 export default function ForSellers() {
   return (
     <>
@@ -43,6 +45,8 @@ export default function ForSellers() {
             </div>
           </div>
         </section>
+
+        <CertificateRenewalBanner />
 
         {/* CTA */}
         <section className="bg-[#0B1F33] px-5 py-16 text-center sm:px-8 md:py-24">
