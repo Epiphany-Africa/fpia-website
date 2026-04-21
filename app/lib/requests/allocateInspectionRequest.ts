@@ -20,6 +20,11 @@ export type AllocatedInspector = {
   withinRadius: boolean
 }
 
+const LOCAL_PRIORITY_RADIUS_KM = 15
+const LOCAL_PRIORITY_WAVE_SIZE = 3
+const BROADER_PRIORITY_WAVE_SIZE = 5
+const INITIAL_ACCEPTANCE_WINDOW_MINUTES = 90
+
 type GeocodedPoint = {
   latitude: number
   longitude: number
@@ -175,28 +180,64 @@ export async function allocateInspectionRequest(args: {
     })
 
   const assignedInspector = rankedInspectors[0] ?? null
-  const assignmentExpiresAt = assignedInspector
-    ? new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString()
+  const localPriorityInspectors = rankedInspectors.filter((row) => {
+    if (row.distanceKm === null) return false
+    return row.distanceKm <= Math.min(row.service_radius_km ?? 20, LOCAL_PRIORITY_RADIUS_KM)
+  })
+
+  const invitedInspectors =
+    localPriorityInspectors.length > 0
+      ? localPriorityInspectors.slice(0, LOCAL_PRIORITY_WAVE_SIZE)
+      : rankedInspectors.slice(0, BROADER_PRIORITY_WAVE_SIZE)
+
+  const leadInspector = invitedInspectors[0] ?? assignedInspector ?? null
+  const dispatchStage =
+    invitedInspectors.length === 0
+      ? 'manual_assignment_required'
+      : localPriorityInspectors.length > 0
+      ? 'local_priority'
+      : 'broader_priority'
+
+  const assignmentExpiresAt = leadInspector
+    ? new Date(Date.now() + INITIAL_ACCEPTANCE_WINDOW_MINUTES * 60 * 1000).toISOString()
     : null
 
   return {
     lookupCoordinates: geocodedPoint,
     inspectorCount: inspectors.length,
     assignedInspector:
-      assignedInspector &&
+      leadInspector &&
       ({
-        id: assignedInspector.id,
-        full_name: assignedInspector.full_name,
-        inspector_code: assignedInspector.inspector_code,
-        company_name: assignedInspector.company_name,
-        auth_user_id: assignedInspector.auth_user_id,
-        phone: assignedInspector.phone,
-        distanceKm: assignedInspector.distanceKm,
-        withinRadius: assignedInspector.withinRadius,
+        id: leadInspector.id,
+        full_name: leadInspector.full_name,
+        inspector_code: leadInspector.inspector_code,
+        company_name: leadInspector.company_name,
+        auth_user_id: leadInspector.auth_user_id,
+        phone: leadInspector.phone,
+        distanceKm: leadInspector.distanceKm,
+        withinRadius: leadInspector.withinRadius,
       } satisfies AllocatedInspector),
-    allocationStatus: assignedInspector
-      ? 'awaiting_inspector_acceptance'
-      : 'pending_manual_assignment',
+    invitedInspectors: invitedInspectors.map(
+      (inspector) =>
+        ({
+          id: inspector.id,
+          full_name: inspector.full_name,
+          inspector_code: inspector.inspector_code,
+          company_name: inspector.company_name,
+          auth_user_id: inspector.auth_user_id,
+          phone: inspector.phone,
+          distanceKm: inspector.distanceKm,
+          withinRadius: inspector.withinRadius,
+        }) satisfies AllocatedInspector
+    ),
+    dispatchStage,
+    allocationStatus:
+      dispatchStage === 'local_priority'
+        ? 'awaiting_local_panel_acceptance'
+        : dispatchStage === 'broader_priority'
+        ? 'awaiting_broader_panel_acceptance'
+        : 'pending_manual_assignment',
     assignmentExpiresAt,
+    nextWaveAvailable: rankedInspectors.length > invitedInspectors.length,
   }
 }

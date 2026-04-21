@@ -240,20 +240,41 @@ export async function POST(request: Request) {
     }
 
     try {
-      await writeAssignmentLog(supabase as never, {
-        inspectionRequestId,
-        inspectorId: allocation.assignedInspector?.id ?? null,
-        assignmentStatus: allocation.allocationStatus,
-        distanceKm: allocation.assignedInspector?.distanceKm ?? null,
-        rankPosition: allocation.assignedInspector ? 1 : null,
-        expiresAt: allocation.assignmentExpiresAt,
-        metadata: {
-          within_radius: allocation.assignedInspector?.withinRadius ?? false,
-          inspector_count: allocation.inspectorCount,
-          lookup_latitude: allocation.lookupCoordinates?.latitude ?? null,
-          lookup_longitude: allocation.lookupCoordinates?.longitude ?? null,
-        },
-      })
+      if (allocation.invitedInspectors.length > 0) {
+        for (const [index, invitedInspector] of allocation.invitedInspectors.entries()) {
+          await writeAssignmentLog(supabase as never, {
+            inspectionRequestId,
+            inspectorId: invitedInspector.id,
+            assignmentStatus: 'awaiting_inspector_acceptance',
+            distanceKm: invitedInspector.distanceKm ?? null,
+            rankPosition: index + 1,
+            expiresAt: allocation.assignmentExpiresAt,
+            metadata: {
+              dispatch_stage: allocation.dispatchStage,
+              within_radius: invitedInspector.withinRadius,
+              inspector_count: allocation.inspectorCount,
+              lookup_latitude: allocation.lookupCoordinates?.latitude ?? null,
+              lookup_longitude: allocation.lookupCoordinates?.longitude ?? null,
+              next_wave_available: allocation.nextWaveAvailable,
+            },
+          })
+        }
+      } else {
+        await writeAssignmentLog(supabase as never, {
+          inspectionRequestId,
+          inspectorId: null,
+          assignmentStatus: allocation.allocationStatus,
+          distanceKm: null,
+          rankPosition: null,
+          expiresAt: null,
+          metadata: {
+            dispatch_stage: allocation.dispatchStage,
+            inspector_count: allocation.inspectorCount,
+            lookup_latitude: allocation.lookupCoordinates?.latitude ?? null,
+            lookup_longitude: allocation.lookupCoordinates?.longitude ?? null,
+          },
+        })
+      }
 
       await writeAdminEvent(supabase as never, {
         entityType: 'inspection_request',
@@ -267,6 +288,9 @@ export async function POST(request: Request) {
           assigned_inspector_code: allocation.assignedInspector?.inspector_code ?? null,
           distance_km: allocation.assignedInspector?.distanceKm ?? null,
           inspector_count: allocation.inspectorCount,
+          invited_inspector_count: allocation.invitedInspectors.length,
+          dispatch_stage: allocation.dispatchStage,
+          next_wave_available: allocation.nextWaveAvailable,
         },
       })
     } catch (eventError) {
@@ -301,19 +325,6 @@ export async function POST(request: Request) {
         }).format(new Date(allocation.assignmentExpiresAt))
       : null
 
-    let assignedInspectorEmail: string | null = null
-
-    if (allocation.assignedInspector?.auth_user_id) {
-      try {
-        const { data: authUser } = await supabase.auth.admin.getUserById(
-          allocation.assignedInspector.auth_user_id
-        )
-        assignedInspectorEmail = authUser.user?.email ?? null
-      } catch (authLookupError) {
-        console.error('Assigned inspector email lookup failed:', authLookupError)
-      }
-    }
-
     const emailPayloads = [
       resend.emails.send({
         from: 'FPIA <inspections@fairproperties.org.za>',
@@ -340,9 +351,11 @@ export async function POST(request: Request) {
 
             <p style="line-height: 1.8; margin-bottom: 24px;">
               ${
-                allocation.assignedInspector
-                  ? `Your nearest authorised active inspector, <strong style="color: #C9A14D;">${safeAssignedInspectorName}</strong>, has been invited to accept this request. They have <strong>6 hours</strong> to confirm the booking.`
-                  : 'Your request has been logged for backend allocation. The nearest authorised active inspector will be invited first, and the wider active panel will be used if no local inspector can accept.'
+                allocation.invitedInspectors.length > 1
+                  ? `A local panel of <strong style="color: #C9A14D;">${allocation.invitedInspectors.length} authorised inspectors</strong> has been invited to accept this request. The first inspector to confirm will secure the booking.`
+                  : allocation.assignedInspector
+                  ? `Your nearest authorised active inspector, <strong style="color: #C9A14D;">${safeAssignedInspectorName}</strong>, has been invited to accept this request.`
+                  : 'Your request has been logged for backend allocation. Local inspectors will be invited first, and the wider active panel will be used if no nearby inspector accepts.'
               }
             </p>
 
@@ -351,9 +364,10 @@ export async function POST(request: Request) {
                 ? `
             <div style="border: 1px solid rgba(201,161,77,0.3); padding: 24px; margin-bottom: 24px;">
               <p style="color: #C9A14D; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;">Dispatch Status</p>
-              <p style="margin: 8px 0;"><strong>Assigned Inspector:</strong> ${safeAssignedInspectorName}</p>
+              <p style="margin: 8px 0;"><strong>Lead Inspector:</strong> ${safeAssignedInspectorName}</p>
               ${safeAssignedInspectorCode ? `<p style="margin: 8px 0;"><strong>Inspector ID:</strong> ${safeAssignedInspectorCode}</p>` : ''}
               ${safeDistance ? `<p style="margin: 8px 0;"><strong>Distance:</strong> ${safeDistance}</p>` : ''}
+              <p style="margin: 8px 0;"><strong>Invited Inspectors:</strong> ${allocation.invitedInspectors.length}</p>
               ${assignmentDeadline ? `<p style="margin: 8px 0;"><strong>Acceptance Deadline:</strong> ${escapeHtml(assignmentDeadline)}</p>` : ''}
             </div>`
                 : ''
@@ -391,6 +405,8 @@ export async function POST(request: Request) {
                 ${safeAltDate ? `<tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Alt Date</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeAltDate}</td></tr>` : ''}
                 ${safeNotes ? `<tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Notes</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeNotes}</td></tr>` : ''}
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Allocation Status</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${escapeHtml(allocation.allocationStatus)}</td></tr>
+                <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Dispatch Stage</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${escapeHtml(allocation.dispatchStage)}</td></tr>
+                <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Invited Inspectors</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${allocation.invitedInspectors.length}</td></tr>
                 ${
                   safeAssignedInspectorName
                     ? `<tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Assigned Inspector</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeAssignedInspectorName}${safeAssignedInspectorCode ? ` (${safeAssignedInspectorCode})` : ''}</td></tr>`
@@ -402,7 +418,7 @@ export async function POST(request: Request) {
 
               <div style="margin-top: 32px; padding: 16px; background: #f9f9f9; border-left: 4px solid #C9A14D;">
                 <p style="margin: 0; font-size: 13px; color: #666;">Log in to the FPIA platform to review the dispatch state, confirm the booking, or manually reassign if required.</p>
-                <a href="https://fpia-mvp.vercel.app/login" style="display: inline-block; margin-top: 12px; background: #0B1F33; color: #fff; padding: 10px 20px; text-decoration: none; font-size: 13px;">Open FPIA Platform →</a>
+                <a href="https://admin.fairproperties.org.za/login" style="display: inline-block; margin-top: 12px; background: #0B1F33; color: #fff; padding: 10px 20px; text-decoration: none; font-size: 13px;">Open FPIA Platform →</a>
               </div>
             </div>
           `,
@@ -414,19 +430,35 @@ export async function POST(request: Request) {
       })
     }
 
-    if (allocation.assignedInspector && assignedInspectorEmail) {
-      emailPayloads.push(
-        resend.emails.send({
-          from: 'FPIA Dispatch <inspections@fairproperties.org.za>',
-          to: assignedInspectorEmail,
-          subject: `Inspection Dispatch Awaiting Acceptance — ${safePropertyAddress}`,
-          html: `
+    if (allocation.invitedInspectors.length > 0) {
+      for (const invitedInspector of allocation.invitedInspectors) {
+        let invitedInspectorEmail: string | null = null
+
+        if (invitedInspector.auth_user_id) {
+          try {
+            const { data: authUser } = await supabase.auth.admin.getUserById(invitedInspector.auth_user_id)
+            invitedInspectorEmail = authUser.user?.email ?? null
+          } catch (authLookupError) {
+            console.error('Invited inspector email lookup failed:', authLookupError)
+          }
+        }
+
+        if (!invitedInspectorEmail) {
+          continue
+        }
+
+        emailPayloads.push(
+          resend.emails.send({
+            from: 'FPIA Dispatch <inspections@fairproperties.org.za>',
+            to: invitedInspectorEmail,
+            subject: `Inspection Dispatch Awaiting Acceptance — ${safePropertyAddress}`,
+            html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0B1F33; color: #f7f3eb; padding: 40px;">
               <h1 style="color: #C9A14D; font-size: 28px; margin-bottom: 8px;">Inspection Dispatch Awaiting Acceptance</h1>
               <p style="color: #a0aec0; margin-bottom: 32px;">Fair Properties Inspection Authority</p>
 
               <p style="line-height: 1.8; margin-bottom: 24px;">
-                A property inspection request has been routed to you as the nearest available authorised active inspector.
+                A property inspection request has been routed to you as part of the active ${escapeHtml(allocation.dispatchStage.replaceAll('_', ' '))} dispatch panel.
               </p>
 
               <div style="border: 1px solid rgba(201,161,77,0.3); padding: 24px; margin-bottom: 24px;">
@@ -435,17 +467,22 @@ export async function POST(request: Request) {
                 <p style="margin: 8px 0;"><strong>Property:</strong> ${safePropertyAddress}</p>
                 <p style="margin: 8px 0;"><strong>Requested Date:</strong> ${safePreferredDate}</p>
                 ${safeAltDate ? `<p style="margin: 8px 0;"><strong>Alternative Date:</strong> ${safeAltDate}</p>` : ''}
-                ${safeDistance ? `<p style="margin: 8px 0;"><strong>Distance:</strong> ${safeDistance}</p>` : ''}
+                ${
+                  invitedInspector.distanceKm !== null
+                    ? `<p style="margin: 8px 0;"><strong>Distance:</strong> ${escapeHtml(formatDistance(invitedInspector.distanceKm))}</p>`
+                    : ''
+                }
                 ${assignmentDeadline ? `<p style="margin: 8px 0;"><strong>Acceptance Deadline:</strong> ${escapeHtml(assignmentDeadline)}</p>` : ''}
               </div>
 
               <p style="line-height: 1.8; margin-bottom: 24px;">
-                Accept the request and open the case inside the 6-hour acceptance window. If you do not accept it in time, operations can re-route it to another active inspector.
+                Accept the request inside the current dispatch window. The first invited inspector to confirm secures the booking, after which the rest of the panel is closed.
               </p>
             </div>
           `,
-        })
-      )
+          })
+        )
+      }
     }
 
     const emailResults = await Promise.allSettled(emailPayloads)

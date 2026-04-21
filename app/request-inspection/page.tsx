@@ -1,9 +1,12 @@
 'use client'
-import { Suspense, useState, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { getFpiaProduct } from '@/lib/products/fpiaProducts'
+import FpiaAutocomplete from '@/components/FpiaAutocomplete'
+import FpiaPhoneInput from '@/components/FpiaPhoneInput'
+import FpiaStepper from '@/components/FpiaStepper'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +22,11 @@ type Suburb = {
 }
 
 type Step = 'property' | 'contact' | 'confirm'
+const REQUEST_STEPS: Array<{ id: Step; label: string; meta: string }> = [
+  { id: 'property', label: 'Property', meta: 'Location and suburb match' },
+  { id: 'contact', label: 'Your Details', meta: 'Requester and scheduling' },
+  { id: 'confirm', label: 'Confirm', meta: 'Final review before submit' },
+]
 
 function RequestInspectionPageContent() {
   const searchParams = useSearchParams()
@@ -42,8 +50,12 @@ function RequestInspectionPageContent() {
   const [suburbQuery, setSuburbQuery] = useState('')
   const [suburbResults, setSuburbResults] = useState<Suburb[]>([])
   const [selectedSuburb, setSelectedSuburb] = useState<Suburb | null>(null)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [suburbLoading, setSuburbLoading] = useState(false)
+
+  const stepIndex = useMemo(
+    () => REQUEST_STEPS.findIndex((item) => item.id === step),
+    [step]
+  )
 
   // Contact details
   const [role, setRole] = useState('')
@@ -59,11 +71,12 @@ function RequestInspectionPageContent() {
   useEffect(() => {
     if (suburbQuery.length < 2) {
       setSuburbResults([])
-      setShowDropdown(false)
+      setSuburbLoading(false)
       return
     }
 
     const timer = setTimeout(async () => {
+      setSuburbLoading(true)
       const { data } = await supabase
         .from('sa_suburbs')
         .select('*')
@@ -71,27 +84,18 @@ function RequestInspectionPageContent() {
         .limit(8)
 
       setSuburbResults(data ?? [])
-      setShowDropdown(true)
+      setSuburbLoading(false)
     }, 250)
 
-    return () => clearTimeout(timer)
-  }, [suburbQuery])
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false)
-      }
+    return () => {
+      clearTimeout(timer)
+      setSuburbLoading(false)
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  }, [suburbQuery])
 
   function selectSuburb(suburb: Suburb) {
     setSelectedSuburb(suburb)
     setSuburbQuery(suburb.suburb)
-    setShowDropdown(false)
   }
 
   function fullAddress() {
@@ -100,11 +104,11 @@ function RequestInspectionPageContent() {
   }
 
   function canProceedStep1() {
-    return streetNumber.trim() && streetName.trim() && selectedSuburb
+    return Boolean(streetNumber.trim() && streetName.trim() && selectedSuburb)
   }
 
   function canProceedStep2() {
-    return role && fullName.trim() && email.trim() && phone.trim() && preferredDate
+    return Boolean(role && fullName.trim() && email.trim() && phone.trim() && preferredDate)
   }
 
   function getErrorMessage(error: unknown) {
@@ -212,28 +216,13 @@ function RequestInspectionPageContent() {
           </div>
         )}
 
-        {/* Steps indicator */}
-        <div className="fpia-request-steps" style={{ display: 'flex', gap: '32px', marginTop: '32px' }}>
-          {(['property', 'contact', 'confirm'] as Step[]).map((s, i) => (
-            <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '28px', height: '28px', borderRadius: '50%',
-                backgroundColor: step === s ? 'var(--gold)' : 'transparent',
-                border: `2px solid ${step === s ? 'var(--gold)' : 'rgba(201,161,77,0.3)'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '11px', fontWeight: 700,
-                color: step === s ? 'var(--navy)' : 'rgba(201,161,77,0.5)',
-              }}>
-                {i + 1}
-              </div>
-              <span style={{
-                fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase',
-                color: step === s ? 'var(--off-white)' : 'rgba(160,174,192,0.5)',
-              }}>
-                {s === 'property' ? 'Property' : s === 'contact' ? 'Your Details' : 'Confirm'}
-              </span>
-            </div>
-          ))}
+        <div className="fpia-request-steps" style={{ marginTop: '32px' }}>
+          <FpiaStepper
+            steps={REQUEST_STEPS}
+            currentStep={stepIndex}
+            onStepSelect={(index) => setStep(REQUEST_STEPS[index]?.id ?? 'property')}
+            canSelectStep={(index) => index <= stepIndex}
+          />
         </div>
       </section>
 
@@ -345,55 +334,45 @@ function RequestInspectionPageContent() {
             </div>
 
             {/* Suburb autocomplete */}
-            <div style={{ position: 'relative' }} ref={dropdownRef}>
+            <div>
               <label style={labelStyle}>Suburb</label>
-              <input
+              <FpiaAutocomplete
+                items={suburbResults}
                 value={suburbQuery}
-                onChange={e => {
-                  setSuburbQuery(e.target.value)
+                onValueChange={(nextValue) => {
+                  setSuburbQuery(nextValue)
                   setSelectedSuburb(null)
                 }}
+                onSelect={selectSuburb}
+                getItemKey={(item) => item.id}
+                getItemLabel={(item) => item.suburb}
+                loading={suburbLoading}
                 placeholder="Start typing your suburb..."
-                style={inputStyle}
-                autoComplete="off"
-              />
-
-              {showDropdown && suburbResults.length > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: '#0d2540',
-                  border: '1px solid rgba(201,161,77,0.3)',
-                  zIndex: 100,
-                  maxHeight: '280px',
-                  overflowY: 'auto',
-                }}>
-                  {suburbResults.map((s) => (
-                    <div
-                      key={s.id}
-                      onClick={() => selectSuburb(s)}
-                      style={{
-                        padding: '12px 16px',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid rgba(201,161,77,0.1)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(201,161,77,0.08)')}
-                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <div>
-                        <div style={{ color: 'var(--off-white)', fontSize: '14px', fontWeight: 600 }}>{s.suburb}</div>
-                        <div style={{ color: 'var(--slate)', fontSize: '12px', marginTop: '2px' }}>{s.city}, {s.province}</div>
+                emptyMessage="No matching suburbs found."
+                renderItem={(item) => (
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '12px',
+                    }}
+                  >
+                    <div>
+                      <div style={{ color: 'var(--off-white)', fontSize: '14px', fontWeight: 600 }}>
+                        {item.suburb}
                       </div>
-                      <div style={{ color: 'var(--gold)', fontSize: '12px', fontWeight: 600 }}>{s.postal_code}</div>
+                      <div style={{ color: 'var(--slate)', fontSize: '12px', marginTop: '2px' }}>
+                        {item.city}, {item.province}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div style={{ color: 'var(--gold)', fontSize: '12px', fontWeight: 600 }}>
+                      {item.postal_code}
+                    </div>
+                  </div>
+                )}
+              />
             </div>
 
             {/* Selected suburb confirmation */}
@@ -455,7 +434,11 @@ function RequestInspectionPageContent() {
                 </div>
                 <div>
                   <label style={labelStyle}>Phone / WhatsApp</label>
-                  <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+27 82 000 0000" style={inputStyle} />
+                  <FpiaPhoneInput
+                    value={phone}
+                    onValueChange={setPhone}
+                    hint="Used for WhatsApp confirmation and inspector follow-up."
+                  />
                 </div>
               </div>
 

@@ -1,15 +1,52 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { getFpiaProduct } from '@/lib/products/fpiaProducts'
+import FpiaPhoneInput from '@/components/FpiaPhoneInput'
+import FpiaStepper from '@/components/FpiaStepper'
 
-const STEPS = ['Property', 'Owner & Contact', 'Agent & Docs', 'Inspection']
+const STEPS = [
+  { label: 'Property', meta: 'Address and transaction profile' },
+  { label: 'Owner & Contact', meta: 'Seller and primary contact' },
+  { label: 'Agent & Docs', meta: 'Agent details and optional documents' },
+  { label: 'Inspection', meta: 'Scheduling and submission' },
+]
 
-export default function Register() {
+const AGENT_TIER_CONFIG = {
+  starter: {
+    name: 'Starter',
+    price: 'R8,500',
+    inspections: 3,
+  },
+  professional: {
+    name: 'Professional',
+    price: 'R22,000',
+    inspections: 8,
+  },
+  agency: {
+    name: 'Agency',
+    price: 'R38,000',
+    inspections: 15,
+  },
+} as const
+
+function RegisterForm() {
+  const searchParams = useSearchParams()
   const sellerPackage = getFpiaProduct('seller_precert_package')
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const prefilledEmail = searchParams.get('email')?.trim() ?? ''
+  const leadType = searchParams.get('type')?.trim().toLowerCase() ?? ''
+  const tierKey = searchParams.get('tier')?.trim().toLowerCase() ?? ''
+  const selectedAgentTier =
+    leadType === 'agent'
+      ? AGENT_TIER_CONFIG[tierKey as keyof typeof AGENT_TIER_CONFIG] ?? null
+      : null
+  const leadContextNote = selectedAgentTier
+    ? `Selected agent pricing plan: ${selectedAgentTier.name} (${selectedAgentTier.price}/month, ${selectedAgentTier.inspections} inspections included).`
+    : null
 
   function next() { setStep(s => s + 1) }
   function back() { setStep(s => s - 1) }
@@ -20,6 +57,12 @@ export default function Register() {
     setSubmitting(true)
 
     const form = new FormData(e.currentTarget)
+    const submittedAdditionalNotes = form.get('additional_notes')
+    const normalizedAdditionalNotes =
+      typeof submittedAdditionalNotes === 'string' ? submittedAdditionalNotes.trim() : ''
+    const additionalNotes = [leadContextNote, normalizedAdditionalNotes]
+      .filter((value): value is string => Boolean(value))
+      .join('\n\n')
 
     const payload = {
       street_address: form.get('street_address'),
@@ -41,7 +84,7 @@ export default function Register() {
       transaction_type: form.get('transaction_type'),
       preferred_date: form.get('preferred_date'),
       alternative_date: form.get('alternative_date'),
-      additional_notes: form.get('additional_notes'),
+      additional_notes: additionalNotes,
       company_website: form.get('company_website'),
     }
 
@@ -108,71 +151,67 @@ export default function Register() {
             marginBottom: '32px',
           }}
         >
-          <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
-            {sellerPackage.certificateOutcome}
-          </p>
-          <p style={{ color: 'var(--off-white)', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
-            {sellerPackage.name}
-          </p>
-          <p style={{ color: '#a0aec0', fontSize: '12px', marginBottom: '12px' }}>
-            {sellerPackage.usageSubheading}
-          </p>
-          <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
-            {sellerPackage.priceLabel}
-          </p>
-          <p style={{ color: 'var(--off-white)', fontSize: '26px', fontWeight: 700, marginBottom: '8px' }}>
-            {sellerPackage.price}
-          </p>
-          <p style={{ color: 'var(--off-white)', fontSize: '13px', lineHeight: 1.6, marginBottom: '10px' }}>
-            {sellerPackage.valueMicrocopy}
-          </p>
-          <p style={{ color: '#a0aec0', fontSize: '14px', lineHeight: 1.7, marginBottom: '10px' }}>
-            {sellerPackage.description}
-          </p>
-          <p style={{ color: 'rgba(201,161,77,0.85)', fontSize: '12px', lineHeight: 1.7, margin: 0 }}>
-            {sellerPackage.systemTrigger}
-          </p>
+          {selectedAgentTier ? (
+            <>
+              <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+                Agency Account Selected
+              </p>
+              <p style={{ color: 'var(--off-white)', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
+                {selectedAgentTier.name} Plan
+              </p>
+              <p style={{ color: '#a0aec0', fontSize: '12px', marginBottom: '12px' }}>
+                Property intake will be tagged to your selected agent pricing tier.
+              </p>
+              <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Monthly Retainer
+              </p>
+              <p style={{ color: 'var(--off-white)', fontSize: '26px', fontWeight: 700, marginBottom: '8px' }}>
+                {selectedAgentTier.price}
+              </p>
+              <p style={{ color: 'var(--off-white)', fontSize: '13px', lineHeight: 1.6, marginBottom: '10px' }}>
+                {selectedAgentTier.inspections} inspections included per month with priority scheduling and agency account support.
+              </p>
+              <p style={{ color: '#a0aec0', fontSize: '14px', lineHeight: 1.7, marginBottom: '10px' }}>
+                Complete the intake below to register the first property or lead under this agency package. Your submission will retain the selected plan context.
+              </p>
+            </>
+          ) : (
+            <>
+              <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+                {sellerPackage.certificateOutcome}
+              </p>
+              <p style={{ color: 'var(--off-white)', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
+                {sellerPackage.name}
+              </p>
+              <p style={{ color: '#a0aec0', fontSize: '12px', marginBottom: '12px' }}>
+                {sellerPackage.usageSubheading}
+              </p>
+              <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                {sellerPackage.priceLabel}
+              </p>
+              <p style={{ color: 'var(--off-white)', fontSize: '26px', fontWeight: 700, marginBottom: '8px' }}>
+                {sellerPackage.price}
+              </p>
+              <p style={{ color: 'var(--off-white)', fontSize: '13px', lineHeight: 1.6, marginBottom: '10px' }}>
+                {sellerPackage.valueMicrocopy}
+              </p>
+              <p style={{ color: '#a0aec0', fontSize: '14px', lineHeight: 1.7, marginBottom: '10px' }}>
+                {sellerPackage.description}
+              </p>
+              <p style={{ color: 'rgba(201,161,77,0.85)', fontSize: '12px', lineHeight: 1.7, margin: 0 }}>
+                {sellerPackage.systemTrigger}
+              </p>
+            </>
+          )}
         </div>
 
-        {/* Progress Bar */}
-        <div className="fpia-register-progress" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {STEPS.map((label, i) => (
-            <div key={i} className="fpia-register-progress-step" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                backgroundColor: i < step ? 'var(--gold)' : i === step ? 'var(--gold)' : 'transparent',
-                border: i <= step ? '2px solid var(--gold)' : '2px solid #3F5E7B',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '11px',
-                fontWeight: 700,
-                color: i <= step ? 'var(--navy)' : '#3F5E7B',
-                flexShrink: 0,
-              }}>
-                {i < step ? '✓' : i + 1}
-              </div>
-              <span style={{
-                fontSize: '11px',
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-                color: i === step ? 'var(--off-white)' : i < step ? 'var(--gold)' : '#3F5E7B',
-              }}>
-                {label}
-              </span>
-              {i < STEPS.length - 1 && (
-                <div className="fpia-register-progress-divider" style={{
-                  width: '40px',
-                  height: '1px',
-                  backgroundColor: i < step ? 'var(--gold)' : '#3F5E7B',
-                  marginLeft: '4px',
-                  marginRight: '4px',
-                }} />
-              )}
-            </div>
-          ))}
+        <div className="fpia-register-progress">
+          <FpiaStepper
+            steps={STEPS}
+            currentStep={step}
+            onStepSelect={setStep}
+            canSelectStep={(index) => index <= step}
+          />
         </div>
       </section>
 
@@ -227,7 +266,12 @@ export default function Register() {
                 </div>
                 <div>
                   <label style={labelStyle}>Transaction Type</label>
-                  <select name="transaction_type" style={inputStyle} defaultValue="Pre Listing" required>
+                  <select
+                    name="transaction_type"
+                    style={inputStyle}
+                    defaultValue={selectedAgentTier ? 'Active Listing' : 'Pre Listing'}
+                    required
+                  >
                     {['Pre Listing', 'Active Listing', 'Pre Purchase', 'Post Purchase', 'Transfer Follow-Up', 'Compliance Review'].map(type => (
                       <option key={type} value={type}>{type}</option>
                     ))}
@@ -252,15 +296,33 @@ export default function Register() {
                 </div>
                 <div>
                   <label style={labelStyle}>Email Address</label>
-                  <input name="email" style={inputStyle} type="email" placeholder="e.g. john@email.com" required />
+                  <input
+                    name="email"
+                    style={inputStyle}
+                    type="email"
+                    placeholder="e.g. john@email.com"
+                    defaultValue={prefilledEmail}
+                    required
+                  />
                 </div>
                 <div>
                   <label style={labelStyle}>Contact Number</label>
-                  <input name="phone" style={inputStyle} type="tel" placeholder="e.g. 082 555 1234" required />
+                  <FpiaPhoneInput
+                    name="phone"
+                    required
+                    defaultValue=""
+                    hint="Seller or owner mobile number used for intake confirmation."
+                    tone="light"
+                  />
                 </div>
                 <div>
                   <label style={labelStyle}>Role In Transaction</label>
-                  <select name="role_in_transaction" style={inputStyle} defaultValue="Seller / Owner" required>
+                  <select
+                    name="role_in_transaction"
+                    style={inputStyle}
+                    defaultValue={selectedAgentTier ? 'Estate Agent' : 'Seller / Owner'}
+                    required
+                  >
                     {['Seller / Owner', 'Estate Agent', 'Buyer', 'Conveyancer', 'Other Representative'].map(role => (
                       <option key={role} value={role}>{role}</option>
                     ))}
@@ -276,7 +338,13 @@ export default function Register() {
                 </div>
                 <div>
                   <label style={labelStyle}>Contact Number</label>
-                  <input name="contact_phone" style={inputStyle} type="tel" placeholder="e.g. 011 555 1234" required />
+                  <FpiaPhoneInput
+                    name="contact_phone"
+                    required
+                    defaultValue=""
+                    hint="Inspection access contact."
+                    tone="light"
+                  />
                 </div>
               </div>
             </div>
@@ -301,7 +369,12 @@ export default function Register() {
                 </div>
                 <div>
                   <label style={labelStyle}>Agent Contact Number</label>
-                  <input name="agent_phone" style={inputStyle} type="tel" placeholder="e.g. 083 555 9876" />
+                  <FpiaPhoneInput
+                    name="agent_phone"
+                    defaultValue=""
+                    hint="Optional agency or listing contact."
+                    tone="light"
+                  />
                 </div>
               </div>
 
@@ -375,21 +448,6 @@ export default function Register() {
         }
 
         @media (max-width: 720px) {
-          .fpia-register-progress {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 12px !important;
-          }
-
-          .fpia-register-progress-step {
-            width: 100%;
-            flex-wrap: wrap;
-          }
-
-          .fpia-register-progress-divider {
-            display: none;
-          }
-
           .fpia-register-actions {
             flex-direction: column-reverse;
             align-items: stretch !important;
@@ -420,6 +478,32 @@ export default function Register() {
         }
       `}</style>
     </main>
+  )
+}
+
+export default function Register() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          style={{
+            backgroundColor: 'var(--off-white)',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px',
+            color: 'var(--foreground)',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '15px', color: 'var(--slate)' }}>
+            Loading registration form...
+          </p>
+        </main>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   )
 }
 
