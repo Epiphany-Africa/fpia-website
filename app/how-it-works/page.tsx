@@ -22,7 +22,7 @@ export default function HowItWorks() {
           {
             num: '01',
             title: 'Property Registered',
-            body: 'The seller or listing agent registers the property on the FPIA platform. Basic property details, ownership confirmation, and contact information are captured at this stage. A unique property ID is assigned immediately.',
+            body: 'The seller or listing property practitioner registers the property on the FPIA platform. Basic property details, ownership confirmation, and contact information are captured at this stage. A unique property ID is assigned immediately.',
             note: 'Takes less than 10 minutes to complete online.'
           },
           {
@@ -46,14 +46,14 @@ export default function HowItWorks() {
           {
             num: '05',
             title: 'QR Code Activated',
-            body: 'A unique QR code is linked to the property certificate. Buyers, agents, banks, and conveyancers can scan the code at any point to verify the current certification status in real time — no login required.',
+            body: 'A unique QR code is linked to the property certificate. Buyers, property practitioners, banks, and property legal practitioners can scan the code at any point to verify the current certification status in real time — no login required.',
             note: 'QR codes are publicly verifiable at fairproperties.org.za/verify'
           },
           {
             num: '06',
             title: 'OTP Period Protection',
             body: 'During the suspensive condition period of the Offer to Purchase, all parties have access to the full FPIA report. This eliminates last-minute defect discoveries that erode deal value or collapse transactions at the finish line.',
-            note: 'Conveyancers receive a direct ledger reference for transfer documentation.'
+            note: 'Property legal practitioners receive a direct ledger reference for transfer documentation.'
           },
         ].map((step, i) => (
           <div key={i} className="fpia-process-step-row" style={{

@@ -11,11 +11,11 @@ type InquiryPreset = {
 
 const INQUIRY_PRESETS: Record<string, InquiryPreset> = {
   'agency-account': {
-    label: 'Agency Account',
-    role: 'Agent',
+    label: 'Property Practitioner Account',
+    role: 'Property Practitioner',
     summary: 'Agency retainer pricing and onboarding.',
     message:
-      "I'm interested in an FPIA agency account. Please send the onboarding steps, pricing structure, and what is included in the monthly retainer.",
+      "I'm interested in an FPIA property practitioner account. Please send the onboarding steps, pricing structure, and what is included in the monthly retainer.",
   },
   'insurer-pilot-a': {
     label: 'Insurer Pilot A',
@@ -84,14 +84,49 @@ function ContactPageForm() {
   )
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [companyWebsite, setCompanyWebsite] = useState('')
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setError('')
     setBusy(true)
-    // Simulate submission — wire to backend/email in next phase
-    await new Promise((r) => setTimeout(r, 800))
-    setSubmitted(true)
-    setBusy(false)
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inquiry: inquiryKey || null,
+          name,
+          email,
+          phone,
+          role,
+          message,
+          company_website: companyWebsite,
+        }),
+      })
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string
+      }
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Could not send your message right now.')
+      }
+
+      setSubmitted(true)
+    } catch (submissionError) {
+      setError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : 'Could not send your message right now.'
+      )
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -127,7 +162,7 @@ function ContactPageForm() {
             lineHeight: 1.8,
             maxWidth: '560px',
           }}>
-            Whether you&rsquo;re a buyer, seller, agent, or insurer — we&rsquo;re here to help you understand what FPIA certification means for your transaction.
+            Whether you&rsquo;re a buyer, seller, property practitioner, or insurer — we&rsquo;re here to help you understand what FPIA certification means for your transaction.
           </p>
           {inquiryPreset ? (
             <div
@@ -185,7 +220,7 @@ function ContactPageForm() {
                 desc: 'Request a certified FPIA property inspection for your suspensive period or pre-listing assessment.',
               },
               {
-                title: 'Agent Partnerships',
+                title: 'Property Practitioner Partnerships',
                 desc: 'Enquire about integrating FPIA certification into your listings and offering buyers verified property condition.',
               },
               {
@@ -304,9 +339,10 @@ function ContactPageForm() {
                     style={inputStyle}
                   >
                     <option value="">Select your role</option>
+                    <option value="Homeowner">Homeowner</option>
                     <option value="Buyer">Buyer</option>
                     <option value="Seller">Seller</option>
-                    <option value="Agent">Agent</option>
+                    <option value="Property Practitioner">Property Practitioner</option>
                     <option value="Insurer">Insurer</option>
                     <option value="Bond Originator">Bond Originator</option>
                     <option value="Other">Other</option>
@@ -358,6 +394,32 @@ function ContactPageForm() {
                     style={{ ...inputStyle, resize: 'vertical', paddingTop: '12px' }}
                   />
                 </div>
+
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '-9999px',
+                    width: '1px',
+                    height: '1px',
+                    overflow: 'hidden',
+                  }}
+                  aria-hidden="true"
+                >
+                  <label style={labelStyle}>Company website</label>
+                  <input
+                    value={companyWebsite}
+                    onChange={(e) => setCompanyWebsite(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    style={inputStyle}
+                  />
+                </div>
+
+                {error ? (
+                  <p style={{ color: '#fc8181', fontSize: '13px', lineHeight: 1.7, margin: 0 }}>
+                    {error}
+                  </p>
+                ) : null}
 
                 <button
                   type="submit"

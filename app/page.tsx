@@ -26,36 +26,41 @@ const audiences = [
   {
     icon: '🏠',
     title: 'Buyers',
-    desc: 'Avoid hidden defects before you sign. See the full condition of a property upfront — no surprises, no unexpected costs after transfer.',
+    desc: 'Check the governed property record before you commit. FPIA reduces hidden-condition risk before transfer.',
   },
   {
     icon: '📋',
     title: 'Sellers',
-    desc: 'Protect your asking price with proof. A certified property builds trust, removes doubt, and prevents last-minute renegotiation.',
-  },
-  {
-    icon: '🏦',
-    title: 'Banks & Financiers',
-    desc: 'Lend with verified property data. Reduce risk with independently verified condition reports that support accurate valuations.',
+    desc: 'Support price and disclosure with structured evidence, controlled issuance, and a verifiable trust signal.',
   },
   {
     icon: '🤝',
-    title: 'Estate Agents',
-    desc: 'Stop deals collapsing at the last minute. Certified listings remove friction and keep transactions moving forward with confidence.',
+    title: 'Property Practitioners',
+    desc: 'List with a governed record that reduces dispute risk, supports pricing, and keeps deals moving.',
+  },
+  {
+    icon: '🛡️',
+    title: 'Insurers',
+    desc: 'Assess residential property risk against governed evidence and verification, not fragmented attachments.',
+  },
+  {
+    icon: '🏦',
+    title: 'Banks & Originators',
+    desc: 'Advise, lend, and structure applications against verified property truth instead of assumptions and gaps.',
   },
   {
     icon: '⚖️',
-    title: 'Conveyancers',
-    desc: 'Eliminate disputes during transfer. Access timestamped inspection records that provide clarity and accountability at every step.',
+    title: 'Property Legal Practitioners',
+    desc: 'Work from one verifiable record during OTP, transfer, and registration, not disconnected claims, emails, and PDFs.',
   },
 ]
 
 const steps = [
-  { num: '01', title: 'Property Registered', desc: 'The property is submitted on the FPIA platform and scheduled for inspection.' },
-  { num: '02', title: 'Independent Inspection', desc: 'A licensed FPIA inspector conducts a full condition assessment across all compliance categories.' },
-  { num: '03', title: 'Certificate Issued', desc: 'A digital certificate is generated and securely recorded — time-stamped and tamper-proof.' },
-  { num: '04', title: 'QR Code Activated', desc: 'A unique QR code allows instant verification by any party in the transaction.' },
-  { num: '05', title: 'OTP Protection', desc: 'Secure access during the suspensive period ensures controlled, trusted information sharing.' },
+  { num: '01', title: 'Truth Enters', desc: 'An inspection or governed intake event creates the initial property record.' },
+  { num: '02', title: 'Evidence Is Structured', desc: 'Condition findings, compliance artefacts, and supporting records are organised into one accountable file.' },
+  { num: '03', title: 'Authority Governs', desc: 'Issuance status and trust outcomes are applied under FPIA authority controls.' },
+  { num: '04', title: 'Verification Checks', desc: 'Any party can verify certificate status and registry truth before they act.' },
+  { num: '05', title: 'Registry Persists', desc: 'The property record remains durable, referenceable, and usable across future transactions.' },
 ]
 
 const qrCode = (
@@ -113,21 +118,29 @@ export default function HomePage() {
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(var(--gold) 1px, transparent 1px), linear-gradient(90deg, var(--gold) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-5 py-12 sm:px-6 md:py-16 lg:flex-row lg:items-center lg:justify-between lg:gap-[60px]">
           <div className="flex-1">
-            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-6 font-medium">Residential Property Accountability · South Africa</p>
+            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-6 font-medium">Governed Property Accountability · South Africa</p>
             <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="mb-6 max-w-3xl text-4xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
               The accountability layer<br />
             <em style={{ color: 'var(--gold)' }}>for residential property.</em>
             </h1>
 
             <p className="mb-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
-              FPIA creates the trusted record behind the deal: verified property data, certification pathways, and shared accountability before, during, and after transfer.
+              FPIA gives buyers, sellers, property practitioners, lenders, insurers, and property legal practitioners one governed source of truth for residential property — so decisions are made on evidence, not assumption.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/verify/" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
-                Verify a Property →
+              <Link href="/request-inspection" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
+                Request Inspection →
               </Link>
-              <Link href="/#register" style={{ border: '1px solid rgba(255,255,255,0.3)', color: 'white' }} className="inline-block px-8 py-4 font-medium tracking-wide text-sm hover:border-white/60 transition-colors text-center">
-                Register a Property
+              <Link href="/verify" style={{ border: '1px solid rgba(255,255,255,0.3)', color: 'white' }} className="inline-block px-8 py-4 font-medium tracking-wide text-sm hover:border-white/60 transition-colors text-center">
+                Verify Certificate
+              </Link>
+            </div>
+            <div className="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
+              <Link href="/contact?message=I%27d%20like%20to%20request%20access%20to%20FPIA%20for%20my%20organisation." className="font-semibold text-[var(--gold)] transition-opacity hover:opacity-80">
+                Request Access →
+              </Link>
+              <Link href="/how-it-works" className="font-semibold text-white/70 transition-opacity hover:text-white">
+                Learn How It Works →
               </Link>
             </div>
             <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(201,161,77,0.2)' }} className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -175,19 +188,19 @@ export default function HomePage() {
             </p>
 
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
-              Most property deals fail for the same reason.
+              Residential property breaks when accountability is missing.
           </h2>
 
             <p style={{ color: 'var(--slate)' }} className="text-base max-w-2xl leading-relaxed mb-12">
-              Incomplete disclosure, missing records, and unverified property information create avoidable risk for buyers, sellers, agents, and financiers.
+              Most transactions still run on fragmented disclosure, unstructured evidence, and late-stage discovery. FPIA closes that gap with governed property truth.
             </p>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          'Hidden defects derail deals at closing',
-          'Late repricing strips control from sellers',
-          'Buyers absorb costs they never saw',
-          'No trusted record of property condition',
+          'Truth enters too late',
+          'Evidence stays fragmented',
+          'Verification arrives under pressure',
+          'No durable registry record',
         ].map((item) => (
         <div
           key={item}
@@ -206,7 +219,7 @@ export default function HomePage() {
       {/* ── TRUST BAR ── */}
       <section style={{ backgroundColor: 'var(--gold)' }} className="py-4">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-4 gap-y-3 px-5 text-center text-[11px] font-semibold uppercase tracking-widest text-navy sm:px-6 md:flex md:flex-wrap md:justify-center md:gap-8 md:text-xs">
-          {['Independent Verification', 'Tamper-Proof Records', 'QR Verified', 'OTP Secured', 'Full Chain Transparency'].map(t => (
+          {['Inspection enters truth', 'Evidence structures truth', 'Authority governs truth', 'Verification checks truth', 'Registry persists truth'].map(t => (
             <span key={t}>✦ {t}</span>
           ))}
         </div>
@@ -215,13 +228,13 @@ export default function HomePage() {
       <section style={{ backgroundColor: 'white' }} className="py-20">
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
-            Product Layer
+            Accountability System
           </p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
-            Structured accountability products for every stage.
+            One accountability system. Multiple controlled outcomes.
           </h2>
           <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-12">
-            FPIA operates as a staged accountability system. Each product has a defined outcome, a fixed fee, and a clear point in the workflow where it is triggered.
+            Inspection is how truth enters. Evidence is how truth is structured. Authority issuance is how truth is governed. Verification is how truth is checked. Registry is how truth persists.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -295,7 +308,7 @@ export default function HomePage() {
                     style={{ color: 'rgba(11,31,51,0.55)' }}
                     className="text-[10px] tracking-[0.22em] uppercase mb-2 font-medium"
                   >
-                    Triggered In System
+                    Controlled In System
                   </p>
                   <p style={{ color: 'var(--slate)' }} className="text-[13px] leading-6 mb-5">
                     {product.systemTrigger}
@@ -375,16 +388,16 @@ export default function HomePage() {
           </h2>
           <div className="flex flex-col gap-8">
             <div style={{ backgroundColor: 'white', border: '1px solid rgba(11,31,51,0.1)' }} className="p-8">
-              <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-xl mb-6">Without FPIA</h3>
+              <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-xl mb-6">Without a governed record</h3>
               <p style={{ color: 'var(--slate)' }} className="text-sm leading-relaxed mb-6">
                 A buyer signs an offer on a property that appears to be in good condition. Weeks into the process, during the suspensive period:
               </p>
               <div className="grid sm:grid-cols-2 gap-6">
                 <ul className="space-y-3">
                   {[
-                    'A late inspection reveals structural cracks and electrical compliance issues',
+                    'Critical condition evidence appears late and under pressure',
                     'The buyer requests a price reduction',
-                    'The seller disputes the findings',
+                    'The seller disputes the evidence and timing',
                     'The deal stalls',
                   ].map(item => (
                     <li key={item} className="flex items-start gap-3 text-sm" style={{ color: 'var(--slate)' }}>
@@ -395,7 +408,7 @@ export default function HomePage() {
                 <div className="border-t border-[rgba(11,31,51,0.08)] pt-5 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
                   <p style={{ color: 'var(--navy)', fontFamily: 'DM Mono, monospace' }} className="text-xs tracking-widest uppercase mb-3">The Result</p>
                   <ul className="space-y-2">
-                    {['The buyer walks away', 'The seller relists at a lower price', 'The agent loses the deal', 'Weeks are lost — and trust is broken'].map(item => (
+                    {['The buyer walks away', 'The seller relists at a lower price', 'The property practitioner loses the deal', 'Weeks are lost — and trust is broken'].map(item => (
                       <li key={item} className="text-sm" style={{ color: '#e05555' }}>— {item}</li>
                     ))}
                   </ul>
@@ -403,14 +416,14 @@ export default function HomePage() {
               </div>
             </div>
             <div style={{ backgroundColor: 'var(--navy)', border: '1px solid rgba(201,161,77,0.2)' }} className="p-8">
-              <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--gold)' }} className="text-xl mb-6">Now with FPIA</h3>
+              <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--gold)' }} className="text-xl mb-6">With FPIA in place</h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 <ul className="space-y-3">
                   {[
-                    'An independent FPIA inspection is completed',
-                    'All defects and compliance items are documented',
-                    'A certified report is issued and recorded',
-                    'They see the full condition upfront',
+                    'An FPIA inspection creates the initial truth record',
+                    'Evidence and compliance items are structured in one governed file',
+                    'Issuance and verification status are recorded under authority control',
+                    'The full condition is visible before decisions are locked in',
                     'The price reflects verified reality',
                     'No surprises emerge during OTP',
                   ].map(item => (
@@ -441,13 +454,13 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">See It In Action</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-4xl md:text-5xl mb-4">
-            See a certified property in action.
+            See governed property truth in action.
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-2xl leading-relaxed mb-10">
-            Explore a real FPIA-certified property and experience how verification works across the transaction chain.
+            Explore a live FPIA record and see how evidence, issuance, verification, and registry logic appear to every party in the chain.
           </p>
           <div className="grid sm:grid-cols-4 gap-4 mb-10">
-            {['Full inspection record', 'Certification status', 'Ledger verification', 'Inspector credentials'].map(item => (
+            {['Evidence record', 'Issuance status', 'Registry verification', 'Authority credentials'].map(item => (
               <div key={item} style={{ border: '1px solid rgba(201,161,77,0.2)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="px-5 py-4 flex items-center gap-3">
                 <span style={{ color: 'var(--gold)' }}>✦</span>
                 <span className="text-sm" style={{ color: 'rgba(255,255,255,0.8)' }}>{item}</span>
@@ -526,7 +539,7 @@ export default function HomePage() {
           </h2>
           <hr className="gold-rule w-16 mb-6" />
           <p style={{ color: 'var(--slate)' }} className="text-base max-w-2xl leading-relaxed mb-12">
-            FPIA creates a single, verified version of the truth — eliminating hidden defects, disputes, and deal risk across the entire property transaction chain.
+            FPIA creates one governed source of truth for residential property — reducing dispute risk, pricing friction, and information asymmetry across the transaction.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {audiences.map(a => (
@@ -545,10 +558,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">The Process</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-4xl md:text-5xl mb-2">
-            From property intake to trusted record — in days, not weeks.
+            From truth entering the system to governed verification.
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-xl mb-2">
-            Five steps to establish property certainty.
+            Five steps to establish accountable residential property truth.
           </p>
           <hr className="gold-rule w-16 mb-12" />
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -576,16 +589,16 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">What You Get</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-2">
-            The FPIA Certificate — your proof of property truth.
+            The governed property record — your proof of property truth.
           </h2>
           <hr className="gold-rule w-16 mb-12" />
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
             <div>
               <p style={{ color: 'var(--slate)' }} className="text-base leading-relaxed mb-6">
-                Every certified property receives a digital record that captures its full condition — independently verified and instantly accessible.
+                Every governed property record captures condition, supporting evidence, issuance status, and verification pathways — all controlled and instantly accessible.
               </p>
               <ul className="space-y-3">
-                {['Timestamped inspection record', 'Compliance category breakdown', 'COC artefact tracking', 'Unique QR code per property', 'Tamper-proof ledger entry', 'Four canonical trust outcomes'].map(item => (
+                {['Timestamped evidence record', 'Compliance category breakdown', 'COC artefact tracking', 'Unique verification route per property', 'Tamper-proof ledger entry', 'Four canonical trust outcomes'].map(item => (
                   <li key={item} className="flex items-center gap-3 text-sm" style={{ color: 'var(--navy)' }}>
                     <span style={{ color: 'var(--gold)' }}>✦</span> {item}
                   </li>
@@ -663,29 +676,28 @@ export default function HomePage() {
                 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }}
                 className="text-3xl leading-tight sm:text-4xl md:text-5xl mb-4"
               >
-                Bring certainty in before the deal gets tested.
+                Put accountability into the transaction before the deal gets tested.
               </h2>
               <p
                 style={{ color: 'rgba(255,255,255,0.68)' }}
                 className="max-w-2xl text-base leading-relaxed mb-6"
               >
-                FPIA works best before defects become negotiations, delays, or disputes.
-                Start with a property registration or request an inspection directly.
+                Start with an inspection, request access for your team, or verify an existing certificate before assumptions become exposure.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link
-                  href="/register"
+                  href="/request-inspection"
                   style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }}
                   className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity"
                 >
-                  Register a Property
+                  Request Inspection
                 </Link>
                 <Link
-                  href="/request-inspection"
+                  href="/contact?message=I%27d%20like%20to%20request%20access%20to%20FPIA%20for%20my%20organisation."
                   style={{ border: '1px solid rgba(201,161,77,0.32)', color: 'var(--off-white)' }}
                   className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold tracking-wide hover:border-[rgba(201,161,77,0.62)] transition-colors"
                 >
-                  Request Inspection
+                  Request Access
                 </Link>
               </div>
             </div>
@@ -703,9 +715,9 @@ export default function HomePage() {
                 </p>
                 <div className="space-y-3">
                   {[
-                    'Property is logged and routed for intake review',
-                    'Inspection timing is confirmed with the relevant parties',
-                    'The record moves into the FPIA certification workflow',
+                    'Truth enters through inspection or controlled intake',
+                    'Evidence is structured under the FPIA standard',
+                    'Issuance and verification status persist in the registry',
                   ].map((item) => (
                     <div key={item} className="flex items-start gap-3 text-sm" style={{ color: 'rgba(255,255,255,0.76)' }}>
                       <span style={{ color: 'var(--gold)', marginTop: '2px' }}>✦</span>

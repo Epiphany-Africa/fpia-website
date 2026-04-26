@@ -31,7 +31,7 @@ export const fpiaProducts: FpiaProduct[] = [
     description:
       'Independent property inspection that creates the initial FPIA record and may issue a conditional certificate where findings or outstanding items remain.',
     systemTrigger:
-      'Triggered when a buyer, seller, or agent requests a new inspection for a property that does not yet have a current verified record.',
+      'Triggered when a buyer, seller, or property practitioner requests a new inspection for a property that does not yet have a current verified record.',
     triggerRoute: '/request-inspection',
     ctaLabel: 'Request Inspection',
     ctaHref: '/request-inspection',
@@ -65,7 +65,7 @@ export const fpiaProducts: FpiaProduct[] = [
     description:
       'Seller-led pre-listing package that prepares a property for market with inspection scheduling, document capture, and a certification pathway before buyer negotiations begin.',
     systemTrigger:
-      'Triggered when a seller or listing agent registers a property before listing or marketing the asset to buyers.',
+      'Triggered when a seller or listing property practitioner registers a property before listing or marketing the asset to buyers.',
     triggerRoute: '/register',
     ctaLabel: 'Start Pre-Certification',
     ctaHref: '/register',

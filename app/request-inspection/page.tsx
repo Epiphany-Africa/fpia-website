@@ -420,7 +420,7 @@ function RequestInspectionPageContent() {
                   <option value="">Select your role</option>
                   <option value="Buyer">Buyer</option>
                   <option value="Seller">Seller</option>
-                  <option value="Agent">Agent</option>
+                  <option value="Property Practitioner">Property Practitioner</option>
                   <option value="Insurer">Insurer</option>
                   <option value="Bond Originator">Bond Originator</option>
                   <option value="Other">Other</option>

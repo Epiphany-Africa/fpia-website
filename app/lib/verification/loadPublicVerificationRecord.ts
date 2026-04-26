@@ -373,10 +373,10 @@ export async function loadPublicVerificationRecord(
   }
 
   const verificationReference =
-    registry?.certificate_number ??
-    certificate?.certificate_number ??
     certificate?.verification_ref ??
     registry?.report_code ??
+    registry?.certificate_number ??
+    certificate?.certificate_number ??
     id
 
   return {

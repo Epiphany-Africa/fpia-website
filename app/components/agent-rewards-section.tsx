@@ -90,7 +90,7 @@ const tiers = [
     credits: 3,
     creditLabel: '1 credit per month',
     support: 'Dedicated account contact',
-    cobranding: 'Badge + dedicated agent profile page on FPIA',
+    cobranding: 'Badge + dedicated property practitioner profile page on FPIA',
     reporting: 'Monthly performance report',
     featured: false,
     accentColor: '#C9A14D',
@@ -316,7 +316,7 @@ export function AgentRewardsProgrammeSection() {
     <>
       <section style={styles.sectionOffWhite}>
         <div style={styles.inner}>
-          <p style={styles.eyebrow}>Agent Rewards Programme</p>
+          <p style={styles.eyebrow}>Property Practitioner Rewards Programme</p>
           <h2 style={styles.h2Dark}>Earn more by referring more.</h2>
           <div style={styles.rule} />
           <p style={styles.bodyText}>
@@ -440,9 +440,9 @@ export function AgentRewardsProgrammeSection() {
               borderRadius: '0 6px 6px 0',
             }}
           >
-            Credits are gifted inspections — the agent awards them to a client at no
-            cost. No cash flows from FPIA to the agent, keeping the arrangement fully
-            compliant with Section 34A of the Estate Agency Affairs Act. Agents also
+            Credits are gifted inspections — the property practitioner awards them to a client at no
+            cost. No cash flows from FPIA to the property practitioner, keeping the arrangement fully
+            compliant with Section 34A of the Estate Agency Affairs Act. Property practitioners also
             benefit from documented cover: recommending independent verification
             protects them against post-transfer defect disputes.
           </p>

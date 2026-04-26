@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 const dropdownLinks = [
   { label: 'For Buyers', href: '/for-buyers' },
   { label: 'For Sellers', href: '/for-sellers' },
-  { label: 'For Agents', href: '/for-agents' },
+  { label: 'For Property Practitioners', href: '/for-agents' },
   { label: 'For Insurers', href: '/for-insurers' },
   { label: 'For Bond Originators', href: '/for-bond-originators' },
 ]

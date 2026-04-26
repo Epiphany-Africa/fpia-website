@@ -14,6 +14,12 @@ type PassportDocument = {
   fileError: string | null
 }
 
+type PassportSubmissionResult = {
+  profileId: string
+  uploadedDocumentCount: number
+  failedDocumentCount: number
+}
+
 const PASSPORT_STEPS = [
   { label: 'Property', meta: 'Address and owner details' },
   { label: 'Documents', meta: 'COCs, plans, and certificates' },
@@ -62,6 +68,7 @@ export default function PropertyPassportPage() {
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [submissionResult, setSubmissionResult] = useState<PassportSubmissionResult | null>(null)
 
   const [ownerName, setOwnerName] = useState('')
   const [ownerEmail, setOwnerEmail] = useState('')
@@ -79,6 +86,10 @@ export default function PropertyPassportPage() {
 
   const validDocuments = useMemo(
     () => documents.filter((document) => document.file),
+    [documents]
+  )
+  const documentsWithErrors = useMemo(
+    () => documents.filter((document) => Boolean(document.fileError)),
     [documents]
   )
 
@@ -148,12 +159,20 @@ export default function PropertyPassportPage() {
 
       const payload = (await response.json().catch(() => ({}))) as {
         error?: string
+        profileId?: string
+        uploadedDocumentCount?: number
+        failedDocumentCount?: number
       }
 
       if (!response.ok) {
         throw new Error(payload.error ?? 'Could not create your Property Passport.')
       }
 
+      setSubmissionResult({
+        profileId: payload.profileId ?? 'unknown',
+        uploadedDocumentCount: payload.uploadedDocumentCount ?? validDocuments.length,
+        failedDocumentCount: payload.failedDocumentCount ?? 0,
+      })
       setSubmitted(true)
     } catch (submissionError) {
       setError(
@@ -167,6 +186,28 @@ export default function PropertyPassportPage() {
   }
 
   if (submitted) {
+    const profileReference = submissionResult?.profileId
+      ? `PP-${submissionResult.profileId.slice(0, 8).toUpperCase()}`
+      : null
+    const verificationParams = new URLSearchParams({
+      inquiry: 'property-passport',
+      name: ownerName.trim(),
+      email: ownerEmail.trim(),
+      phone: ownerPhone.trim(),
+      role: 'Homeowner',
+      message: [
+        `I've created a Property Passport for ${propertyAddress.trim()}.`,
+        profileReference ? `Passport reference: ${profileReference}` : '',
+        `Uploaded documents accepted: ${submissionResult?.uploadedDocumentCount ?? validDocuments.length}.`,
+        submissionResult?.failedDocumentCount
+          ? `Documents that need attention: ${submissionResult.failedDocumentCount}.`
+          : '',
+        'Please contact me about document verification, missing records, and how to turn these uploads into FPIA-verified records.',
+      ]
+        .filter(Boolean)
+        .join(' '),
+    })
+
     return (
       <main
         style={{
@@ -212,6 +253,30 @@ export default function PropertyPassportPage() {
           </p>
           <div
             style={{
+              marginTop: '20px',
+              display: 'grid',
+              gap: '10px',
+              border: '1px solid rgba(201,161,77,0.18)',
+              backgroundColor: 'rgba(255,255,255,0.02)',
+              padding: '18px',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '1.8px', textTransform: 'uppercase' }}>
+              Passport Summary
+            </div>
+            <div style={{ color: 'var(--off-white)', fontSize: '14px', lineHeight: 1.8 }}>
+              Reference: {profileReference ?? 'Pending'}
+            </div>
+            <div style={{ color: 'var(--off-white)', fontSize: '14px', lineHeight: 1.8 }}>
+              Documents accepted: {submissionResult?.uploadedDocumentCount ?? validDocuments.length}
+            </div>
+            <div style={{ color: 'var(--off-white)', fontSize: '14px', lineHeight: 1.8 }}>
+              Documents needing attention: {submissionResult?.failedDocumentCount ?? 0}
+            </div>
+          </div>
+          <div
+            style={{
               marginTop: '24px',
               padding: '18px',
               border: '1px solid rgba(201,161,77,0.22)',
@@ -223,6 +288,20 @@ export default function PropertyPassportPage() {
               records so your passport becomes a trust asset, not just a storage folder.
             </p>
           </div>
+          {submissionResult?.failedDocumentCount ? (
+            <div
+              style={{
+                marginTop: '18px',
+                padding: '16px 18px',
+                border: '1px solid rgba(252,129,129,0.28)',
+                backgroundColor: 'rgba(252,129,129,0.07)',
+              }}
+            >
+              <p style={{ color: '#fbd5d5', fontSize: '13px', lineHeight: 1.7, margin: 0 }}>
+                Some files were not accepted during upload. Use the verification enquiry so FPIA can help you identify replacements or missing records.
+              </p>
+            </div>
+          ) : null}
           <div
             style={{
               marginTop: '24px',
@@ -235,7 +314,7 @@ export default function PropertyPassportPage() {
             <Link href="/request-inspection" style={primaryButtonStyle}>
               Book Inspection
             </Link>
-            <Link href="/contact?inquiry=property-passport" style={secondaryButtonStyle}>
+            <Link href={`/contact?${verificationParams.toString()}`} style={secondaryButtonStyle}>
               Ask FPIA To Verify Records
             </Link>
           </div>
@@ -549,12 +628,35 @@ export default function PropertyPassportPage() {
                 {validDocuments.length} document{validDocuments.length === 1 ? '' : 's'} ready to upload
               </div>
             </div>
+            {documentsWithErrors.length ? (
+              <div
+                style={{
+                  marginTop: '18px',
+                  padding: '16px 18px',
+                  border: '1px solid rgba(252,129,129,0.28)',
+                  backgroundColor: 'rgba(252,129,129,0.06)',
+                }}
+              >
+                <p style={{ color: '#fbd5d5', fontSize: '13px', lineHeight: 1.7, margin: 0 }}>
+                  Fix file issues before review. Unsupported or oversized files will be skipped.
+                </p>
+              </div>
+            ) : null}
 
             <div style={{ display: 'flex', gap: '14px', marginTop: '34px', flexWrap: 'wrap' }}>
               <button type="button" onClick={() => setStep(0)} style={secondaryButtonStyle}>
                 Back
               </button>
-              <button type="button" onClick={() => setStep(2)} style={primaryButtonStyle}>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                disabled={documentsWithErrors.length > 0}
+                style={{
+                  ...primaryButtonStyle,
+                  opacity: documentsWithErrors.length > 0 ? 0.5 : 1,
+                  cursor: documentsWithErrors.length > 0 ? 'not-allowed' : 'pointer',
+                }}
+              >
                 Review Passport
               </button>
             </div>
@@ -589,7 +691,45 @@ export default function PropertyPassportPage() {
                     {item.value || '—'}
                   </div>
                 </div>
-              ))}
+                ))}
+            </div>
+
+            <div style={{ marginTop: '20px' }}>
+              <div style={labelStyle}>Uploaded Records</div>
+              <div
+                style={{
+                  border: '1px solid rgba(201,161,77,0.15)',
+                  backgroundColor: 'rgba(255,255,255,0.03)',
+                  padding: '16px 18px',
+                }}
+              >
+                {validDocuments.length > 0 ? (
+                  <div style={{ display: 'grid', gap: '12px' }}>
+                    {validDocuments.map((document) => (
+                      <div
+                        key={document.id}
+                        style={{
+                          borderBottom: '1px solid rgba(201,161,77,0.12)',
+                          paddingBottom: '12px',
+                        }}
+                      >
+                        <div style={{ color: 'var(--off-white)', fontSize: '14px', fontWeight: 700 }}>
+                          {document.documentType}
+                        </div>
+                        <div style={{ color: 'var(--slate)', fontSize: '13px', lineHeight: 1.7 }}>
+                          {document.file?.name ?? 'No file name'}
+                          {document.issuedAt ? ` • Issued ${document.issuedAt}` : ''}
+                          {document.expiresAt ? ` • Expires ${document.expiresAt}` : ''}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ color: 'var(--slate)', fontSize: '13px', lineHeight: 1.7, margin: 0 }}>
+                    No files attached yet. You can still create the passport and add or verify records later through FPIA.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div style={{ marginTop: '20px' }}>

@@ -57,8 +57,8 @@ export default function Footer() {
             margin: 0,
           }}
         >
-          The independent authority certifying South African properties before
-          transfer. Accountability built in.
+          The accountability layer for residential property — governed evidence,
+          controlled issuance, and verification built in.
         </p>
 
         <p

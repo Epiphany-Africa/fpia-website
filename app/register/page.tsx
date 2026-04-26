@@ -8,7 +8,7 @@ import FpiaStepper from '@/components/FpiaStepper'
 const STEPS = [
   { label: 'Property', meta: 'Address and transaction profile' },
   { label: 'Owner & Contact', meta: 'Seller and primary contact' },
-  { label: 'Agent & Docs', meta: 'Agent details and optional documents' },
+  { label: 'Property Practitioner & Docs', meta: 'Property practitioner details and optional documents' },
   { label: 'Inspection', meta: 'Scheduling and submission' },
 ]
 
@@ -45,7 +45,7 @@ function RegisterForm() {
       ? AGENT_TIER_CONFIG[tierKey as keyof typeof AGENT_TIER_CONFIG] ?? null
       : null
   const leadContextNote = selectedAgentTier
-    ? `Selected agent pricing plan: ${selectedAgentTier.name} (${selectedAgentTier.price}/month, ${selectedAgentTier.inspections} inspections included).`
+    ? `Selected property practitioner pricing plan: ${selectedAgentTier.name} (${selectedAgentTier.price}/month, ${selectedAgentTier.inspections} inspections included).`
     : null
 
   function next() { setStep(s => s + 1) }
@@ -160,7 +160,7 @@ function RegisterForm() {
                 {selectedAgentTier.name} Plan
               </p>
               <p style={{ color: '#a0aec0', fontSize: '12px', marginBottom: '12px' }}>
-                Property intake will be tagged to your selected agent pricing tier.
+                Property intake will be tagged to your selected property practitioner pricing tier.
               </p>
               <p style={{ color: 'var(--gold)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
                 Monthly Retainer
@@ -320,10 +320,10 @@ function RegisterForm() {
                   <select
                     name="role_in_transaction"
                     style={inputStyle}
-                    defaultValue={selectedAgentTier ? 'Estate Agent' : 'Seller / Owner'}
+                    defaultValue={selectedAgentTier ? 'Property Practitioner' : 'Seller / Owner'}
                     required
                   >
-                    {['Seller / Owner', 'Estate Agent', 'Buyer', 'Conveyancer', 'Other Representative'].map(role => (
+                    {['Seller / Owner', 'Property Practitioner', 'Buyer', 'Conveyancer', 'Other Representative'].map(role => (
                       <option key={role} value={role}>{role}</option>
                     ))}
                   </select>
@@ -350,13 +350,13 @@ function RegisterForm() {
             </div>
           )}
 
-          {/* STEP 3 — Agent & Docs */}
+          {/* STEP 3 — Property Practitioner & Docs */}
           {step === 2 && (
             <div>
-              <h2 style={stepTitleStyle}>Agent Details <span style={{ color: '#a0aec0', fontSize: '13px', fontWeight: 400 }}>(Optional)</span></h2>
+              <h2 style={stepTitleStyle}>Property Practitioner Details <span style={{ color: '#a0aec0', fontSize: '13px', fontWeight: 400 }}>(Optional)</span></h2>
               <div style={gridStyle}>
                 <div>
-                  <label style={labelStyle}>Agent Name</label>
+                  <label style={labelStyle}>Property Practitioner Name</label>
                   <input name="agent_name" style={inputStyle} type="text" placeholder="e.g. Sarah Nkosi" />
                 </div>
                 <div>
@@ -364,11 +364,11 @@ function RegisterForm() {
                   <input name="agency" style={inputStyle} type="text" placeholder="e.g. Pam Golding Properties" />
                 </div>
                 <div>
-                  <label style={labelStyle}>Agent Email</label>
+                  <label style={labelStyle}>Property Practitioner Email</label>
                   <input name="agent_email" style={inputStyle} type="email" placeholder="e.g. sarah@pamgolding.co.za" />
                 </div>
                 <div>
-                  <label style={labelStyle}>Agent Contact Number</label>
+                  <label style={labelStyle}>Property Practitioner Contact Number</label>
                   <FpiaPhoneInput
                     name="agent_phone"
                     defaultValue=""

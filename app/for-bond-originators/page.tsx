@@ -29,7 +29,7 @@ export default function ForBondOriginators() {
 
             <div className="space-y-12">
               {[
-                { num: '01', title: 'Independent Asset Verification', body: 'An FPIA certificate is independent of the seller, agent, and buyer — giving lenders a neutral, third-party condition report they can rely on.' },
+                { num: '01', title: 'Independent Asset Verification', body: 'An FPIA certificate is independent of the seller, property practitioner, and buyer — giving lenders a neutral, third-party condition report they can rely on.' },
                 { num: '02', title: 'Reduce Valuation Surprises', body: 'Undisclosed defects are one of the biggest causes of bond complications post-approval. FPIA surfaces these before the application reaches the bank.' },
                 { num: '03', title: 'Support Faster Bond Approval', body: 'Certified properties arrive at the lender with documented condition history — fewer queries, fewer holdups, faster registration.' },
                 { num: '04', title: 'Protect Your Client Relationships', body: 'Originators who recommend FPIA protect their clients from post-transfer surprises — and build the kind of trust that generates referrals.' },

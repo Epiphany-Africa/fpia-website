@@ -78,7 +78,7 @@ const agentTiers = [
     highlight: false,
     features: [
       '48-hour priority scheduling',
-      'Agent dashboard access',
+      'Property practitioner dashboard access',
       'Digital certificates per property',
       'QR verification on all listings',
       'Email support',
@@ -94,7 +94,7 @@ const agentTiers = [
     badge: 'Most Popular',
     features: [
       '24-hour priority scheduling',
-      'Branded agent dashboard',
+      'Branded property practitioner dashboard',
       'Fast-track available (+R2,000)',
       'Automated certificate renewal alerts',
       'Dedicated account manager',

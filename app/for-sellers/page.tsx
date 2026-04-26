@@ -30,7 +30,7 @@ export default function ForSellers() {
             <div className="space-y-12">
               {[
                 { num: '01', title: 'Attract Serious Buyers', body: "A certified property filters out low-ball offers and time-wasters. Buyers know what they're getting — and they pay for it." },
-                { num: '02', title: 'Faster Transfer', body: 'No surprises during due diligence means fewer delays at the conveyancer. Certified properties move through the OTP window cleanly.' },
+                { num: '02', title: 'Faster Transfer', body: 'No surprises during due diligence means fewer delays for the property legal practitioner. Certified properties move through the OTP window cleanly.' },
                 { num: '03', title: 'Legal Protection', body: 'The FPIA certificate documents condition at time of sale — protecting you from post-transfer voetstoots disputes.' },
                 { num: '04', title: 'Market Credibility', body: "Display the Fair Property Certified™ seal on listings and show boards. It's a signal the market trusts." },
               ].map((item) => (

@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
     if (agentEmail && !isValidEmail(agentEmail)) {
       return NextResponse.json(
-        { error: "Please provide a valid agent email address." },
+        { error: "Please provide a valid property practitioner email address." },
         { status: 400 }
       );
     }
