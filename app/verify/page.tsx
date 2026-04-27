@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import LegalPositionCallout from '@/components/LegalPositionCallout'
+import QrScannerPanel from './QrScannerPanel'
 
 export default function Verify() {
   const router = useRouter()
@@ -107,41 +108,9 @@ export default function Verify() {
           <p style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>Option 02</p>
           <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '26px', color: 'var(--navy)', marginBottom: '8px' }}>Scan QR Code</h2>
           <p style={{ color: '#6C7077', fontSize: '14px', lineHeight: 1.7, marginBottom: '32px' }}>
-            Use your phone camera or a QR scanner app to scan the code on the FPIA show board or listing printout.
+            Use your phone camera to scan the code on the FPIA show board, certificate, or listing printout.
           </p>
-          <div style={{
-            border: '2px dashed rgba(201,161,77,0.4)',
-            backgroundColor: 'var(--off-white)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '40px',
-            gap: '16px',
-          }}>
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="4" y="4" width="24" height="24" rx="2" stroke="#C9A14D" strokeWidth="2" fill="none"/>
-              <rect x="10" y="10" width="12" height="12" fill="#C9A14D"/>
-              <rect x="36" y="4" width="24" height="24" rx="2" stroke="#C9A14D" strokeWidth="2" fill="none"/>
-              <rect x="42" y="10" width="12" height="12" fill="#C9A14D"/>
-              <rect x="4" y="36" width="24" height="24" rx="2" stroke="#C9A14D" strokeWidth="2" fill="none"/>
-              <rect x="10" y="42" width="12" height="12" fill="#C9A14D"/>
-              <rect x="36" y="36" width="4" height="4" fill="#C9A14D"/>
-              <rect x="44" y="36" width="4" height="4" fill="#C9A14D"/>
-              <rect x="52" y="36" width="8" height="4" fill="#C9A14D"/>
-              <rect x="36" y="44" width="8" height="4" fill="#C9A14D"/>
-              <rect x="48" y="44" width="4" height="4" fill="#C9A14D"/>
-              <rect x="36" y="52" width="4" height="8" fill="#C9A14D"/>
-              <rect x="44" y="52" width="8" height="4" fill="#C9A14D"/>
-              <rect x="56" y="50" width="4" height="10" fill="#C9A14D"/>
-            </svg>
-            <p style={{ color: '#6C7077', fontSize: '13px', textAlign: 'center', lineHeight: 1.6 }}>
-              Point your phone camera at the QR code on the property show board
-            </p>
-            <p style={{ color: '#a0aec0', fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-              QR scanner coming soon
-            </p>
-          </div>
+          <QrScannerPanel />
         </div>
 
         {/* Option 3 — Get Certified */}
