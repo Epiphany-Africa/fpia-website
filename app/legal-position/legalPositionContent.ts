@@ -22,10 +22,12 @@ export const legalPositionSections = [
   },
   {
     id: 'voetstoots',
-    title: 'How FPIA interacts with voetstoots',
+    title: 'How FPIA interacts with voetstoots, patent defects, and latent defects',
     paragraphs: [
       'FPIA does not cancel, override, or rewrite a voetstoots clause. A sale agreement still governs the parties’ bargain, and common-law principles still matter.',
-      'What FPIA does is improve the factual position around the transaction. A dated inspection record, structured findings, and a persistent registry reference reduce the space in which uncertainty, omission, or later dispute can grow.',
+      'Public legal commentary describes patent defects as those visible on reasonable inspection, while latent defects are hidden or not obvious on ordinary inspection.',
+      'FPIA does not determine legal liability. What it does is strengthen the factual record around observable condition, timing, and disclosure context through a dated inspection record, structured findings, and a persistent registry reference.',
+      'An FPIA inspection can convert potential latent defect exposure into documented, dated findings, reducing the risk of post-transfer dispute based on claims of non-disclosure.',
       'If a condition is known, recorded, or surfaced before signature or before waiver of a suspensive condition, the parties can negotiate from a clearer evidentiary base. If a seller knows of a material issue and fails to disclose it, FPIA does not excuse that failure.',
     ],
   },
@@ -34,17 +36,19 @@ export const legalPositionSections = [
     title: 'How FPIA interacts with the CPA',
     paragraphs: [
       'FPIA does not create Consumer Protection Act rights, and it does not remove them. Where CPA protections apply, they arise from the Act itself and from the nature of the supplier, consumer, and transaction.',
-      'FPIA can, however, materially improve the quality of the record around condition, disclosure, inspection scope, and timing. That can help parties and advisers understand what was known, what was represented, and what was verified at the relevant time.',
+      'Most residential property in South Africa is sold by private once-off sellers who fall outside the practical reach of CPA protection. FPIA operates independently of that gap. The inspection record, evidence trail, certificate outcome, and registry entry exist regardless of whether the CPA applies to the transaction.',
+      'FPIA can still materially improve the quality of the record around condition, disclosure, inspection scope, and timing. That can help parties and advisers understand what was known, what was represented, and what was verified at the relevant time.',
       'In short: the CPA is the legal framework where it applies; FPIA is an accountability layer that can strengthen the factual environment around that framework.',
     ],
   },
   {
     id: 'ppra',
-    title: 'How FPIA interacts with PPRA disclosure obligations',
+    title: 'How FPIA interacts with the Property Practitioners Act 22 of 2019 and mandatory disclosure obligations',
     paragraphs: [
-      'FPIA does not replace the statutory disclosure duties that apply to property practitioners and sellers, including the mandatory disclosure process contemplated under the Property Practitioners Act framework.',
-      'Those obligations remain in force whether a property is FPIA-linked or not. The duty to obtain, complete, provide, and attach the required disclosure documentation remains a legal and transactional responsibility.',
-      'FPIA can support that process by improving the factual quality of the information available, prompting earlier issue identification, and creating a clearer supporting record for what was disclosed and when.',
+      'The Property Practitioners Act 22 of 2019 forms a central part of the current South African property-regulatory framework. Section 67 requires a property practitioner not to accept a mandate unless the seller or lessor has provided a fully completed and signed mandatory disclosure form, requires that form to be provided to a prospective purchaser or lessee, and requires that it be attached to the agreement of sale or lease.',
+      'The PPRA mandatory disclosure form therefore remains legally relevant wherever that Act applies. If the form is not completed, signed, or attached as required, the agreement must be interpreted as if no defects or deficiencies were disclosed to the purchaser.',
+      'FPIA does not replace the mandatory disclosure form. It strengthens the factual and evidentiary environment around it.',
+      'That means FPIA complements rather than replaces the mandatory disclosure framework. It can improve the factual quality of the information available, prompt earlier issue identification, and create a clearer supporting record around what was disclosed and when.',
     ],
   },
   {
