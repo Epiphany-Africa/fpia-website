@@ -57,6 +57,32 @@ function formatDateTime(input: string | null | undefined) {
   }).format(date)
 }
 
+function formatCurrency(amount: number | null | undefined, currency = 'ZAR') {
+  if (typeof amount !== 'number' || Number.isNaN(amount)) {
+    return null
+  }
+
+  return new Intl.NumberFormat('en-ZA', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+function getReinstatementPendingCopy(certificate: CertificateRow | null) {
+  const missingInputs = Array.isArray(certificate?.reinstatement_estimate_inputs?.missing_inputs)
+    ? (certificate?.reinstatement_estimate_inputs?.missing_inputs as unknown[]).filter(
+        (value): value is string => typeof value === 'string' && value.trim().length > 0
+      )
+    : []
+
+  if (missingInputs.length > 0) {
+    return `Estimate pending required inputs: ${missingInputs.join(', ')}.`
+  }
+
+  return 'Estimate not available on this issued record.'
+}
+
 function getWatermarkHashLabel(hash: string | null | undefined) {
   if (!hash || hash === 'No active verification hash') {
     return 'HASH VERIFIED: RECORD PENDING'
@@ -797,6 +823,48 @@ export default async function VerifyProperty({
                 </p>
               </div>
             </div>
+          </div>
+
+          <div style={sectionCardStyle}>
+            <p style={sectionLabelStyle}>Reinstatement Cost Estimate</p>
+
+            <div style={detailGridStyle}>
+              <div>
+                <p style={detailLabelStyle}>Estimate</p>
+                <p style={sectionHeadingStyle}>
+                  {formatCurrency(
+                    certificate?.reinstatement_estimate_amount ?? null,
+                    certificate?.reinstatement_estimate_currency ?? 'ZAR'
+                  ) ?? 'Estimate pending required inputs'}
+                </p>
+              </div>
+
+              <div>
+                <p style={detailLabelStyle}>Model Version</p>
+                <p style={detailValueStyle}>
+                  {certificate?.reinstatement_estimate_model_version ?? 'Not available'}
+                </p>
+              </div>
+
+              <div>
+                <p style={detailLabelStyle}>Estimate Date</p>
+                <p style={detailValueStyle}>
+                  {formatDate(certificate?.reinstatement_estimate_generated_at)}
+                </p>
+              </div>
+            </div>
+
+            <p style={{ ...detailValueStyle, marginTop: '18px' }}>
+              Estimated rebuild or reinstatement cost for the fixed improvements.
+            </p>
+            <p style={{ color: '#6C7077', margin: '10px 0 0 0', fontSize: '14px', lineHeight: 1.7 }}>
+              {certificate?.reinstatement_estimate_basis_summary ??
+                getReinstatementPendingCopy(certificate ?? null)}
+            </p>
+            <p style={{ color: '#6C7077', margin: '10px 0 0 0', fontSize: '14px', lineHeight: 1.7 }}>
+              {certificate?.reinstatement_estimate_disclaimer ??
+                'This estimate is not market value, not a formal valuation, and not a substitute for insurer or lender valuation requirements.'}
+            </p>
           </div>
 
           <div style={sectionCardStyle}>

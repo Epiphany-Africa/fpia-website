@@ -39,6 +39,8 @@ export type PropertyRow = {
   status?: string | null
   transaction_stage?: string | null
   property_type?: string | null
+  floor_area_m2?: number | null
+  finish_tier?: string | null
   notes?: string | null
   risk_score?: number | null
   created_at?: string | null
@@ -84,6 +86,13 @@ export type CertificateRow = {
   fail_items: number | null
   material_items: number | null
   observation_items: number | null
+  reinstatement_estimate_amount?: number | null
+  reinstatement_estimate_currency?: string | null
+  reinstatement_estimate_basis_summary?: string | null
+  reinstatement_estimate_model_version?: string | null
+  reinstatement_estimate_disclaimer?: string | null
+  reinstatement_estimate_generated_at?: string | null
+  reinstatement_estimate_inputs?: Record<string, unknown> | null
 }
 
 export type CaseRow = {

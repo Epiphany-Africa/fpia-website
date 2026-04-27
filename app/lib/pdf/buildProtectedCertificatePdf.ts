@@ -28,6 +28,18 @@ function formatDate(input?: string | null) {
   }).format(date)
 }
 
+function formatCurrency(amount?: number | null, currency = 'ZAR') {
+  if (typeof amount !== 'number' || Number.isNaN(amount)) {
+    return 'Estimate pending required inputs'
+  }
+
+  return new Intl.NumberFormat('en-ZA', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
 function normalizeAssetPath(input: string | null | undefined, fallback?: string | null) {
   const value = input?.trim()
 
@@ -490,6 +502,13 @@ export async function buildProtectedCertificatePdf(id: string) {
   detailRow('Certificate ID', documentId)
   detailRow('Issued', issuedLabel)
   detailRow('Valid Until', validUntilLabel)
+  detailRow(
+    'Reinstatement Estimate',
+    formatCurrency(
+      certificate?.reinstatement_estimate_amount ?? null,
+      certificate?.reinstatement_estimate_currency ?? 'ZAR'
+    )
+  )
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -521,11 +540,22 @@ export async function buildProtectedCertificatePdf(id: string) {
   )
   doc.text(
     doc.splitTextToSize(
-      'PDF permissions restrict copying, editing, annotation, and extraction in compliant PDF viewers. Any alteration invalidates authenticity and must be checked against the live registry.',
+      certificate?.reinstatement_estimate_basis_summary ??
+        'Reinstatement estimate not available on this issued record.',
       150
     ),
     22,
-    y + 18
+    y + 12
+  )
+  doc.text(
+    doc.splitTextToSize(
+      (certificate?.reinstatement_estimate_disclaimer ??
+        'This estimate is not market value, not a formal quantity-surveyor valuation, and not a substitute for insurer or lender valuation requirements.') +
+        ' PDF permissions restrict copying, editing, annotation, and extraction in compliant PDF viewers. Any alteration invalidates authenticity and must be checked against the live registry.',
+      150
+    ),
+    22,
+    y + 25
   )
 
   const authorityTopY = 222
