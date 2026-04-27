@@ -60,6 +60,13 @@ const INQUIRY_PRESETS: Record<string, InquiryPreset> = {
     message:
       "I've created or want to create a Property Passport for my home. Please contact me about document verification, missing records, and how to turn my uploaded files into FPIA-verified records.",
   },
+  renewal: {
+    label: 'Certificate Renewal',
+    role: 'Seller',
+    summary: 'R2,500 renewal inspection request.',
+    message:
+      "I need to renew an FPIA certificate and schedule the R2,500 renewal inspection. Please advise on the next available dates and required documents.",
+  },
 }
 
 function ContactPageForm() {
