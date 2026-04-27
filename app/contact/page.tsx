@@ -1,5 +1,6 @@
 'use client'
 import { Suspense, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
 type InquiryPreset = {
@@ -274,14 +275,40 @@ function ContactPageForm() {
                 Direct Contact
               </p>
               {[
-                { label: 'Stephen van der Merwe', value: '+27 74 273 7869' },
-                { label: 'Rolise Bester', value: '+27 63 029 7665' },
-                { label: 'Andy Wille', value: '+27 71 474 6449' },
-                { label: 'Email', value: 'info@fairproperties.org.za' },
+                {
+                  label: 'Stephen van der Merwe',
+                  value: '+27 74 273 7869',
+                  href: 'tel:+27742737869',
+                },
+                {
+                  label: 'Rolise Bester',
+                  value: '+27 63 029 7665',
+                  href: 'tel:+27630297665',
+                },
+                {
+                  label: 'Andy Wille',
+                  value: '+27 71 474 6449',
+                  href: 'tel:+27714746449',
+                },
+                {
+                  label: 'Email',
+                  value: 'info@fairproperties.org.za',
+                  href: 'mailto:info@fairproperties.org.za',
+                },
               ].map((c) => (
                 <div key={c.label} style={{ marginBottom: '12px' }}>
                   <span style={{ color: 'var(--slate)', fontSize: '13px' }}>{c.label}: </span>
-                  <span style={{ color: 'var(--off-white)', fontSize: '13px', fontWeight: 600 }}>{c.value}</span>
+                  <Link
+                    href={c.href}
+                    style={{
+                      color: 'var(--off-white)',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {c.value}
+                  </Link>
                 </div>
               ))}
             </div>
