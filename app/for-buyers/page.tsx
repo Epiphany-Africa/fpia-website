@@ -36,7 +36,7 @@ export default function ForBuyers() {
         </h1>
         <hr style={{ border: 'none', borderTop: '2px solid var(--gold)', width: '60px', marginBottom: '24px' }} />
         <p style={{ color: '#a0aec0', fontSize: '18px', maxWidth: '560px', lineHeight: 1.7 }}>
-          A FPIA certificate gives you independent, verified proof of a property&rsquo;s condition before you sign — protecting you from hidden defects and post-transfer disputes.
+          A FPIA certificate gives you independent, verified proof of a property&rsquo;s condition before you sign — reducing hidden-defect risk and improving factual clarity before transfer.
         </p>
       </section>
 
@@ -51,7 +51,7 @@ export default function ForBuyers() {
           In South Africa, property is sold voetstoots — meaning the buyer accepts the property in its current condition. While sellers are obligated to disclose known defects, latent defects (those not visible or known at time of sale) frequently surface only after transfer.
         </p>
         <p style={{ fontSize: '16px', lineHeight: 1.8, color: '#444' }}>
-          Legal recourse is expensive, slow, and rarely successful. The burden of proof falls on the buyer to demonstrate the seller had prior knowledge — a near-impossible standard in most cases.
+          Legal recourse can be expensive and slow. Where disputes arise, the underlying difficulty is usually evidentiary: what was known, what was disclosed, and what can be proved after the fact.
         </p>
       </section>
 

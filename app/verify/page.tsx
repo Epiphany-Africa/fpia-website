@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import LegalPositionCallout from '@/components/LegalPositionCallout'
 
 export default function Verify() {
   const router = useRouter()
@@ -235,11 +236,18 @@ export default function Verify() {
         ))}
       </section>
 
+      <section className="fpia-verify-legal" style={{ backgroundColor: '#0f2845', padding: '0 80px 52px' }}>
+        <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
+          <LegalPositionCallout compact />
+        </div>
+      </section>
+
       <style jsx>{`
         @media (max-width: 980px) {
           .fpia-verify-hero,
           .fpia-verify-options,
-          .fpia-verify-steps-strip {
+          .fpia-verify-steps-strip,
+          .fpia-verify-legal {
             padding-left: 32px !important;
             padding-right: 32px !important;
           }
@@ -257,7 +265,8 @@ export default function Verify() {
         @media (max-width: 640px) {
           .fpia-verify-hero,
           .fpia-verify-options,
-          .fpia-verify-steps-strip {
+          .fpia-verify-steps-strip,
+          .fpia-verify-legal {
             padding-left: 18px !important;
             padding-right: 18px !important;
           }
@@ -294,6 +303,10 @@ export default function Verify() {
             padding-top: 32px !important;
             padding-bottom: 36px !important;
             gap: 22px !important;
+          }
+
+          .fpia-verify-legal {
+            padding-bottom: 36px !important;
           }
         }
       `}</style>

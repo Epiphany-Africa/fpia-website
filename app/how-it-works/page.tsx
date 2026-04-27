@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import LegalPositionCallout from '@/components/LegalPositionCallout'
 
 export default function HowItWorks() {
   return (
@@ -72,6 +73,10 @@ export default function HowItWorks() {
             </div>
           </div>
         ))}
+
+        <div style={{ maxWidth: '900px', paddingTop: '8px' }}>
+          <LegalPositionCallout />
+        </div>
       </section>
 
       {/* CTA */}

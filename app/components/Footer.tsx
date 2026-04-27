@@ -23,6 +23,7 @@ const audienceLinks = [
 
 const utilityLinks = [
   { label: 'Admin Login', href: '/admin' },
+  { label: 'Legal Position', href: '/legal-position' },
   { label: 'Agency Accounts', href: '/contact?inquiry=agency-account' },
   { label: 'Certificate Renewal', href: '/contact?inquiry=renewal' },
 ]

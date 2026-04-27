@@ -1,5 +1,6 @@
 
 import { CertificateRenewalBanner } from '@/components/pricing-sections'
+import LegalPositionCallout from '@/components/LegalPositionCallout'
 
 export default function ForSellers() {
   return (
@@ -16,7 +17,7 @@ export default function ForSellers() {
             <div className="w-12 h-0.5 bg-[#C9A14D] mb-8" />
             <p className="max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg">
               An FPIA certificate signals transparency — helping serious buyers commit faster
-              and protecting you from post-sale disputes.
+              and giving the transaction a stronger factual record if questions arise later.
             </p>
           </div>
         </section>
@@ -31,7 +32,7 @@ export default function ForSellers() {
               {[
                 { num: '01', title: 'Attract Serious Buyers', body: "A certified property filters out low-ball offers and time-wasters. Buyers know what they're getting — and they pay for it." },
                 { num: '02', title: 'Faster Transfer', body: 'No surprises during due diligence means fewer delays for the property legal practitioner. Certified properties move through the OTP window cleanly.' },
-                { num: '03', title: 'Legal Protection', body: 'The FPIA certificate documents condition at time of sale — protecting you from post-transfer voetstoots disputes.' },
+                { num: '03', title: 'Stronger Position', body: 'The FPIA certificate documents condition at time of sale — improving evidentiary clarity if a post-transfer voetstoots dispute later arises.' },
                 { num: '04', title: 'Market Credibility', body: "Display the Fair Property Certified™ seal on listings and show boards. It's a signal the market trusts." },
               ].map((item) => (
                 <div key={item.num} className="flex flex-col gap-4 border-t border-gray-200 pt-8 sm:flex-row sm:gap-10 sm:pt-10">
@@ -43,6 +44,12 @@ export default function ForSellers() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="bg-[#f5f0e8] px-5 pb-8 sm:px-8 md:pb-12">
+          <div className="max-w-4xl mx-auto">
+            <LegalPositionCallout />
           </div>
         </section>
 
