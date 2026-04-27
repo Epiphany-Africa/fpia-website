@@ -798,12 +798,22 @@ export function CertificateRenewalBanner() {
                 marginLeft: 6,
               }}
             >
-              renewal inspection
-            </span>
-          </div>
-          <Link href="/contact?inquiry=renewal" style={styles.ctaOutlineNavy}>
-            Renew Certificate
-          </Link>
+                renewal inspection
+              </span>
+            </div>
+          <p
+            style={{
+              margin: 0,
+              maxWidth: 240,
+              textAlign: 'right',
+              fontSize: 12,
+              lineHeight: 1.6,
+              color: '#666',
+              fontFamily: 'DM Sans, sans-serif',
+            }}
+          >
+            Renewal scheduling is handled directly by the FPIA team when applicable.
+          </p>
         </div>
       </div>
 
