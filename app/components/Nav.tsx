@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
-const dropdownLinks = [
+const audienceLinks = [
   { label: 'For Buyers', href: '/for-buyers' },
   { label: 'For Sellers', href: '/for-sellers' },
   { label: 'For Property Practitioners', href: '/for-agents' },
@@ -14,11 +14,27 @@ const dropdownLinks = [
   { label: 'For Bond Originators', href: '/for-bond-originators' },
 ]
 
-const mainLinks = [
+const desktopMainLinks = [
   { label: 'Home', href: '/' },
   { label: 'How It Works', href: '/how-it-works' },
   { label: 'Property Passport', href: '/property-passport' },
   { label: 'Registry', href: '/verify' },
+]
+
+const mobilePrimaryLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'Request Inspection', href: '/request-inspection' },
+  { label: 'Register Property', href: '/register' },
+  { label: 'Property Passport', href: '/property-passport' },
+  { label: 'Verify Certificate', href: '/verify' },
+  { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Contact', href: '/contact' },
+]
+
+const utilityLinks = [
+  { label: 'Admin Login', href: '/admin' },
+  { label: 'Agency Accounts', href: '/contact?inquiry=agency-account' },
+  { label: 'Certificate Renewal', href: '/contact?inquiry=renewal' },
 ]
 
 function navLinkStyle(active: boolean): CSSProperties {
@@ -68,19 +84,41 @@ function dropdownItemStyle(active: boolean): CSSProperties {
   }
 }
 
-const mobileLinkStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  minHeight: '48px',
-  padding: '0 14px',
-  borderRadius: '14px',
-  textDecoration: 'none',
-  fontSize: '13px',
-  fontWeight: 700,
-  letterSpacing: '0.04em',
-  border: '1px solid rgba(255, 255, 255, 0.12)',
-  background: 'rgba(255, 255, 255, 0.08)',
-  color: '#ffffff',
+function mobileLinkStyle(active: boolean, emphasis: 'default' | 'primary' = 'default'): CSSProperties {
+  if (emphasis === 'primary') {
+    return {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '48px',
+      padding: '0 14px',
+      borderRadius: '14px',
+      textDecoration: 'none',
+      fontSize: '13px',
+      fontWeight: 700,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      background: 'var(--gold)',
+      color: 'var(--navy)',
+    }
+  }
+
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    minHeight: '48px',
+    padding: '0 14px',
+    borderRadius: '14px',
+    textDecoration: 'none',
+    fontSize: '13px',
+    fontWeight: 700,
+    letterSpacing: '0.04em',
+    border: active
+      ? '1px solid rgba(201, 161, 77, 0.36)'
+      : '1px solid rgba(255, 255, 255, 0.12)',
+    background: active ? 'rgba(201, 161, 77, 0.14)' : 'rgba(255, 255, 255, 0.08)',
+    color: '#ffffff',
+  }
 }
 
 function subscribeViewport(callback: () => void) {
@@ -112,7 +150,7 @@ export default function Nav() {
   )
   const mobileOpenEffective = isMobileViewport && mobileOpen
 
-  const dropdownActive = dropdownLinks.some((link) => link.href === path)
+  const dropdownActive = audienceLinks.some((link) => link.href === path)
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -151,6 +189,11 @@ export default function Nav() {
       document.body.style.overflow = ''
     }
   }, [mobileOpenEffective])
+
+  useEffect(() => {
+    setDesktopOpen(false)
+    setMobileOpen(false)
+  }, [path])
 
   return (
     <>
@@ -196,7 +239,7 @@ export default function Nav() {
           </Link>
 
           <div className="relative z-[3] hidden items-center justify-end gap-[10px] md:flex">
-            {mainLinks.map((link) => (
+            {desktopMainLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -232,7 +275,7 @@ export default function Nav() {
                   role="menu"
                   className="absolute left-1/2 top-[calc(100%+12px)] z-20 min-w-[236px] -translate-x-1/2 rounded-[18px] border border-[rgba(201,161,77,0.26)] bg-[#0f2845] p-[10px] shadow-[0_22px_50px_rgba(0,0,0,0.22)]"
                 >
-                  {dropdownLinks.map((link) => (
+                  {audienceLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
@@ -325,11 +368,11 @@ export default function Nav() {
           </div>
 
           <div className="grid gap-2">
-            {mainLinks.map((link) => (
+            {mobilePrimaryLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                style={mobileLinkStyle}
+                style={mobileLinkStyle(path === link.href)}
                 onClick={() => {
                   setDesktopOpen(false)
                   setMobileOpen(false)
@@ -339,16 +382,6 @@ export default function Nav() {
               </Link>
             ))}
 
-            <Link
-              href="/contact"
-              style={mobileLinkStyle}
-              onClick={() => {
-                setDesktopOpen(false)
-                setMobileOpen(false)
-              }}
-            >
-              Contact
-            </Link>
           </div>
 
           <div
@@ -366,11 +399,41 @@ export default function Nav() {
             For You
           </div>
           <div className="grid gap-2">
-            {dropdownLinks.map((link) => (
+            {audienceLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                style={mobileLinkStyle}
+                style={mobileLinkStyle(path === link.href)}
+                onClick={() => {
+                  setDesktopOpen(false)
+                  setMobileOpen(false)
+                }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div
+            className="my-[18px] h-px"
+            style={{
+              background:
+                'linear-gradient(90deg, rgba(201, 161, 77, 0), rgba(201, 161, 77, 0.36) 18%, rgba(201, 161, 77, 0.36) 82%, rgba(201, 161, 77, 0))',
+            }}
+          />
+
+          <div
+            className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em]"
+            style={{ color: 'rgba(201, 161, 77, 0.8)' }}
+          >
+            Utilities
+          </div>
+          <div className="grid gap-2">
+            {utilityLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                style={mobileLinkStyle(path === link.href)}
                 onClick={() => {
                   setDesktopOpen(false)
                   setMobileOpen(false)
@@ -390,14 +453,15 @@ export default function Nav() {
           />
 
           <Link
-            href="/register"
-            className="flex min-h-12 items-center justify-center rounded-[14px] bg-[var(--gold)] px-[14px] text-[13px] font-bold uppercase tracking-[0.12em] no-underline text-[var(--navy)]"
+            href="/request-inspection"
+            className="flex min-h-12 items-center justify-center rounded-[14px] px-[14px] no-underline"
+            style={mobileLinkStyle(false, 'primary')}
             onClick={() => {
               setDesktopOpen(false)
               setMobileOpen(false)
             }}
           >
-            Register a Property
+            Request Inspection
           </Link>
         </div>
       ) : null}
