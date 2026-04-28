@@ -345,6 +345,29 @@ function buildVerificationHashDisplay(hash: string) {
   return groups.join(' ')
 }
 
+function drawIntegrityWatermark(doc: jsPDF, integrityReference: string) {
+  const angle = 24
+  const startX = 44
+  const startY = 170
+
+  doc.saveGraphicsState()
+  doc.setGState(doc.GState({ opacity: 0.06, 'stroke-opacity': 0.06 }))
+  doc.setTextColor(168, 176, 186)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(32)
+  doc.text('FPIA', startX, startY, { angle })
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', startX + 17, startY + 14, { angle })
+
+  doc.setFont('courier', 'bold')
+  doc.setFontSize(9)
+  doc.text(`REF ${integrityReference}`, startX + 39, startY + 28, { angle })
+  doc.restoreGraphicsState()
+}
+
 export async function buildProtectedCertificatePdf(id: string) {
   const record = await loadPublicVerificationRecord(id)
   const {
@@ -571,6 +594,8 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setDrawColor(210, 210, 210)
   doc.line(20, 116, 190, 116)
 
+  drawIntegrityWatermark(doc, integrityReference)
+
   doc.setTextColor(...grey)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
@@ -629,19 +654,6 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setFontSize(8.5)
   doc.setTextColor(...grey)
   doc.text(doc.splitTextToSize(certificateBodyCopy, 150), 22, y + 5)
-
-  doc.setTextColor(239, 241, 244)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(26)
-  doc.text('FPIA', 105, y + 26, { align: 'center' })
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8.5)
-  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', 105, y + 31, { align: 'center' })
-
-  doc.setFont('courier', 'bold')
-  doc.setFontSize(8)
-  doc.text(`REF ${integrityReference}`, 105, y + 35, { align: 'center' })
 
   const authorityTopY = 222
   const signatureLineY = authorityTopY
