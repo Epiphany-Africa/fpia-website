@@ -676,10 +676,10 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.2)
   doc.setTextColor(...grey)
-  doc.text('This document is cryptographically anchored to the FPIA registry.', 105, footerY - 3, {
+  doc.text('This document is cryptographically anchored to the FPIA registry.', 105, footerY - 4.6, {
     align: 'center',
   })
-  doc.text('This estimate is not market value or a formal valuation.', 105, footerY + 0.5, {
+  doc.text('This estimate is not market value or a formal valuation.', 105, footerY - 1.4, {
     align: 'center',
   })
 
@@ -690,6 +690,7 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setFontSize(7.5)
   doc.setTextColor(210, 210, 210)
   doc.text('Verified on the official FPIA registry', 22, footerY + 5)
+  doc.text('www.fairproperties.org.za', 105, footerY + 5, { align: 'center' })
 
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...gold)
