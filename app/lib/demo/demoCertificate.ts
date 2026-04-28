@@ -1,0 +1,1 @@
+export const DEMO_CERTIFICATE_ID = 'FPIA-DEMO-00142'

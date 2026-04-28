@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import LegalPositionCallout from '@/components/LegalPositionCallout'
+import { DEMO_CERTIFICATE_ID } from '@/lib/demo/demoCertificate'
 import QrScannerPanel from './QrScannerPanel'
 
 export default function Verify() {
@@ -72,7 +73,7 @@ export default function Verify() {
             <input
               style={inputStyle}
               type="text"
-              placeholder="e.g. ZA-2024-00142"
+              placeholder={`e.g. ${DEMO_CERTIFICATE_ID}`}
               value={certNumber}
               onChange={(e) => { setCertNumber(e.target.value); setError('') }}
             />
@@ -81,7 +82,7 @@ export default function Verify() {
              Try demo certificate:{' '}
           <button
               type="button"
-              onClick={() => router.push('/verify/FPIA-6AF4CF0170')}
+              onClick={() => router.push(`/verify/${DEMO_CERTIFICATE_ID}`)}
               style={{
                 background: 'none',
                 border: 'none',
@@ -94,7 +95,7 @@ export default function Verify() {
                 fontWeight: 600,
               }}
             >
-              FPIA-6AF4CF0170
+              {DEMO_CERTIFICATE_ID}
           </button>
         </p>
 

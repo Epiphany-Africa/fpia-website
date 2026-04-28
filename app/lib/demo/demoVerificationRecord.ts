@@ -1,4 +1,4 @@
-const DEMO_RECORD_ID = 'ZA-2024-00142'
+import { DEMO_CERTIFICATE_ID } from '@/lib/demo/demoCertificate'
 
 export type DemoVerificationRecord = {
   registry: {
@@ -36,6 +36,7 @@ export type DemoVerificationRecord = {
     status?: string | null
     transaction_stage?: string | null
     property_type?: string | null
+    floor_area_m2?: number | null
     notes?: string | null
     risk_score?: number | null
     created_at?: string | null
@@ -73,6 +74,13 @@ export type DemoVerificationRecord = {
     fail_items: number | null
     material_items: number | null
     observation_items: number | null
+    reinstatement_estimate_amount?: number | null
+    reinstatement_estimate_currency?: string | null
+    reinstatement_estimate_basis_summary?: string | null
+    reinstatement_estimate_model_version?: string | null
+    reinstatement_estimate_disclaimer?: string | null
+    reinstatement_estimate_generated_at?: string | null
+    reinstatement_estimate_inputs?: Record<string, unknown> | null
   }
   caseRecord: {
     id: string
@@ -120,7 +128,7 @@ const DEMO_VERIFICATION_RECORD: DemoVerificationRecord = {
     id: 'demo-registry-za-2024-00142',
     property_id: 'demo-property-14-protea-avenue',
     inspector_id: 'demo-inspector-svdm',
-    report_code: DEMO_RECORD_ID,
+    report_code: DEMO_CERTIFICATE_ID,
     property_code: 'FPIA-SAN-14-PROTEA',
     issued_at: '2024-03-14T09:00:00+02:00',
     status: 'active',
@@ -139,7 +147,7 @@ const DEMO_VERIFICATION_RECORD: DemoVerificationRecord = {
     review_outcome: 'approved',
     review_notes: 'Demo record approved for public verification display.',
     submitted_for_review_at: '2024-03-14T17:10:00+02:00',
-    certificate_number: DEMO_RECORD_ID,
+    certificate_number: DEMO_CERTIFICATE_ID,
   },
   property: {
     id: 'demo-property-14-protea-avenue',
@@ -151,6 +159,7 @@ const DEMO_VERIFICATION_RECORD: DemoVerificationRecord = {
     status: 'verified',
     transaction_stage: 'pre-market',
     property_type: 'Freehold Residential',
+    floor_area_m2: 286,
     notes: 'Stable public demo record used for the FPIA showcase journey.',
     risk_score: 8,
     created_at: '2024-03-12T09:00:00+02:00',
@@ -166,7 +175,7 @@ const DEMO_VERIFICATION_RECORD: DemoVerificationRecord = {
     issued_at: '2024-03-15T12:15:00+02:00',
     certificate_type: 'Official Property Condition Record',
     inspection_status: 'pass',
-    verification_ref: DEMO_RECORD_ID,
+    verification_ref: DEMO_CERTIFICATE_ID,
     recommendation:
       'No material defects affecting certification were recorded at the time of inspection.',
     snapshot: {
@@ -189,11 +198,25 @@ const DEMO_VERIFICATION_RECORD: DemoVerificationRecord = {
     hash_version: 'v1',
     signature_image_url: '/signatures/INS-001.png',
     stamp_image_url: null,
-    certificate_number: DEMO_RECORD_ID,
+    certificate_number: DEMO_CERTIFICATE_ID,
     trust_score: 96,
     fail_items: 0,
     material_items: 0,
     observation_items: 0,
+    reinstatement_estimate_amount: 3185000,
+    reinstatement_estimate_currency: 'ZAR',
+    reinstatement_estimate_basis_summary:
+      'Estimate generated from recorded floor area, residential rebuild benchmark assumptions, and standard authority-side reinstatement inputs for a freehold residential property.',
+    reinstatement_estimate_model_version: 'FPIA-RC-v0.9',
+    reinstatement_estimate_disclaimer:
+      'This estimate is not market value, not a formal valuation, and not a substitute for insurer or lender valuation requirements.',
+    reinstatement_estimate_generated_at: '2024-03-15T11:40:00+02:00',
+    reinstatement_estimate_inputs: {
+      floor_area_m2: 286,
+      property_type: 'Freehold Residential',
+      quality_band: 'standard',
+      missing_inputs: [],
+    },
   },
   caseRecord: {
     id: 'demo-case-14-protea-avenue',
@@ -273,7 +296,7 @@ const DEMO_VERIFICATION_RECORD: DemoVerificationRecord = {
 }
 
 export function isDemoVerificationRecord(id: string) {
-  return id.toUpperCase() === DEMO_RECORD_ID
+  return id.toUpperCase() === DEMO_CERTIFICATE_ID
 }
 
 export function getDemoVerificationRecord(id: string): DemoVerificationRecord | null {
