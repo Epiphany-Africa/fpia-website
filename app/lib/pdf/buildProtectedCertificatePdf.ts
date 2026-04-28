@@ -9,11 +9,19 @@ import {
   type TrustOutcome,
 } from '@/lib/certification/getCanonicalTrustState'
 import { getTrustBadgeMeta } from '@/lib/certification/getTrustBadgeMeta'
-import { loadPublicVerificationRecord } from '@/lib/verification/loadPublicVerificationRecord'
+import {
+  loadPublicVerificationRecord,
+  type CaseRow,
+  type PropertyRow,
+} from '@/lib/verification/loadPublicVerificationRecord'
 
 const COMPANY_NAME = 'Fair Properties Inspection Authority (Pty) Ltd'
 const ALLOWED_REMOTE_HOSTS = new Set(['lpgvjyxwouttbvpgivtu.supabase.co'])
 const PUBLIC_DIR = path.resolve(process.cwd(), 'public')
+const FORBIDDEN_PUBLIC_PDF_PHRASES = ['Case record only', 'Registry lookup only']
+const FORBIDDEN_PDF_BODY_PHRASES = ['This estimate is not market value']
+const REINSTATEMENT_ESTIMATE_NOTE =
+  'Indicative reinstatement estimate only. Not market value or a formal valuation.'
 
 function formatDate(input?: string | null) {
   if (!input) return 'Not available'
@@ -228,6 +236,115 @@ function getTopNoteText(trustState: TrustOutcome) {
   return 'No active certification is currently in force for this property.'
 }
 
+function cleanText(value: string | null | undefined) {
+  const cleaned = value?.replace(/\s+/g, ' ').trim()
+  return cleaned ? cleaned : null
+}
+
+function assertNoForbiddenPdfCopy(
+  value: string,
+  context: string,
+  forbiddenPhrases = FORBIDDEN_PUBLIC_PDF_PHRASES
+) {
+  for (const phrase of forbiddenPhrases) {
+    if (value.toLowerCase().includes(phrase.toLowerCase())) {
+      throw new Error(`Forbidden public PDF copy in ${context}: ${phrase}`)
+    }
+  }
+}
+
+function dedupeTextParts(parts: Array<string | null | undefined>) {
+  const seen = new Set<string>()
+  const result: string[] = []
+
+  for (const part of parts) {
+    const cleaned = cleanText(part)
+    if (!cleaned) continue
+
+    const key = cleaned.toLowerCase()
+    if (seen.has(key)) continue
+
+    seen.add(key)
+    result.push(cleaned)
+  }
+
+  return result
+}
+
+function buildPublicPropertyLines(args: {
+  property: PropertyRow | null
+  caseRecord: CaseRow | null
+  trustState: TrustOutcome
+}) {
+  const { property, caseRecord, trustState } = args
+  const primaryAddress =
+    cleanText(property?.address) ?? cleanText(caseRecord?.property_address) ?? null
+
+  const localityParts = dedupeTextParts([
+    property?.suburb,
+    caseRecord?.suburb,
+    property?.city,
+    property?.province,
+    property?.postal_code,
+  ])
+
+  const localityLine = localityParts.length > 0 ? localityParts.join(', ') : null
+  const lines = [primaryAddress, localityLine].filter((value): value is string => Boolean(value))
+
+  if (lines.length === 0) {
+    return [
+      trustState === 'NOT_ISSUED'
+        ? 'No active certified property record found'
+        : 'Property address unavailable',
+    ]
+  }
+
+  if (lines.length > 1 && lines[0].toLowerCase().includes(lines[1].toLowerCase())) {
+    lines.pop()
+  }
+
+  // TODO: If province is absent on the linked record, omit it here rather than inventing it.
+  const joined = lines.join('\n')
+  assertNoForbiddenPdfCopy(joined, 'property address')
+
+  return lines
+}
+
+function normalizeVerificationHash(hash: string) {
+  const cleaned = cleanText(hash) ?? 'Not available'
+
+  if (cleaned === 'No active verification hash' || cleaned === 'Not available') {
+    return cleaned
+  }
+
+  return cleaned.replace(/^sha\d+:/i, '').toUpperCase()
+}
+
+function buildIntegrityReference(hash: string) {
+  const normalized = normalizeVerificationHash(hash)
+
+  if (normalized === 'No active verification hash' || normalized === 'Not available') {
+    return normalized
+  }
+
+  if (normalized.length <= 24) {
+    return normalized
+  }
+
+  return `${normalized.slice(0, 8)}-${normalized.slice(8, 16)}-${normalized.slice(-8)}`
+}
+
+function buildVerificationHashDisplay(hash: string) {
+  const normalized = normalizeVerificationHash(hash)
+
+  if (normalized === 'No active verification hash' || normalized === 'Not available') {
+    return normalized
+  }
+
+  const groups = normalized.match(/.{1,8}/g) ?? [normalized]
+  return groups.join(' ')
+}
+
 export async function buildProtectedCertificatePdf(id: string) {
   const record = await loadPublicVerificationRecord(id)
   const {
@@ -263,38 +380,11 @@ export async function buildProtectedCertificatePdf(id: string) {
     registry?.report_hash ??
     'No active verification hash'
 
-  const identityParts = [
-    caseRecord?.unit_number,
-    caseRecord?.scheme_name,
-    property?.unit_number,
-    property?.building_name,
-    property?.complex_name,
-    property?.estate_name,
-  ].filter(Boolean)
-
-  const addressLine1 = identityParts.join(' ')
-  const addressLine2 = property?.address ?? caseRecord?.property_address ?? ''
-  const propertyAddress =
-    addressLine1 || addressLine2
-      ? [addressLine1, addressLine2].filter(Boolean).join('\n')
-      : trustState === 'NOT_ISSUED'
-      ? 'No active certified property record found'
-      : 'Unknown property'
-
-  const provinceParts = [
-    property?.city,
-    property?.province,
-    property?.postal_code,
-  ].filter(Boolean)
-
-  const propertyProvince =
-    provinceParts.length > 0
-      ? provinceParts.join(', ')
-      : caseRecord
-      ? 'Case record only'
-      : trustState === 'NOT_ISSUED'
-      ? 'Registry lookup only'
-      : 'Location not available'
+  const propertyAddressLines = buildPublicPropertyLines({
+    property,
+    caseRecord,
+    trustState,
+  })
 
   const {
     authorityName,
@@ -327,7 +417,6 @@ export async function buildProtectedCertificatePdf(id: string) {
   })
 
   const logoDataUrl = await loadAssetAsDataUrl('/fpia-logo.png')
-  const watermarkDataUrl = await loadAssetAsDataUrl('/fpia-watermark.png')
 
   const signatureDataUrl = resolvedSignatureImageUrl
     ? await loadAssetAsDataUrl(normalizeAssetPath(resolvedSignatureImageUrl) as string).catch(
@@ -388,10 +477,20 @@ export async function buildProtectedCertificatePdf(id: string) {
   const topNoteText = getTopNoteText(trustState)
   const validUntilLabel = getValidUntilLabel(trustState)
   const issuedLabel = formatDate(registry?.issued_at ?? certificate?.issued_at)
-  const shortHash =
-    verificationHash.length > 36
-      ? `${verificationHash.slice(0, 18)}...${verificationHash.slice(-8)}`
-      : verificationHash
+  const verificationHashDisplay = buildVerificationHashDisplay(verificationHash)
+  const integrityReference = buildIntegrityReference(verificationHash)
+  const hasReinstatementEstimate =
+    typeof certificate?.reinstatement_estimate_amount === 'number' &&
+    !Number.isNaN(certificate.reinstatement_estimate_amount)
+  const reinstatementValue = formatCurrency(
+    certificate?.reinstatement_estimate_amount ?? null,
+    certificate?.reinstatement_estimate_currency ?? 'ZAR'
+  )
+  const reinstatementNote = hasReinstatementEstimate ? REINSTATEMENT_ESTIMATE_NOTE : null
+  const certificateBodyCopy =
+    'This protected certificate reflects the authority-issued FPIA record and must be checked against the live registry for current status.'
+
+  assertNoForbiddenPdfCopy(certificateBodyCopy, 'certificate body', FORBIDDEN_PDF_BODY_PHRASES)
 
   const inspectorMetaParts = [authorityCode?.trim(), authorityBadgeNumber?.trim()].filter(Boolean)
   const inspectorMeta = inspectorMetaParts.join(' | ')
@@ -401,8 +500,6 @@ export async function buildProtectedCertificatePdf(id: string) {
 
   doc.setFillColor(255, 255, 255)
   doc.roundedRect(15, 20, 180, 245, 2, 2, 'F')
-
-  doc.addImage(watermarkDataUrl, 'PNG', 14, 120, 182, 82)
 
   doc.setFillColor(...navy)
   doc.rect(15, 20, 180, 40, 'F')
@@ -440,10 +537,7 @@ export async function buildProtectedCertificatePdf(id: string) {
 
   doc.setFont('times', 'bold')
   doc.setFontSize(13)
-  const fullAddress = [propertyAddress, propertyProvince].filter(Boolean).join('\n')
-  const addressLines = fullAddress
-    .split('\n')
-    .flatMap((line) => doc.splitTextToSize(line, 105))
+  const addressLines = propertyAddressLines.flatMap((line) => doc.splitTextToSize(line, 105))
   doc.text(addressLines, 22, 96)
 
   const topBoxCenterX = 156
@@ -502,13 +596,16 @@ export async function buildProtectedCertificatePdf(id: string) {
   detailRow('Certificate ID', documentId)
   detailRow('Issued', issuedLabel)
   detailRow('Valid Until', validUntilLabel)
-  detailRow(
-    'Reinstatement Estimate',
-    formatCurrency(
-      certificate?.reinstatement_estimate_amount ?? null,
-      certificate?.reinstatement_estimate_currency ?? 'ZAR'
-    )
-  )
+  detailRow('Reinstatement Estimate', reinstatementValue)
+
+  if (reinstatementNote) {
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(...grey)
+    const noteLines = doc.splitTextToSize(reinstatementNote, 105)
+    doc.text(noteLines, valueX, y - 2)
+    y += noteLines.length * 3.4 + 1
+  }
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -517,8 +614,9 @@ export async function buildProtectedCertificatePdf(id: string) {
 
   doc.setFont('courier', 'normal')
   doc.setFontSize(9)
-  doc.text(shortHash, valueX, y)
-  y += 10
+  const hashLines = doc.splitTextToSize(verificationHashDisplay, 105)
+  doc.text(hashLines, valueX, y)
+  y += Math.max(10, hashLines.length * 4 + 2)
 
   if (certificate?.certificate_type) {
     detailRow('Certificate Type', certificate.certificate_type)
@@ -530,33 +628,20 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...grey)
-  doc.text(
-    doc.splitTextToSize(
-      'This certificate confirms that the above property has been independently inspected and verified in accordance with FPIA standards.',
-      150
-    ),
-    22,
-    y + 5
-  )
-  doc.text(
-    doc.splitTextToSize(
-      certificate?.reinstatement_estimate_basis_summary ??
-        'Reinstatement estimate not available on this issued record.',
-      150
-    ),
-    22,
-    y + 12
-  )
-  doc.text(
-    doc.splitTextToSize(
-      (certificate?.reinstatement_estimate_disclaimer ??
-        'This estimate is not market value, not a formal quantity-surveyor valuation, and not a substitute for insurer or lender valuation requirements.') +
-        ' PDF permissions restrict copying, editing, annotation, and extraction in compliant PDF viewers. Any alteration invalidates authenticity and must be checked against the live registry.',
-      150
-    ),
-    22,
-    y + 25
-  )
+  doc.text(doc.splitTextToSize(certificateBodyCopy, 150), 22, y + 5)
+
+  doc.setTextColor(239, 241, 244)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(26)
+  doc.text('FPIA', 105, y + 26, { align: 'center' })
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', 105, y + 31, { align: 'center' })
+
+  doc.setFont('courier', 'bold')
+  doc.setFontSize(8)
+  doc.text(`REF ${integrityReference}`, 105, y + 35, { align: 'center' })
 
   const authorityTopY = 222
   const signatureLineY = authorityTopY

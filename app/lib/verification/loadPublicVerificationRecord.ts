@@ -33,6 +33,7 @@ export type PropertyRow = {
   id: string
   title?: string | null
   address: string | null
+  suburb?: string | null
   city: string | null
   province: string | null
   postal_code: string | null
@@ -98,6 +99,7 @@ export type CertificateRow = {
 export type CaseRow = {
   id: string
   property_address: string | null
+  suburb?: string | null
   status: string | null
   compliance_stage: string | null
   unit_number: string | null
@@ -180,7 +182,6 @@ export async function loadPublicVerificationRecord(
   id: string
 ): Promise<LoadedPublicVerificationRecord> {
   const normalizedId = id.toUpperCase()
-  const demoRecord = getDemoVerificationRecord(normalizedId)
 
   let registry: RegistryRow | null = null
   let property: PropertyRow | null = null
@@ -192,7 +193,88 @@ export async function loadPublicVerificationRecord(
   let authorityAssets: AuthorityAssetsRow | null = null
   let legacyInspector: LegacyInspectorRow | null = null
 
-  if (demoRecord) {
+  const { data: certificateData } = await supabase
+    .from('issued_certificates')
+    .select('*')
+    .or(`certificate_number.eq.${normalizedId},verification_ref.eq.${normalizedId}`)
+    .order('issued_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  certificate = (certificateData as CertificateRow | null) ?? null
+
+  if (certificate?.certificate_number) {
+    const { data: registryData } = await supabase
+      .from('report_registry')
+      .select('*')
+      .eq('certificate_number', certificate.certificate_number)
+      .maybeSingle()
+
+    registry = (registryData as RegistryRow | null) ?? null
+  }
+
+  if (!registry) {
+    const { data: registryFallback } = await supabase
+      .from('report_registry')
+      .select('*')
+      .or(`certificate_number.eq.${normalizedId},report_code.eq.${normalizedId}`)
+      .maybeSingle()
+
+    registry = (registryFallback as RegistryRow | null) ?? null
+  }
+
+  if (registry) {
+    const [{ data: propertyData }, { data: auditData }] = await Promise.all([
+      supabase.from('properties').select('*').eq('id', registry.property_id).maybeSingle(),
+      supabase
+        .from('report_audit_log')
+        .select('*')
+        .eq('report_id', registry.id)
+        .order('created_at', { ascending: true }),
+    ])
+
+    property = (propertyData as PropertyRow | null) ?? null
+    auditRows = (auditData as AuditLogRow[] | null) ?? []
+
+    if (!certificate) {
+      const { data: registryCertificateData } = await supabase
+        .from('issued_certificates')
+        .select('*')
+        .or(
+          registry.certificate_number
+            ? `certificate_number.eq.${registry.certificate_number},verification_ref.eq.${registry.report_code}`
+            : `verification_ref.eq.${registry.report_code}`
+        )
+        .order('issued_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      certificate = (registryCertificateData as CertificateRow | null) ?? null
+    }
+  }
+
+  if (!certificate && !registry) {
+    const demoRecord = getDemoVerificationRecord(normalizedId)
+
+    if (!demoRecord) {
+      return {
+        normalizedId,
+        registry,
+        property,
+        certificate,
+        caseRecord,
+        auditRows,
+        caseEvents,
+        authority,
+        authorityAssets,
+        legacyInspector,
+        verificationReference: id,
+        verificationUrl: `https://www.fairproperties.org.za/verify/${id}`,
+        embedBadgeUrl: `https://www.fairproperties.org.za/embed/badge/${id}`,
+        issuerIdentityWarning: null,
+      }
+    }
+
     registry = demoRecord.registry as RegistryRow
     property = demoRecord.property as PropertyRow
     certificate = demoRecord.certificate as CertificateRow
@@ -232,72 +314,12 @@ export async function loadPublicVerificationRecord(
       created_at: demoRecord.inspector.created_at,
     }
   } else {
-    const { data: certificateData } = await supabase
-      .from('issued_certificates')
-      .select('*')
-      .or(`certificate_number.eq.${normalizedId},verification_ref.eq.${normalizedId}`)
-      .order('issued_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    certificate = (certificateData as CertificateRow | null) ?? null
-
-    if (certificate?.certificate_number) {
-      const { data: registryData } = await supabase
-        .from('report_registry')
-        .select('*')
-        .eq('certificate_number', certificate.certificate_number)
-        .maybeSingle()
-
-      registry = (registryData as RegistryRow | null) ?? null
-    }
-
-    if (!registry) {
-      const { data: registryFallback } = await supabase
-        .from('report_registry')
-        .select('*')
-        .or(`certificate_number.eq.${normalizedId},report_code.eq.${normalizedId}`)
-        .maybeSingle()
-
-      registry = (registryFallback as RegistryRow | null) ?? null
-    }
-
-    if (registry) {
-      const [{ data: propertyData }, { data: auditData }] = await Promise.all([
-        supabase.from('properties').select('*').eq('id', registry.property_id).maybeSingle(),
-        supabase
-          .from('report_audit_log')
-          .select('*')
-          .eq('report_id', registry.id)
-          .order('created_at', { ascending: true }),
-      ])
-
-      property = (propertyData as PropertyRow | null) ?? null
-      auditRows = (auditData as AuditLogRow[] | null) ?? []
-
-      if (!certificate) {
-        const { data: registryCertificateData } = await supabase
-          .from('issued_certificates')
-          .select('*')
-          .or(
-            registry.certificate_number
-              ? `certificate_number.eq.${registry.certificate_number},verification_ref.eq.${registry.report_code}`
-              : `verification_ref.eq.${registry.report_code}`
-          )
-          .order('issued_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-
-        certificate = (registryCertificateData as CertificateRow | null) ?? null
-      }
-    }
-
     if (certificate?.case_id) {
       const [{ data: caseData }, { data: caseEventsData }] = await Promise.all([
         supabase
           .from('cases')
           .select(
-            'id, property_address, status, compliance_stage, unit_number, scheme_name, created_at'
+            'id, property_address, suburb, status, compliance_stage, unit_number, scheme_name, created_at'
           )
           .eq('id', certificate.case_id)
           .maybeSingle(),

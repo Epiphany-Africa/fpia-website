@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.4] - 2026-04-28
+
+- Fix protected certificate PDF regression: restored clean locked-certificate layout, removed internal fallback wording from public PDFs, improved property location rendering, restored subtle FPIA/hash watermark, and moved reinstatement estimate disclaimer out of the main certificate body.
+
 ## [0.9.0] - 2026-04-13
 
 First controlled beta-ready governed release.
