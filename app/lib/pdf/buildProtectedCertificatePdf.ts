@@ -19,9 +19,6 @@ const COMPANY_NAME = 'Fair Properties Inspection Authority (Pty) Ltd'
 const ALLOWED_REMOTE_HOSTS = new Set(['lpgvjyxwouttbvpgivtu.supabase.co'])
 const PUBLIC_DIR = path.resolve(process.cwd(), 'public')
 const FORBIDDEN_PUBLIC_PDF_PHRASES = ['Case record only', 'Registry lookup only']
-const FORBIDDEN_PDF_BODY_PHRASES = ['This estimate is not market value']
-const REINSTATEMENT_ESTIMATE_NOTE =
-  'Indicative reinstatement estimate only. Not market value or a formal valuation.'
 
 function formatDate(input?: string | null) {
   if (!input) return 'Not available'
@@ -34,18 +31,6 @@ function formatDate(input?: string | null) {
     month: 'long',
     year: 'numeric',
   }).format(date)
-}
-
-function formatCurrency(amount?: number | null, currency = 'ZAR') {
-  if (typeof amount !== 'number' || Number.isNaN(amount)) {
-    return 'Estimate pending required inputs'
-  }
-
-  return new Intl.NumberFormat('en-ZA', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount)
 }
 
 function normalizeAssetPath(input: string | null | undefined, fallback?: string | null) {
@@ -101,7 +86,7 @@ function bufferToDataUrl(buffer: Buffer, mimeType: string) {
 }
 
 function isAllowedRemoteAsset(url: URL) {
-  if (url.protocol !== 'https:') {
+  if (url.protocol !== "https:") {
     return false
   }
 
@@ -241,18 +226,6 @@ function cleanText(value: string | null | undefined) {
   return cleaned ? cleaned : null
 }
 
-function assertNoForbiddenPdfCopy(
-  value: string,
-  context: string,
-  forbiddenPhrases = FORBIDDEN_PUBLIC_PDF_PHRASES
-) {
-  for (const phrase of forbiddenPhrases) {
-    if (value.toLowerCase().includes(phrase.toLowerCase())) {
-      throw new Error(`Forbidden public PDF copy in ${context}: ${phrase}`)
-    }
-  }
-}
-
 function dedupeTextParts(parts: Array<string | null | undefined>) {
   const seen = new Set<string>()
   const result: string[] = []
@@ -269,6 +242,14 @@ function dedupeTextParts(parts: Array<string | null | undefined>) {
   }
 
   return result
+}
+
+function assertNoForbiddenPdfCopy(value: string, context: string) {
+  for (const phrase of FORBIDDEN_PUBLIC_PDF_PHRASES) {
+    if (value.toLowerCase().includes(phrase.toLowerCase())) {
+      throw new Error(`Forbidden public PDF copy in ${context}: ${phrase}`)
+    }
+  }
 }
 
 function buildPublicPropertyLines(args: {
@@ -303,10 +284,9 @@ function buildPublicPropertyLines(args: {
     lines.pop()
   }
 
-  // TODO: If province is absent on the linked record, omit it here rather than inventing it.
+  // TODO: Preserve only real public location data here. Never invent province text in the PDF.
   const joined = lines.join('\n')
   assertNoForbiddenPdfCopy(joined, 'property address')
-
   return lines
 }
 
@@ -318,6 +298,18 @@ function normalizeVerificationHash(hash: string) {
   }
 
   return cleaned.replace(/^sha\d+:/i, '').toUpperCase()
+}
+
+function buildShortVerificationHash(hash: string) {
+  const normalized = normalizeVerificationHash(hash)
+
+  if (normalized === 'No active verification hash' || normalized === 'Not available') {
+    return normalized
+  }
+
+  return normalized.length > 36
+    ? `${normalized.slice(0, 18)}...${normalized.slice(-8)}`
+    : normalized
 }
 
 function buildIntegrityReference(hash: string) {
@@ -334,37 +326,26 @@ function buildIntegrityReference(hash: string) {
   return `${normalized.slice(0, 8)}-${normalized.slice(8, 16)}-${normalized.slice(-8)}`
 }
 
-function buildVerificationHashDisplay(hash: string) {
-  const normalized = normalizeVerificationHash(hash)
-
-  if (normalized === 'No active verification hash' || normalized === 'Not available') {
-    return normalized
-  }
-
-  const groups = normalized.match(/.{1,8}/g) ?? [normalized]
-  return groups.join(' ')
-}
-
 function drawIntegrityWatermark(doc: jsPDF, integrityReference: string) {
   const angle = 24
-  const startX = 44
-  const startY = 170
+  const startX = 48
+  const startY = 164
 
   doc.saveGraphicsState()
-  doc.setGState(doc.GState({ opacity: 0.06, 'stroke-opacity': 0.06 }))
+  doc.setGState(doc.GState({ opacity: 0.055, 'stroke-opacity': 0.055 }))
   doc.setTextColor(168, 176, 186)
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(32)
+  doc.setFontSize(30)
   doc.text('FPIA', startX, startY, { angle })
 
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10)
-  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', startX + 17, startY + 14, { angle })
+  doc.setFontSize(9.5)
+  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', startX + 18, startY + 13, { angle })
 
   doc.setFont('courier', 'bold')
-  doc.setFontSize(9)
-  doc.text(`REF ${integrityReference}`, startX + 39, startY + 28, { angle })
+  doc.setFontSize(8.5)
+  doc.text(`REF ${integrityReference}`, startX + 42, startY + 26, { angle })
   doc.restoreGraphicsState()
 }
 
@@ -500,21 +481,8 @@ export async function buildProtectedCertificatePdf(id: string) {
   const topNoteText = getTopNoteText(trustState)
   const validUntilLabel = getValidUntilLabel(trustState)
   const issuedLabel = formatDate(registry?.issued_at ?? certificate?.issued_at)
-  const verificationHashDisplay = buildVerificationHashDisplay(verificationHash)
+  const shortHash = buildShortVerificationHash(verificationHash)
   const integrityReference = buildIntegrityReference(verificationHash)
-  const hasReinstatementEstimate =
-    typeof certificate?.reinstatement_estimate_amount === 'number' &&
-    !Number.isNaN(certificate.reinstatement_estimate_amount)
-  const reinstatementValue = formatCurrency(
-    certificate?.reinstatement_estimate_amount ?? null,
-    certificate?.reinstatement_estimate_currency ?? 'ZAR'
-  )
-  const reinstatementNote = hasReinstatementEstimate ? REINSTATEMENT_ESTIMATE_NOTE : null
-  const certificateBodyCopy =
-    'This protected certificate reflects the authority-issued FPIA record and must be checked against the live registry for current status.'
-
-  assertNoForbiddenPdfCopy(certificateBodyCopy, 'certificate body', FORBIDDEN_PDF_BODY_PHRASES)
-
   const inspectorMetaParts = [authorityCode?.trim(), authorityBadgeNumber?.trim()].filter(Boolean)
   const inspectorMeta = inspectorMetaParts.join(' | ')
 
@@ -526,7 +494,6 @@ export async function buildProtectedCertificatePdf(id: string) {
 
   doc.setFillColor(...navy)
   doc.rect(15, 20, 180, 40, 'F')
-
   doc.addImage(logoDataUrl, 'PNG', 22, 24, 64, 18)
 
   doc.setTextColor(...gold)
@@ -614,23 +581,12 @@ export async function buildProtectedCertificatePdf(id: string) {
     doc.setFont('helvetica', 'normal')
     const lines = doc.splitTextToSize(value, 105)
     doc.text(lines, valueX, y)
-
     y += Math.max(8, lines.length * 4)
   }
 
   detailRow('Certificate ID', documentId)
   detailRow('Issued', issuedLabel)
   detailRow('Valid Until', validUntilLabel)
-  detailRow('Reinstatement Estimate', reinstatementValue)
-
-  if (reinstatementNote) {
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.setTextColor(...grey)
-    const noteLines = doc.splitTextToSize(reinstatementNote, 105)
-    doc.text(noteLines, valueX, y - 2)
-    y += noteLines.length * 3.4 + 1
-  }
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -639,9 +595,8 @@ export async function buildProtectedCertificatePdf(id: string) {
 
   doc.setFont('courier', 'normal')
   doc.setFontSize(9)
-  const hashLines = doc.splitTextToSize(verificationHashDisplay, 105)
-  doc.text(hashLines, valueX, y)
-  y += Math.max(10, hashLines.length * 4 + 2)
+  doc.text(shortHash, valueX, y)
+  y += 10
 
   if (certificate?.certificate_type) {
     detailRow('Certificate Type', certificate.certificate_type)
@@ -653,7 +608,22 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...grey)
-  doc.text(doc.splitTextToSize(certificateBodyCopy, 150), 22, y + 5)
+  doc.text(
+    doc.splitTextToSize(
+      'This certificate confirms that the above property has been independently inspected and verified in accordance with FPIA standards.',
+      150
+    ),
+    22,
+    y + 5
+  )
+  doc.text(
+    doc.splitTextToSize(
+      'PDF permissions restrict copying, editing, annotation, and extraction in compliant PDF viewers. Any alteration invalidates authenticity and must be checked against the live registry.',
+      150
+    ),
+    22,
+    y + 18
+  )
 
   const authorityTopY = 222
   const signatureLineY = authorityTopY
