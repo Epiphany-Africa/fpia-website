@@ -1,10 +1,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import TrustBadge from '@/components/TrustBadge'
+import { DEMO_CERTIFICATE_ID } from '@/lib/demo/demoCertificate'
 import { fpiaProducts } from '@/lib/products/fpiaProducts'
 
 const productLayerOrder = [
-  'seller_precert_package',
+  'seller_readiness_assessment',
   'inspection_product',
   'upgrade_product',
 ] as const
@@ -111,20 +112,24 @@ const qrCode = (
 )
 
 export default function HomePage() {
+  const demoVerifyPath = `/verify/${DEMO_CERTIFICATE_ID}`
+  const demoCertificatePath = `/certificate/${DEMO_CERTIFICATE_ID}`
+  const demoVerifyUrl = `fairproperties.org.za/verify/${DEMO_CERTIFICATE_ID}`
+
   return (
     <>
       {/* ── HERO ── */}
       <section style={{ backgroundColor: 'var(--navy)' }} className="relative overflow-hidden">
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(var(--gold) 1px, transparent 1px), linear-gradient(90deg, var(--gold) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-5 py-12 sm:px-6 md:py-16 lg:flex-row lg:items-center lg:justify-between lg:gap-[60px]">
+        <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-5 pt-5 pb-11 sm:px-6 sm:pt-7 md:pt-9 md:pb-14 lg:flex-row lg:items-center lg:justify-between lg:gap-[56px] lg:pt-10 xl:pt-11">
           <div className="flex-1">
-            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-6 font-medium">Governed Property Accountability · South Africa</p>
-            <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="mb-6 max-w-3xl text-4xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
+            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-4 font-medium">Governed Property Accountability · South Africa</p>
+            <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="mb-5 max-w-3xl text-4xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
               The accountability layer<br />
             <em style={{ color: 'var(--gold)' }}>for residential property.</em>
             </h1>
 
-            <p className="mb-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
+            <p className="mb-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
               FPIA gives buyers, sellers, property practitioners, lenders, insurers, and property legal practitioners one governed source of truth for residential property — so decisions are made on evidence, not assumption.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -470,7 +475,7 @@ export default function HomePage() {
           <div style={{ border: '1px solid rgba(201,161,77,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="overflow-hidden">
             <div style={{ backgroundColor: 'rgba(201,161,77,0.1)', borderBottom: '1px solid rgba(201,161,77,0.2)' }} className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <span style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--gold)' }} className="text-lg tracking-widest">FPIA CERTIFICATE</span>
-              <span className="text-white/40 text-xs font-mono">#ZA-2024-00142</span>
+              <span className="text-white/40 text-xs font-mono">#{DEMO_CERTIFICATE_ID}</span>
             </div>
             <div className="grid gap-8 p-5 md:grid-cols-3 md:p-6">
               <div>
@@ -503,7 +508,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <p className="text-xs font-semibold" style={{ color: 'var(--off-white)' }}>Scan to verify</p>
-                    <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)', wordBreak: 'break-all' }}>fairproperties.org.za/verify/ZA-2024-00142</p>
+                    <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)', wordBreak: 'break-all' }}>{demoVerifyUrl}</p>
                   </div>
                 </div>
                 <div>
@@ -511,10 +516,10 @@ export default function HomePage() {
                     This is the exact experience your buyers will have.
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <Link href="/verify/ZA-2024-00142" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity">
+                    <Link href={demoVerifyPath} style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity">
                       Verify Property →
                     </Link>
-                    <Link href="/certificate/ZA-2024-00142" style={{ border: '1px solid rgba(201,161,77,0.35)', color: 'var(--off-white)' }} className="inline-block px-6 py-3 text-sm font-semibold tracking-wide hover:border-[rgba(201,161,77,0.6)] transition-colors">
+                    <Link href={demoCertificatePath} style={{ border: '1px solid rgba(201,161,77,0.35)', color: 'var(--off-white)' }} className="inline-block px-6 py-3 text-sm font-semibold tracking-wide hover:border-[rgba(201,161,77,0.6)] transition-colors">
                       View Certificate
                     </Link>
                   </div>
@@ -614,7 +619,7 @@ export default function HomePage() {
             <div style={{ border: '1px solid rgba(11,31,51,0.15)', backgroundColor: 'white' }} className="overflow-hidden shadow-xl">
               <div style={{ backgroundColor: 'var(--navy)' }} className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <span style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--gold)' }} className="text-lg tracking-widest">FPIA CERTIFICATE</span>
-                <span className="text-white/50 text-xs font-mono">#ZA-2024-00142</span>
+                <span className="text-white/50 text-xs font-mono">#{DEMO_CERTIFICATE_ID}</span>
               </div>
               <hr className="gold-rule" />
               <div className="p-5 sm:p-6">
@@ -642,7 +647,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <p className="text-xs font-semibold" style={{ color: 'var(--navy)' }}>Scan to verify</p>
-                    <p className="text-xs text-slate-400 mt-1">fairproperties.org.za/verify/ZA-2024-00142</p>
+                    <p className="text-xs text-slate-400 mt-1">{demoVerifyUrl}</p>
                   </div>
                 </div>
               </div>

@@ -2,6 +2,13 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.5] - 2026-04-28
+
+- Added the FPIA Seller Readiness Assessment public intake and the Pre-Listing Property Readiness Report surface.
+- Added seller property and visible damage evidence capture, governed seller-readiness submission handling, storage-backed image intake, and ops event/email hooks.
+- Added public seller-readiness report output and downloadable PDF output with clear separation between reinstatement estimate, visible damage repair exposure, and seller listing-posture guidance.
+- Added conservative disclaimers so the feature is not interpreted as a formal valuation, QS report, engineering opinion, insurer assessment, or guaranteed sale-price estimate.
+
 ## [0.9.4] - 2026-04-28
 
 - Fix protected certificate PDF regression: restored clean locked-certificate layout, removed internal fallback wording from public PDFs, improved property location rendering, restored subtle FPIA/hash watermark, and moved reinstatement estimate disclaimer out of the main certificate body.
