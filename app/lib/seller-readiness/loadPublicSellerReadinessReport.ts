@@ -39,6 +39,8 @@ export type PublicSellerReadinessDamageItem = {
   damage_category: string | null
   building_element: string | null
   location_on_property: string | null
+  image_url: string | null
+  uploaded_file_name: string | null
   visible_condition: string | null
   severity: string | null
   confidence: string | null
@@ -48,6 +50,18 @@ export type PublicSellerReadinessDamageItem = {
   estimated_cost_max: number | null
   cost_basis: string | null
   review_status: string
+}
+
+export type PublicSellerReadinessDocument = {
+  id: string
+  document_type: string
+  document_status: string | null
+  file_path: string | null
+  file_name: string | null
+  mime_type: string | null
+  uploaded_at: string | null
+  notes: string | null
+  file_url: string | null
 }
 
 function normalizeString(value: unknown) {
@@ -109,6 +123,8 @@ function toDamageItem(row: Record<string, unknown>): PublicSellerReadinessDamage
     damage_category: normalizeString(row.damage_category),
     building_element: normalizeString(row.building_element),
     location_on_property: normalizeString(row.location_on_property),
+    image_url: normalizeString(row.image_url),
+    uploaded_file_name: normalizeString(row.uploaded_file_name),
     visible_condition: normalizeString(row.visible_condition),
     severity: normalizeString(row.severity),
     confidence: normalizeString(row.confidence),
@@ -118,6 +134,27 @@ function toDamageItem(row: Record<string, unknown>): PublicSellerReadinessDamage
     estimated_cost_max: normalizeNumber(row.estimated_cost_max),
     cost_basis: normalizeString(row.cost_basis),
     review_status: normalizeString(row.review_status) ?? 'draft',
+  }
+}
+
+function toDocument(
+  row: Record<string, unknown>,
+  supabase: ReturnType<typeof createAdminSupabaseClient>
+): PublicSellerReadinessDocument {
+  const filePath = normalizeString(row.file_path)
+
+  return {
+    id: String(row.id),
+    document_type: normalizeString(row.document_type) ?? 'other',
+    document_status: normalizeString(row.document_status),
+    file_path: filePath,
+    file_name: normalizeString(row.file_name),
+    mime_type: normalizeString(row.mime_type),
+    uploaded_at: normalizeString(row.uploaded_at),
+    notes: normalizeString(row.notes),
+    file_url: filePath
+      ? supabase.storage.from('seller-readiness').getPublicUrl(filePath).data.publicUrl
+      : null,
   }
 }
 
@@ -147,8 +184,19 @@ export async function loadPublicSellerReadinessReport(reference: string) {
 
   const damageItems = ((damageRows ?? []) as Record<string, unknown>[]).map(toDamageItem)
 
+  const { data: documentRows } = await supabase
+    .from('seller_readiness_documents')
+    .select('*')
+    .eq('assessment_id', assessment.id)
+    .order('created_at', { ascending: true })
+
+  const documents = ((documentRows ?? []) as Record<string, unknown>[]).map((row) =>
+    toDocument(row, supabase)
+  )
+
   return {
     assessment,
     damageItems,
+    documents,
   }
 }

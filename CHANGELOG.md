@@ -2,6 +2,11 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.7] - 2026-04-29
+
+- Added PPRA Section 67 Mandatory Disclosure support to Seller Readiness, including document status capture, optional upload, disclosure support copy, authority review visibility, and report disclosure-support output.
+- Clarified that FPIA supports but does not replace the prescribed PPRA disclosure process.
+
 ## [0.9.6] - 2026-04-29
 
 - Restored the protected certificate PDF Reinstatement Estimate row so public PDFs always show the estimate state in the certificate details block.

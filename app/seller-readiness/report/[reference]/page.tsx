@@ -4,6 +4,7 @@ import {
   loadPublicSellerReadinessReport,
   type PublicSellerReadinessAssessment,
   type PublicSellerReadinessDamageItem,
+  type PublicSellerReadinessDocument,
 } from '@/lib/seller-readiness/loadPublicSellerReadinessReport'
 
 function formatDate(input: string | null) {
@@ -55,6 +56,11 @@ function formatEstimateRange(
 
 function formatRiskLabel(value: string | null) {
   if (!value) return 'Not assessed'
+  return value.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
+function formatDocumentStatus(value: string | null) {
+  if (!value) return 'Not started'
   return value.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
@@ -128,6 +134,49 @@ function buildDisclosureItems(damageItems: PublicSellerReadinessDamageItem[]) {
   return items.length > 0
     ? items
     : ['No authority-reviewed high-risk disclosure items are currently recorded on this report.']
+}
+
+function buildDisclosureSupportSummary(
+  damageItems: PublicSellerReadinessDamageItem[],
+  ppraDocument: PublicSellerReadinessDocument | null
+) {
+  const flaggedItems = damageItems.filter(
+    (item) =>
+      item.specialist_required ||
+      item.severity === 'high' ||
+      item.severity === 'critical'
+  )
+
+  const summaries = flaggedItems.map((item) => {
+    const heading = [item.damage_category, item.building_element, item.location_on_property]
+      .filter(Boolean)
+      .join(' · ')
+    const evidenceNote = item.image_url
+      ? `Evidence photo linked${item.uploaded_file_name ? `: ${item.uploaded_file_name}` : '.'}`
+      : 'No evidence photo link published.'
+    const specialistNote = item.specialist_required
+      ? item.recommended_specialist
+        ? `Specialist review recommended: ${item.recommended_specialist}.`
+        : 'Specialist review recommended.'
+      : null
+
+    return [heading || 'Authority-reviewed visible issue', item.visible_condition, specialistNote, evidenceNote]
+      .filter(Boolean)
+      .join(' ')
+  })
+
+  summaries.push(
+    `PPRA form uploaded: ${ppraDocument?.file_path ? 'Yes' : 'No'}. PPRA form signed: ${
+      ppraDocument?.document_status === 'signed' ? 'Yes' : 'No / not confirmed'
+    }.`
+  )
+
+  return summaries.length > 1
+    ? summaries
+    : [
+        'No authority-reviewed high or critical disclosure-support items are currently recorded on this report.',
+        summaries[0],
+      ]
 }
 
 function buildRecommendedActions(damageItems: PublicSellerReadinessDamageItem[]) {
@@ -227,9 +276,16 @@ export default async function SellerReadinessReportPage({
     )
   }
 
-  const { assessment, damageItems } = report
+  const { assessment, damageItems, documents } = report
+  const ppraDocument =
+    documents.find((document) => document.document_type === 'ppra_section_67_disclosure') ??
+    null
   const locationLine = buildLocationLine(assessment)
   const disclosureItems = buildDisclosureItems(damageItems)
+  const disclosureSupportSummary = buildDisclosureSupportSummary(
+    damageItems,
+    ppraDocument
+  )
   const recommendedActions = buildRecommendedActions(damageItems)
   const propertySummaryRows = buildPropertySummaryRows(assessment)
   const visibleDamageRange = formatEstimateRange(
@@ -348,6 +404,46 @@ export default async function SellerReadinessReportPage({
           </ul>
         </Section>
 
+        <Section title="Disclosure Support">
+          <div style={summaryGridStyle}>
+            <div style={summaryCardStyle}>
+              <p style={metaLabelStyle}>PPRA Section 67 form status</p>
+              <p style={summaryValueStyle}>
+                {formatDocumentStatus(ppraDocument?.document_status ?? 'not_started')}
+              </p>
+              <p style={summaryNoteStyle}>Immovable Property Condition Report</p>
+            </div>
+            <div style={summaryCardStyle}>
+              <p style={metaLabelStyle}>Document uploaded</p>
+              <p style={summaryValueStyle}>{ppraDocument?.file_path ? 'Uploaded' : 'Not uploaded'}</p>
+              <p style={summaryNoteStyle}>
+                {ppraDocument?.file_url ? 'Authority-held copy is on record.' : 'No uploaded copy is attached to this published report.'}
+              </p>
+            </div>
+            <div style={summaryCardStyle}>
+              <p style={metaLabelStyle}>Signed status</p>
+              <p style={summaryValueStyle}>
+                {ppraDocument?.document_status === 'signed' ? 'Signed' : 'Not confirmed'}
+              </p>
+              <p style={summaryNoteStyle}>
+                FPIA does not replace the prescribed PPRA form or the transaction process.
+              </p>
+            </div>
+          </div>
+
+          <p style={{ ...metaLabelStyle, marginTop: 18 }}>Disclosure Support Summary</p>
+          <p style={summaryNoteStyle}>
+            These items may assist the seller, property practitioner, and legal advisers when completing or reviewing the prescribed disclosure process.
+          </p>
+          <ul style={listStyle}>
+            {disclosureSupportSummary.map((item) => (
+              <li key={item} style={listItemStyle}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </Section>
+
         <Section title="Recommended Pre-Listing Actions">
           <ul style={listStyle}>
             {recommendedActions.map((item) => (
@@ -399,6 +495,10 @@ export default async function SellerReadinessReportPage({
             FPIA helps sellers move from guesswork to governed pre-sale intelligence.
           </p>
           <p style={bodyTextStyle}>{assessment.disclaimer}</p>
+          <p style={summaryNoteStyle}>
+            FPIA does not replace the PPRA mandatory disclosure form, legal advice,
+            conveyancing advice, or the seller/property practitioner&apos;s statutory obligations.
+          </p>
           <div style={buttonRowStyle}>
             <Link
               href={`/api/seller-readiness-report-pdf/${assessment.report_reference ?? reference.toUpperCase()}`}
