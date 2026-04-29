@@ -10,6 +10,7 @@ const audienceLinks = [
   { label: 'For Buyers', href: '/for-buyers' },
   { label: 'For Sellers', href: '/for-sellers' },
   { label: 'For Property Practitioners', href: '/for-agents' },
+  { label: 'For Inspectors', href: '/for-inspectors' },
   { label: 'For Insurers', href: '/for-insurers' },
   { label: 'For Bond Originators', href: '/for-bond-originators' },
 ]
