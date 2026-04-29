@@ -139,8 +139,8 @@ function getViewportSnapshot() {
 
 export default function Nav() {
   const path = usePathname()
-  const [desktopOpen, setDesktopOpen] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [desktopOpenPath, setDesktopOpenPath] = useState<string | null>(null)
+  const [mobileOpenPath, setMobileOpenPath] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const mobilePanelRef = useRef<HTMLDivElement>(null)
   const isMobileViewport = useSyncExternalStore(
@@ -148,6 +148,8 @@ export default function Nav() {
     getViewportSnapshot,
     () => false
   )
+  const desktopOpen = desktopOpenPath === path
+  const mobileOpen = mobileOpenPath === path
   const mobileOpenEffective = isMobileViewport && mobileOpen
 
   const dropdownActive = audienceLinks.some((link) => link.href === path)
@@ -155,21 +157,21 @@ export default function Nav() {
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       if (!dropdownRef.current?.contains(event.target as Node)) {
-        setDesktopOpen(false)
+        setDesktopOpenPath(null)
       }
 
       if (isMobileViewport && !mobilePanelRef.current?.contains(event.target as Node)) {
         const target = event.target as HTMLElement
         if (!target.closest('[data-mobile-nav-trigger="true"]')) {
-          setMobileOpen(false)
+          setMobileOpenPath(null)
         }
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setDesktopOpen(false)
-        setMobileOpen(false)
+        setDesktopOpenPath(null)
+        setMobileOpenPath(null)
       }
     }
 
@@ -190,11 +192,6 @@ export default function Nav() {
     }
   }, [mobileOpenEffective])
 
-  useEffect(() => {
-    setDesktopOpen(false)
-    setMobileOpen(false)
-  }, [path])
-
   return (
     <>
       <nav
@@ -210,8 +207,8 @@ export default function Nav() {
             className="flex min-w-0 items-center gap-3 no-underline sm:gap-4"
             aria-label="FPIA home"
             onClick={() => {
-              setDesktopOpen(false)
-              setMobileOpen(false)
+              setDesktopOpenPath(null)
+              setMobileOpenPath(null)
             }}
           >
             <div className="w-[138px] flex-shrink-0 sm:w-[160px] md:w-[190px]">
@@ -244,8 +241,8 @@ export default function Nav() {
                 key={link.href}
                 href={link.href}
                 onClick={() => {
-                  setDesktopOpen(false)
-                  setMobileOpen(false)
+                  setDesktopOpenPath(null)
+                  setMobileOpenPath(null)
                 }}
                 className={`inline-flex min-h-[38px] items-center justify-center rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors ${
                   path === link.href ? 'is-active' : ''
@@ -261,7 +258,9 @@ export default function Nav() {
                 type="button"
                 aria-haspopup="menu"
                 aria-expanded={desktopOpen}
-                onClick={() => setDesktopOpen((current) => !current)}
+                onClick={() =>
+                  setDesktopOpenPath((current) => (current === path ? null : path))
+                }
                 className={`inline-flex min-h-[38px] cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] ${
                   dropdownActive ? 'is-active' : ''
                 }`}
@@ -280,8 +279,8 @@ export default function Nav() {
                       key={link.href}
                       href={link.href}
                       onClick={() => {
-                        setDesktopOpen(false)
-                        setMobileOpen(false)
+                        setDesktopOpenPath(null)
+                        setMobileOpenPath(null)
                       }}
                       className={`${path === link.href ? 'is-active' : ''} block rounded-xl px-[14px] py-3 text-[12px] font-bold text-white no-underline transition-colors`}
                       style={dropdownItemStyle(path === link.href)}
@@ -296,8 +295,8 @@ export default function Nav() {
             <Link
               href="/contact"
               onClick={() => {
-                setDesktopOpen(false)
-                setMobileOpen(false)
+                setDesktopOpenPath(null)
+                setMobileOpenPath(null)
               }}
               className={`inline-flex min-h-[38px] items-center justify-center rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] ${
                 path === '/contact' ? 'is-active' : ''
@@ -310,8 +309,8 @@ export default function Nav() {
             <Link
               href="/register"
               onClick={() => {
-                setDesktopOpen(false)
-                setMobileOpen(false)
+                setDesktopOpenPath(null)
+                setMobileOpenPath(null)
               }}
               className="inline-flex min-h-[42px] items-center justify-center whitespace-nowrap rounded-full bg-[var(--gold)] px-[18px] text-[11px] font-bold uppercase tracking-[0.14em] no-underline text-[var(--navy)]"
             >
@@ -325,7 +324,9 @@ export default function Nav() {
             aria-expanded={mobileOpenEffective}
             aria-label={mobileOpenEffective ? 'Close navigation' : 'Open navigation'}
             className="inline-flex h-11 w-11 items-center justify-center gap-[5px] rounded-[14px] border border-[rgba(201,161,77,0.24)] bg-[rgba(255,255,255,0.03)] md:hidden"
-            onClick={() => setMobileOpen((current) => !current)}
+            onClick={() =>
+              setMobileOpenPath((current) => (current === path ? null : path))
+            }
             style={{ flexDirection: 'column' }}
           >
             <span className="h-[1.5px] w-[18px] rounded-full bg-[var(--gold)]" />
@@ -374,8 +375,8 @@ export default function Nav() {
                 href={link.href}
                 style={mobileLinkStyle(path === link.href)}
                 onClick={() => {
-                  setDesktopOpen(false)
-                  setMobileOpen(false)
+                  setDesktopOpenPath(null)
+                  setMobileOpenPath(null)
                 }}
               >
                 {link.label}
@@ -405,8 +406,8 @@ export default function Nav() {
                 href={link.href}
                 style={mobileLinkStyle(path === link.href)}
                 onClick={() => {
-                  setDesktopOpen(false)
-                  setMobileOpen(false)
+                  setDesktopOpenPath(null)
+                  setMobileOpenPath(null)
                 }}
               >
                 {link.label}
@@ -435,8 +436,8 @@ export default function Nav() {
                 href={link.href}
                 style={mobileLinkStyle(path === link.href)}
                 onClick={() => {
-                  setDesktopOpen(false)
-                  setMobileOpen(false)
+                  setDesktopOpenPath(null)
+                  setMobileOpenPath(null)
                 }}
               >
                 {link.label}
@@ -457,8 +458,8 @@ export default function Nav() {
             className="flex min-h-12 items-center justify-center rounded-[14px] px-[14px] no-underline"
             style={mobileLinkStyle(false, 'primary')}
             onClick={() => {
-              setDesktopOpen(false)
-              setMobileOpen(false)
+              setDesktopOpenPath(null)
+              setMobileOpenPath(null)
             }}
           >
             Request Inspection
