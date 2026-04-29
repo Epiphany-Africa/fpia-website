@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.8] - 2026-04-29
+
+- Fixed public For Inspectors application intake by adding the missing API route, preventing false success states, and validating/storing inspector applications.
+
 ## [0.9.7] - 2026-04-29
 
 - Added PPRA Section 67 Mandatory Disclosure support to Seller Readiness, including document status capture, optional upload, disclosure support copy, authority review visibility, and report disclosure-support output.

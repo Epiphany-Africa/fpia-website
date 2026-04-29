@@ -81,6 +81,7 @@ export default function ForInspectorsPage() {
   const [form, setForm] = useState<FormState>(initialForm)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const formRef = useRef<HTMLDivElement>(null)
   const cvInputRef = useRef<HTMLInputElement>(null)
@@ -127,6 +128,7 @@ export default function ForInspectorsPage() {
   const handleSubmit = async () => {
     if (!validate()) return
     setSubmitting(true)
+    setSubmitError('')
 
     try {
       const payload = new FormData()
@@ -142,15 +144,30 @@ export default function ForInspectorsPage() {
         }
       })
 
-      await fetch('/api/inspector-application', {
+      const response = await fetch('/api/inspector-application', {
         method: 'POST',
         body: payload,
       })
 
+      const result = (await response.json().catch(() => ({}))) as {
+        ok?: boolean
+        error?: string
+      }
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.error ??
+            'We could not submit your application right now. Please try again shortly.'
+        )
+      }
+
       setSubmitted(true)
-    } catch {
-      // still show success — API not yet wired
-      setSubmitted(true)
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'We could not submit your application right now. Please try again shortly.'
+      )
     } finally {
       setSubmitting(false)
     }
@@ -346,6 +363,12 @@ export default function ForInspectorsPage() {
             Submission does not guarantee panel appointment. Shortlisted applicants will be contacted within 10 business
             days.
           </p>
+
+          {submitError ? (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {submitError}
+            </div>
+          ) : null}
 
           <div className="space-y-10">
 
