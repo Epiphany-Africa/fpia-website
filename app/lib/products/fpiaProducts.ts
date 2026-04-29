@@ -2,6 +2,7 @@ export type FpiaProductId =
   | 'inspection_product'
   | 'upgrade_product'
   | 'seller_precert_package'
+  | 'seller_readiness_assessment'
 
 export type FpiaProduct = {
   id: FpiaProductId
@@ -69,6 +70,23 @@ export const fpiaProducts: FpiaProduct[] = [
     triggerRoute: '/register',
     ctaLabel: 'Start Pre-Certification',
     ctaHref: '/register',
+  },
+  {
+    id: 'seller_readiness_assessment',
+    name: 'FPIA Seller Readiness Assessment',
+    usageSubheading: 'Before committing to an asking strategy',
+    certificateOutcome: 'Pre-Listing Property Readiness Report',
+    priceLabel: 'Guided Intake',
+    price: 'Request Assessment',
+    valueMicrocopy:
+      'Pre-sale property intelligence that separates reinstatement value, visible repair exposure, and listing posture guidance.',
+    description:
+      'A seller-led pre-listing intelligence report that helps property owners understand visible repair exposure, disclosure risk and buyer negotiation pressure before committing to an asking strategy.',
+    systemTrigger:
+      'Triggered when a seller wants governed pre-listing guidance using property details, visible damage evidence, and a stated asking expectation without treating the output as a formal valuation.',
+    triggerRoute: '/seller-readiness',
+    ctaLabel: 'Start Seller Readiness Assessment',
+    ctaHref: '/seller-readiness',
   },
 ]
 
