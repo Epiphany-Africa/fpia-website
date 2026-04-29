@@ -10,7 +10,6 @@ import {
 } from '@/lib/certification/getCanonicalTrustState'
 import { getTrustBadgeMeta } from '@/lib/certification/getTrustBadgeMeta'
 import {
-  type CertificateRow,
   loadPublicVerificationRecord,
   type CaseRow,
   type PropertyRow,

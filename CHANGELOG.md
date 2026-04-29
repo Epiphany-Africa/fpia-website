@@ -2,6 +2,13 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.6] - 2026-04-29
+
+- Restored the protected certificate PDF Reinstatement Estimate row so public PDFs always show the estimate state in the certificate details block.
+- Improved the diagonal FPIA integrity watermark visibility while keeping the locked-certificate layout and footer structure unchanged.
+- Corrected the compact valuation-disclaimer logic so pending estimate records show pending wording instead of a market-value disclaimer.
+- Expanded the public PDF fallback-wording guard so internal location placeholders are never emitted on protected certificates.
+
 ## [0.9.5] - 2026-04-28
 
 - Added the FPIA Seller Readiness Assessment public intake and the Pre-Listing Property Readiness Report surface.
