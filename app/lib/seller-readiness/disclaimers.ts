@@ -3,3 +3,6 @@ export const SELLER_READINESS_DISCLAIMER =
 
 export const SELLER_READINESS_INTAKE_NOTE =
   "FPIA helps sellers move from guesswork to governed pre-sale intelligence. The output is not a formal valuation and should not be relied on as an insurer, lender, estate-agent, quantity-surveyor, or engineering opinion.";
+
+export const PPRA_DISCLOSURE_SUPPORT_DISCLAIMER =
+  "FPIA does not replace the PPRA mandatory disclosure form, legal advice, conveyancing advice, or the seller/property practitioner's statutory obligations.";

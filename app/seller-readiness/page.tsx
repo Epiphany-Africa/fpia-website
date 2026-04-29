@@ -30,6 +30,13 @@ const PROPERTY_TYPES = [
 
 const FINISH_TIERS = ['standard', 'mid', 'premium']
 const SELLING_URGENCY = ['sell_fast', 'balanced', 'maximise_price'] as const
+const DISCLOSURE_DOCUMENT_STATUSES = [
+  'not_started',
+  'uploaded',
+  'completed',
+  'signed',
+  'not_applicable',
+] as const
 const DAMAGE_CATEGORY_OPTIONS = [
   'structural',
   'damp',
@@ -45,6 +52,10 @@ const DAMAGE_CATEGORY_OPTIONS = [
   'pool',
   'other',
 ]
+
+const PPRA_DISCLOSURE_FORM_URL =
+  process.env.NEXT_PUBLIC_PPRA_DISCLOSURE_FORM_URL ??
+  '/contact?inquiry=ppra-disclosure-form'
 
 type DamageItemForm = {
   id: string
@@ -70,6 +81,14 @@ function formatUrgency(value: string) {
   return 'Balanced'
 }
 
+function formatDisclosureStatus(
+  value: (typeof DISCLOSURE_DOCUMENT_STATUSES)[number]
+) {
+  if (value === 'not_started') return 'Not started'
+  if (value === 'not_applicable') return 'Not applicable'
+  return value.replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 export default function SellerReadinessPage() {
   const [sellerName, setSellerName] = useState('')
   const [sellerEmail, setSellerEmail] = useState('')
@@ -88,6 +107,11 @@ export default function SellerReadinessPage() {
   const [finishTier, setFinishTier] = useState('')
   const [expectedAskingPrice, setExpectedAskingPrice] = useState('')
   const [sellingUrgency, setSellingUrgency] = useState<(typeof SELLING_URGENCY)[number] | ''>('')
+  const [ppraDisclosureStatus, setPpraDisclosureStatus] = useState<
+    (typeof DISCLOSURE_DOCUMENT_STATUSES)[number] | ''
+  >('not_started')
+  const [ppraDisclosureNotes, setPpraDisclosureNotes] = useState('')
+  const [ppraDisclosureFile, setPpraDisclosureFile] = useState<File | null>(null)
   const [notes, setNotes] = useState('')
   const [companyWebsite, setCompanyWebsite] = useState('')
   const [damageItems, setDamageItems] = useState<DamageItemForm[]>([newDamageItem()])
@@ -141,6 +165,18 @@ export default function SellerReadinessPage() {
       }
     }
 
+    if (ppraDisclosureFile) {
+      if (!['application/pdf', 'image/jpeg', 'image/png'].includes(ppraDisclosureFile.type)) {
+        setError('PPRA disclosure uploads must be PDF, JPG, or PNG.')
+        return
+      }
+
+      if (ppraDisclosureFile.size > 10 * 1024 * 1024) {
+        setError('The PPRA disclosure file must be 10MB or smaller.')
+        return
+      }
+    }
+
     setSubmitting(true)
 
     try {
@@ -162,6 +198,11 @@ export default function SellerReadinessPage() {
       payload.append('finish_tier', finishTier)
       payload.append('expected_asking_price', expectedAskingPrice)
       payload.append('selling_urgency', sellingUrgency)
+      payload.append('ppra_disclosure_status', ppraDisclosureStatus)
+      payload.append('ppra_disclosure_notes', ppraDisclosureNotes)
+      if (ppraDisclosureFile) {
+        payload.append('ppra_disclosure_file', ppraDisclosureFile)
+      }
       payload.append('notes', notes)
       payload.append('company_website', companyWebsite)
 
@@ -225,6 +266,11 @@ export default function SellerReadinessPage() {
             AI-assisted findings are never final until reviewed by FPIA. We will
             separate reinstatement cost, visible repair exposure, and listing-posture
             guidance before anything is released publicly.
+          </p>
+          <p className="text-sm text-[#6B7A90] leading-relaxed mb-8">
+            Where applicable, remember that the PPRA mandatory disclosure form must
+            still be completed and signed through the required transaction process.
+            FPIA does not replace that statutory form.
           </p>
           <Link
             href="/"
@@ -331,6 +377,67 @@ export default function SellerReadinessPage() {
         </div>
       </section>
 
+      <section className="px-6 pb-12" id="disclosure-support-note">
+        <div className="max-w-5xl mx-auto bg-white border border-[#D8E2EE] rounded-2xl p-6 md:p-8">
+          <p className="text-[#C9A84C] text-xs font-bold tracking-[0.18em] uppercase mb-4">
+            Required Transaction Documents
+          </p>
+
+          <div className="border border-[#D8E2EE] rounded-xl p-5 bg-[#F7F9FC]">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="max-w-3xl">
+                <h2 className="text-2xl font-bold text-[#1A2B4A] mb-2">
+                  PPRA Section 67 Mandatory Disclosure Form
+                </h2>
+                <p className="text-sm font-semibold text-[#4A6082] mb-3">
+                  Immovable Property Condition Report
+                </p>
+                <p className="text-[#4A6082] text-sm leading-relaxed">
+                  The PPRA Section 67 Mandatory Disclosure Form remains a statutory
+                  transaction document where the Property Practitioners Act applies.
+                  FPIA does not replace this form. The Seller Readiness Assessment
+                  helps sellers identify visible issues, disclosure-risk items, and
+                  supporting evidence that may assist completion of the prescribed
+                  disclosure form.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 min-w-[220px]">
+                <Link
+                  href={PPRA_DISCLOSURE_FORM_URL}
+                  className="inline-flex items-center justify-center px-4 py-3 bg-[#1A2B4A] text-white rounded-lg text-sm font-semibold"
+                >
+                  Download blank disclosure form
+                </Link>
+                <a
+                  href="#ppra-disclosure-upload"
+                  className="inline-flex items-center justify-center px-4 py-3 border border-[#C9A84C] text-[#1A2B4A] rounded-lg text-sm font-semibold no-underline"
+                >
+                  Upload completed disclosure form
+                </a>
+                <a
+                  href="#disclosure-support-note"
+                  className="inline-flex items-center justify-center px-4 py-3 border border-[#D8E2EE] text-[#1A2B4A] rounded-lg text-sm font-semibold no-underline"
+                >
+                  Use FPIA findings to assist disclosure review
+                </a>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-5 gap-3 mt-5">
+              {DISCLOSURE_DOCUMENT_STATUSES.map((status) => (
+                <div
+                  key={status}
+                  className="rounded-lg border border-[#D8E2EE] bg-white px-3 py-3 text-center text-xs font-semibold tracking-wide text-[#1A2B4A] uppercase"
+                >
+                  {formatDisclosureStatus(status)}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="px-6 pb-24">
         <div className="max-w-5xl mx-auto bg-white border border-[#D8E2EE] rounded-2xl p-6 md:p-8">
           <p className="text-[#C9A84C] text-xs font-bold tracking-[0.18em] uppercase mb-4">
@@ -426,6 +533,57 @@ export default function SellerReadinessPage() {
                 </Field>
                 <Field label="Notes" full>
                   <textarea className={`${inputClass} min-h-[120px]`} value={notes} onChange={(event) => setNotes(event.target.value)} />
+                </Field>
+              </div>
+            </fieldset>
+
+            <fieldset id="ppra-disclosure-upload">
+              <legend className="text-sm font-bold text-[#1A2B4A] tracking-wide mb-5 pb-2 border-b border-[#E2EAF4] w-full">
+                Transaction documents
+              </legend>
+              <div className="grid md:grid-cols-2 gap-5">
+                <Field label="PPRA Section 67 Mandatory Disclosure Form Status">
+                  <select
+                    className={inputClass}
+                    value={ppraDisclosureStatus}
+                    onChange={(event) =>
+                      setPpraDisclosureStatus(
+                        event.target.value as (typeof DISCLOSURE_DOCUMENT_STATUSES)[number]
+                      )
+                    }
+                  >
+                    {DISCLOSURE_DOCUMENT_STATUSES.map((option) => (
+                      <option key={option} value={option}>
+                        {formatDisclosureStatus(option)}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="PPRA Section 67 Mandatory Disclosure Form">
+                  <input
+                    className={inputClass}
+                    type="file"
+                    accept="application/pdf,image/jpeg,image/png"
+                    onChange={(event) =>
+                      setPpraDisclosureFile(event.target.files?.[0] ?? null)
+                    }
+                  />
+                  <p className="mt-2 text-xs text-[#6B7A90] leading-relaxed">
+                    Upload the completed and signed mandatory disclosure form if
+                    available. If not yet completed, FPIA can still prepare a
+                    disclosure-support summary from the seller readiness evidence.
+                    PDF, JPG, or PNG. Max 10MB.
+                  </p>
+                </Field>
+
+                <Field label="Disclosure Notes / Transaction Document Notes" full>
+                  <textarea
+                    className={`${inputClass} min-h-[100px]`}
+                    value={ppraDisclosureNotes}
+                    onChange={(event) => setPpraDisclosureNotes(event.target.value)}
+                    placeholder="Optional notes about disclosure completion, signature status, or transaction handling."
+                  />
                 </Field>
               </div>
             </fieldset>
