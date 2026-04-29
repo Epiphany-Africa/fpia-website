@@ -10,6 +10,7 @@ import {
 } from '@/lib/certification/getCanonicalTrustState'
 import { getTrustBadgeMeta } from '@/lib/certification/getTrustBadgeMeta'
 import {
+  type CertificateRow,
   loadPublicVerificationRecord,
   type CaseRow,
   type PropertyRow,
@@ -18,7 +19,11 @@ import {
 const COMPANY_NAME = 'Fair Properties Inspection Authority (Pty) Ltd'
 const ALLOWED_REMOTE_HOSTS = new Set(['lpgvjyxwouttbvpgivtu.supabase.co'])
 const PUBLIC_DIR = path.resolve(process.cwd(), 'public')
-const FORBIDDEN_PUBLIC_PDF_PHRASES = ['Case record only', 'Registry lookup only']
+const FORBIDDEN_PUBLIC_PDF_PHRASES = [
+  'Case record only',
+  'Registry lookup only',
+  'Location not available',
+]
 
 function formatDate(input?: string | null) {
   if (!input) return 'Not available'
@@ -31,6 +36,18 @@ function formatDate(input?: string | null) {
     month: 'long',
     year: 'numeric',
   }).format(date)
+}
+
+function formatCurrency(amount: number | null | undefined, currency = 'ZAR') {
+  if (typeof amount !== 'number' || Number.isNaN(amount)) {
+    return null
+  }
+
+  return new Intl.NumberFormat('en-ZA', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount)
 }
 
 function normalizeAssetPath(input: string | null | undefined, fallback?: string | null) {
@@ -312,18 +329,28 @@ function buildShortVerificationHash(hash: string) {
     : normalized
 }
 
-function drawIntegrityWatermark(doc: jsPDF) {
+function drawIntegrityWatermark(doc: jsPDF, shortHash: string) {
   const angle = 24
-  const startX = 68
-  const startY = 170
+  const mainX = 56
+  const mainY = 171
+  const supportX = 69
+  const supportY = 151
 
   doc.saveGraphicsState()
-  doc.setGState(doc.GState({ opacity: 0.03, 'stroke-opacity': 0.03 }))
-  doc.setTextColor(176, 182, 190)
+  doc.setGState(doc.GState({ opacity: 0.052, 'stroke-opacity': 0.052 }))
+  doc.setTextColor(170, 176, 184)
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(42)
-  doc.text('FPIA', startX, startY, { angle })
+  doc.setFontSize(48)
+  doc.text('FPIA', mainX, mainY, { angle })
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.6)
+  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', supportX, supportY, { angle })
+
+  doc.setFont('courier', 'bold')
+  doc.setFontSize(8.4)
+  doc.text(`REF ${shortHash}`, supportX + 16, supportY + 13, { angle })
   doc.restoreGraphicsState()
 }
 
@@ -462,6 +489,19 @@ export async function buildProtectedCertificatePdf(id: string) {
   const shortHash = buildShortVerificationHash(verificationHash)
   const inspectorMetaParts = [authorityCode?.trim(), authorityBadgeNumber?.trim()].filter(Boolean)
   const inspectorMeta = inspectorMetaParts.join(' | ')
+  const formattedReinstatementEstimate = formatCurrency(
+    certificate?.reinstatement_estimate_amount ?? null,
+    certificate?.reinstatement_estimate_currency ?? 'ZAR'
+  )
+  const showReinstatementEstimateRow = Boolean(certificate)
+  const reinstatementEstimateValue = showReinstatementEstimateRow
+    ? formattedReinstatementEstimate ?? 'Estimate pending required inputs'
+    : null
+  const reinstatementFooterNote = !showReinstatementEstimateRow
+    ? null
+    : formattedReinstatementEstimate
+    ? 'This estimate is not market value or a formal valuation.'
+    : 'Reinstatement estimate pending required inputs.'
 
   doc.setFillColor(248, 248, 248)
   doc.rect(0, 0, 210, 297, 'F')
@@ -538,7 +578,7 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setDrawColor(210, 210, 210)
   doc.line(20, 116, 190, 116)
 
-  drawIntegrityWatermark(doc)
+  drawIntegrityWatermark(doc, shortHash)
 
   doc.setTextColor(...grey)
   doc.setFont('helvetica', 'bold')
@@ -564,6 +604,16 @@ export async function buildProtectedCertificatePdf(id: string) {
   detailRow('Certificate ID', documentId)
   detailRow('Issued', issuedLabel)
   detailRow('Valid Until', validUntilLabel)
+  if (showReinstatementEstimateRow && reinstatementEstimateValue) {
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(...black)
+    doc.text('Reinstatement Estimate', labelX, y)
+
+    doc.setFont('helvetica', 'normal')
+    doc.text(reinstatementEstimateValue, valueX, y)
+    y += 8
+  }
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -676,12 +726,14 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.2)
   doc.setTextColor(...grey)
-  doc.text('This document is cryptographically anchored to the FPIA registry.', 105, footerY - 4.6, {
+  doc.text('This document is cryptographically anchored to the FPIA registry.', 105, footerY - 4.8, {
     align: 'center',
   })
-  doc.text('This estimate is not market value or a formal valuation.', 105, footerY - 1.4, {
-    align: 'center',
-  })
+  if (reinstatementFooterNote) {
+    doc.text(reinstatementFooterNote, 105, footerY - 2.1, {
+      align: 'center',
+    })
+  }
 
   doc.setFillColor(...navy)
   doc.rect(15, footerY, 180, footerHeight, 'F')
