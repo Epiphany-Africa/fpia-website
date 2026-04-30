@@ -183,25 +183,25 @@ export default function HomePage() {
       {/* ── PROBLEM SECTION ── */}
       <section style={{ backgroundColor: 'var(--off-white)' }} className="py-20">
         <div className="max-w-7xl mx-auto px-6">
-            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
-              Why FPIA is necessary
+              <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
+              The Property Record Gap
             </p>
 
-          <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
-              Residential property breaks when accountability is missing.
-          </h2>
+            <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
+              Property decisions are only as reliable as the records behind them.
+            </h2>
 
-            <p style={{ color: 'var(--slate)' }} className="text-base max-w-2xl leading-relaxed mb-12">
-              Most transactions still run on fragmented disclosure, unstructured evidence, and late-stage discovery. FPIA closes that gap with governed property truth.
-            </p>
+              <p style={{ color: 'var(--slate)' }} className="text-base max-w-2xl leading-relaxed mb-12">
+                In most transactions, disclosure, inspection evidence, plans, certificates and ownership references sit in different places. FPIA brings those records into one governed view so buyers, sellers and professionals can make decisions with clearer evidence.
+              </p>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          'Truth enters too late',
-          'Evidence stays fragmented',
-          'Verification arrives under pressure',
-          'No durable registry record',
-        ].map((item) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            'Documents are scattered',
+            'Evidence arrives late',
+            'Disclosure is hard to verify',
+            'No lasting property record',
+          ].map((item) => (
         <div
           key={item}
           style={{ border: '1px solid rgba(11,31,51,0.1)', backgroundColor: 'white' }}

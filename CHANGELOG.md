@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.16] - 2026-04-30
+
+- Refined homepage property-record gap copy to make the FPIA value proposition clearer, calmer and more board-ready.
+
 ## [0.9.15] - 2026-04-30
 
 - Removed individual personal contact details from the public contact page and retained the general FPIA email contact.
