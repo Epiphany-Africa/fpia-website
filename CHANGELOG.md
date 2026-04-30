@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.12] - 2026-04-30
+
+- Refined homepage risk comparison language to make the governed property record value proposition clearer, calmer, and more board-ready.
+
 ## [0.9.11] - 2026-04-30
 
 - Simplified homepage positioning, removed premature named partner claims, added audience pathways, and added future municipal/deeds/plans record roadmap language.
