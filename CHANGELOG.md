@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.15] - 2026-04-30
+
+- Removed individual personal contact details from the public contact page and retained the general FPIA email contact.
+
 ## [0.9.14] - 2026-04-30
 
 - Added a Municipal, Deeds and Approved Plans Roadmap page explaining FPIA’s future property-record infrastructure direction while avoiding claims of live municipal or deeds integration.
