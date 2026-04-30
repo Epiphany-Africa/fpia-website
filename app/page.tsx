@@ -394,11 +394,11 @@ export default function HomePage() {
           <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-10">
             FPIA is designed to support a fuller property record over time — including approved plans, title deed references, compliance documents and municipal artefacts where lawful access and formal data-sharing arrangements allow.
           </p>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              'Approved plans and municipal records',
-              'Title deed and property reference data',
-              'Compliance and certificate history',
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                'Approved plans and municipal records',
+                'Title deed and property reference data',
+                'Compliance and certificate history',
             ].map((item) => (
               <div
                 key={item}
@@ -408,11 +408,20 @@ export default function HomePage() {
                 <p style={{ color: 'var(--navy)' }} className="text-sm font-medium">
                   {item}
                 </p>
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
+            <div className="mt-8">
+              <Link
+                href="/roadmap/municipal-records"
+                style={{ color: 'var(--navy)' }}
+                className="text-sm font-semibold tracking-wide hover:opacity-80 transition-opacity"
+              >
+                Learn about the municipal and deeds roadmap →
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* ── OPPORTUNITY ── */}
       <section style={{ backgroundColor: 'var(--navy)' }} className="py-24">
