@@ -73,6 +73,7 @@ export async function POST(request: Request) {
     const contactPhone = normalizeOptionalString(body?.contact_phone, 40);
     const agentName = normalizeOptionalString(body?.agent_name, 160);
     const agency = normalizeOptionalString(body?.agency, 160);
+    const agentFfcNumber = normalizeOptionalString(body?.agent_ffc_number, 80);
     const agentEmail = normalizeOptionalString(body?.agent_email, 200)?.toLowerCase() ?? null;
     const agentPhone = normalizeOptionalString(body?.agent_phone, 40);
     const preferredDate = normalizeOptionalString(body?.preferred_date, 20);
@@ -174,6 +175,7 @@ export async function POST(request: Request) {
           contact_phone: contactPhone,
           agent_name: agentName,
           agency,
+          agent_ffc_number: agentFfcNumber,
           agent_email: agentEmail,
           agent_phone: agentPhone,
           preferred_date: preferredDate,
