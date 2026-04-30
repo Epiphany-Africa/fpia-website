@@ -51,6 +51,9 @@ function RequestInspectionPageContent() {
   const [suburbResults, setSuburbResults] = useState<Suburb[]>([])
   const [selectedSuburb, setSelectedSuburb] = useState<Suburb | null>(null)
   const [suburbLoading, setSuburbLoading] = useState(false)
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [geocoding, setGeocoding] = useState(false)
+  const [geocodeError, setGeocodeError] = useState(false)
 
   const stepIndex = useMemo(
     () => REQUEST_STEPS.findIndex((item) => item.id === step),
@@ -93,9 +96,41 @@ function RequestInspectionPageContent() {
     }
   }, [suburbQuery])
 
+  // Geocode when suburb + street are all filled
+  useEffect(() => {
+    if (!selectedSuburb || !streetNumber.trim() || !streetName.trim()) return
+    const timer = setTimeout(async () => {
+      setGeocoding(true)
+      setGeocodeError(false)
+      try {
+        const { geocodeAddress } = await import('@/lib/geocode')
+        const result = await geocodeAddress(
+          streetNumber,
+          streetName,
+          selectedSuburb.suburb,
+          selectedSuburb.city,
+          selectedSuburb.province,
+          selectedSuburb.postal_code
+        )
+        if (result) {
+          setCoords({ lat: result.latitude, lng: result.longitude })
+        } else {
+          setGeocodeError(true)
+        }
+      } catch {
+        setGeocodeError(true)
+      } finally {
+        setGeocoding(false)
+      }
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [selectedSuburb, streetNumber, streetName])
+
   function selectSuburb(suburb: Suburb) {
     setSelectedSuburb(suburb)
     setSuburbQuery(suburb.suburb)
+    setCoords(null)
+    setGeocodeError(false)
   }
 
   function fullAddress() {
@@ -147,6 +182,9 @@ function RequestInspectionPageContent() {
           preferred_date: preferredDate,
           alt_date: altDate || null,
           notes: buildRequestNotes(),
+          latitude: coords?.lat ?? null,
+          longitude: coords?.lng ?? null,
+          geo_source: 'openstreetmap',
         }),
       })
 
@@ -342,6 +380,8 @@ function RequestInspectionPageContent() {
                 onValueChange={(nextValue) => {
                   setSuburbQuery(nextValue)
                   setSelectedSuburb(null)
+                  setCoords(null)
+                  setGeocodeError(false)
                 }}
                 onSelect={selectSuburb}
                 getItemKey={(item) => item.id}
@@ -349,7 +389,7 @@ function RequestInspectionPageContent() {
                 loading={suburbLoading}
                 placeholder="Start typing your suburb..."
                 emptyMessage="No matching suburbs found."
-                renderItem={(item) => (
+                renderItem={(item, _active) => (
                   <div
                     style={{
                       padding: '12px 16px',
@@ -390,6 +430,29 @@ function RequestInspectionPageContent() {
                   {fullAddress()}
                 </p>
               </div>
+            )}
+
+            {/* Map pin */}
+            {coords && (
+              <div style={{ marginTop: '16px', borderRadius: '4px', overflow: 'hidden', border: '1px solid rgba(201,161,77,0.3)' }}>
+                <iframe
+                  title="Property location"
+                  width="100%"
+                  height="220"
+                  style={{ border: 0, display: 'block' }}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng - 0.003},${coords.lat - 0.003},${coords.lng + 0.003},${coords.lat + 0.003}&layer=mapnik&marker=${coords.lat},${coords.lng}`}
+                />
+                <div style={{ padding: '8px 14px', backgroundColor: 'rgba(255,255,255,0.03)', fontSize: '12px', color: 'var(--gold)', letterSpacing: '1px' }}>
+                  {`GPS — ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`}
+                </div>
+              </div>
+            )}
+
+            {geocoding && !coords && (
+              <p style={{ fontSize: '12px', color: 'var(--slate)', marginTop: '10px' }}>Locating property on map...</p>
+            )}
+            {geocodeError && !geocoding && (
+              <p style={{ fontSize: '12px', color: '#fc8181', marginTop: '10px' }}>Could not locate this address on the map — coordinates will not be attached, but you can still proceed.</p>
             )}
 
             <div style={{ marginTop: '40px' }}>
@@ -575,29 +638,24 @@ function RequestInspectionPageContent() {
             padding-left: 32px !important;
             padding-right: 32px !important;
           }
-
           .fpia-request-products {
             grid-template-columns: 1fr !important;
           }
         }
-
         @media (max-width: 720px) {
           .fpia-request-steps {
             flex-direction: column;
             gap: 14px !important;
           }
-
           .fpia-request-address-row,
           .fpia-request-two-col,
           .fpia-request-confirm-row {
             grid-template-columns: 1fr !important;
           }
-
           .fpia-request-actions {
             flex-direction: column-reverse;
           }
         }
-
         @media (max-width: 640px) {
           .fpia-request-hero,
           .fpia-request-products-shell,
@@ -605,16 +663,13 @@ function RequestInspectionPageContent() {
             padding-left: 18px !important;
             padding-right: 18px !important;
           }
-
           .fpia-request-hero {
             padding-top: 44px !important;
             padding-bottom: 36px !important;
           }
-
           .fpia-request-products-shell {
             padding-top: 22px !important;
           }
-
           .fpia-request-form-shell {
             padding-top: 36px !important;
             padding-bottom: 44px !important;

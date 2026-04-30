@@ -1,3 +1,5 @@
+import { DEMO_CERTIFICATE_ID } from '@/lib/demo/demoCertificate'
+
 type CertificateAuthorityRecord = {
   full_name?: string | null
   inspector_code?: string | null
@@ -30,7 +32,6 @@ type CertificateRecord = {
   stamp_image_url?: string | null
 }
 
-const DEMO_CERTIFICATE_ID = 'ZA-2024-00142'
 const OFFICIAL_AUTHORITY_COMPANY = 'Fair Properties Inspection Authority'
 
 function normalizeAssetPath(input: string | null | undefined, fallback?: string | null) {

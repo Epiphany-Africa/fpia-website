@@ -1,3 +1,5 @@
+import { DEMO_CERTIFICATE_ID } from '@/lib/demo/demoCertificate'
+
 export default function DemoVerificationPage() {
   return (
     <div style={{ backgroundColor: 'var(--off-white)', minHeight: '100vh', padding: '80px 20px' }}>
@@ -44,7 +46,7 @@ export default function DemoVerificationPage() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Report ID</span>
-              <span>FPIA-6AF4CF0170</span>
+              <span>{DEMO_CERTIFICATE_ID}</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>

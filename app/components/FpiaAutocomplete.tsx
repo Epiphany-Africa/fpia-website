@@ -30,6 +30,7 @@ export default function FpiaAutocomplete<T>({
   minQueryLength = 2,
 }: Props<T>) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const isSelectingRef = useRef(false);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
@@ -56,9 +57,13 @@ export default function FpiaAutocomplete<T>({
   }, []);
 
   function selectItem(item: T) {
+    isSelectingRef.current = true;
     onSelect(item);
-    onValueChange(getItemLabel(item));
+    // onValueChange is intentionally not called here — onSelect already updates the
+    // display value in the parent, and calling onValueChange would trigger side effects
+    // (like clearing the selection) that belong only to user-typed input.
     setOpen(false);
+    isSelectingRef.current = false;
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -107,13 +112,14 @@ export default function FpiaAutocomplete<T>({
       <input
         value={value}
         onChange={(event) => {
+          if (isSelectingRef.current) return;
           onValueChange(event.target.value);
           setOpen(true);
           setActiveIndex(0);
         }}
         onFocus={() => {
-          setOpen(true);
-          if (normalizedItems.length > 0) {
+          if (value.trim().length >= minQueryLength && normalizedItems.length > 0) {
+            setOpen(true);
             setActiveIndex(0);
           }
         }}

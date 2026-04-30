@@ -12,12 +12,13 @@ const audienceLinks = [
   { label: 'For Property Practitioners', href: '/for-agents' },
   { label: 'For Insurers', href: '/for-insurers' },
   { label: 'For Bond Originators', href: '/for-bond-originators' },
+  { label: 'For Inspectors', href: '/for-inspectors' },
 ]
 
 const desktopMainLinks = [
   { label: 'Home', href: '/' },
-  { label: 'How It Works', href: '/how-it-works' },
-  { label: 'Property Passport', href: '/property-passport' },
+  { label: 'How It Works', href: '/how-it-works', lines: ['How It', 'Works'], minWidth: 82 },
+  { label: 'Property Passport', href: '/property-passport', lines: ['Property', 'Passport'], minWidth: 92 },
   { label: 'Registry', href: '/verify' },
 ]
 
@@ -37,29 +38,48 @@ const utilityLinks = [
   { label: 'Certificate Renewal', href: '/contact?inquiry=renewal' },
 ]
 
-function navLinkStyle(active: boolean): CSSProperties {
+function navLinkStyle(
+  active: boolean,
+  options?: {
+    stacked?: boolean
+    minWidth?: number
+  }
+): CSSProperties {
+  const stacked = options?.stacked ?? false
+
   return {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '38px',
-    padding: '0 12px',
+    minHeight: stacked ? '38px' : '32px',
+    minWidth: options?.minWidth ? `${options.minWidth}px` : undefined,
+    padding: stacked ? '5px 10px' : '0 10px',
     border: active
-      ? '1px solid rgba(201, 161, 77, 0.6)'
-      : '1px solid rgba(201, 161, 77, 0.34)',
+      ? '1px solid rgba(201, 161, 77, 0.46)'
+      : '1px solid rgba(201, 161, 77, 0.22)',
     borderRadius: '999px',
-    fontSize: '11px',
+    fontSize: stacked ? '9px' : '10px',
     fontWeight: 700,
-    letterSpacing: '0.12em',
+    letterSpacing: stacked ? '0.09em' : '0.1em',
+    lineHeight: stacked ? 1.02 : 1.08,
+    whiteSpace: stacked ? 'normal' : 'nowrap',
+    textAlign: 'center',
     textTransform: 'uppercase',
     textDecoration: 'none',
     color: '#ffffff',
     background: active
-      ? 'rgba(201, 161, 77, 0.26)'
-      : 'rgba(255, 255, 255, 0.12)',
-    boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.06)',
+      ? 'rgba(201, 161, 77, 0.17)'
+      : 'rgba(255, 255, 255, 0.06)',
+    boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
     textShadow: '0 1px 1px rgba(0, 0, 0, 0.18)',
   }
+}
+
+const stackedLabelStyle: CSSProperties = {
+  display: 'grid',
+  justifyItems: 'center',
+  alignItems: 'center',
+  lineHeight: 1.02,
 }
 
 const dropdownItemBaseStyle: CSSProperties = {
@@ -124,7 +144,7 @@ function mobileLinkStyle(active: boolean, emphasis: 'default' | 'primary' = 'def
 function subscribeViewport(callback: () => void) {
   if (typeof window === 'undefined') return () => {}
 
-  const mediaQuery = window.matchMedia('(max-width: 720px)')
+  const mediaQuery = window.matchMedia('(max-width: 1023px)')
   mediaQuery.addEventListener('change', callback)
 
   return () => {
@@ -134,13 +154,13 @@ function subscribeViewport(callback: () => void) {
 
 function getViewportSnapshot() {
   if (typeof window === 'undefined') return false
-  return window.matchMedia('(max-width: 720px)').matches
+  return window.matchMedia('(max-width: 1023px)').matches
 }
 
 export default function Nav() {
   const path = usePathname()
-  const [desktopOpen, setDesktopOpen] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [desktopOpenPath, setDesktopOpenPath] = useState<string | null>(null)
+  const [mobileOpenPath, setMobileOpenPath] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const mobilePanelRef = useRef<HTMLDivElement>(null)
   const isMobileViewport = useSyncExternalStore(
@@ -148,6 +168,8 @@ export default function Nav() {
     getViewportSnapshot,
     () => false
   )
+  const desktopOpen = desktopOpenPath === path
+  const mobileOpen = mobileOpenPath === path
   const mobileOpenEffective = isMobileViewport && mobileOpen
 
   const dropdownActive = audienceLinks.some((link) => link.href === path)
@@ -155,21 +177,21 @@ export default function Nav() {
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       if (!dropdownRef.current?.contains(event.target as Node)) {
-        setDesktopOpen(false)
+        setDesktopOpenPath(null)
       }
 
       if (isMobileViewport && !mobilePanelRef.current?.contains(event.target as Node)) {
         const target = event.target as HTMLElement
         if (!target.closest('[data-mobile-nav-trigger="true"]')) {
-          setMobileOpen(false)
+          setMobileOpenPath(null)
         }
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setDesktopOpen(false)
-        setMobileOpen(false)
+        setDesktopOpenPath(null)
+        setMobileOpenPath(null)
       }
     }
 
@@ -190,11 +212,6 @@ export default function Nav() {
     }
   }, [mobileOpenEffective])
 
-  useEffect(() => {
-    setDesktopOpen(false)
-    setMobileOpen(false)
-  }, [path])
-
   return (
     <>
       <nav
@@ -204,17 +221,17 @@ export default function Nav() {
             'linear-gradient(180deg, rgba(11, 31, 51, 0.98) 0%, rgba(11, 31, 51, 0.96) 100%)',
         }}
       >
-        <div className="relative z-[1] mx-auto flex min-h-[70px] max-w-[1320px] items-center justify-between gap-4 px-[14px] sm:min-h-[74px] sm:px-4 md:min-h-[80px] md:px-5">
+        <div className="relative z-[1] mx-auto flex min-h-[58px] max-w-[1320px] items-center justify-between gap-3 px-[14px] sm:min-h-[62px] sm:px-4 lg:grid lg:min-h-[64px] lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-4 lg:px-5 xl:min-h-[66px] xl:px-6">
           <Link
             href="/"
-            className="flex min-w-0 items-center gap-3 no-underline sm:gap-4"
+            className="flex min-w-0 items-center no-underline lg:justify-self-start"
             aria-label="FPIA home"
             onClick={() => {
-              setDesktopOpen(false)
-              setMobileOpen(false)
+              setDesktopOpenPath(null)
+              setMobileOpenPath(null)
             }}
           >
-            <div className="w-[138px] flex-shrink-0 sm:w-[160px] md:w-[190px]">
+            <div className="w-[118px] flex-shrink-0 sm:w-[130px] lg:w-[144px] xl:w-[150px]">
               <Image
                 src="/fpia-logo.png"
                 alt="FPIA Logo"
@@ -228,31 +245,34 @@ export default function Nav() {
                 }}
               />
             </div>
-            <div className="hidden min-[1040px]:flex min-w-0 flex-col">
-              <span
-                className="whitespace-nowrap text-[10px] uppercase leading-[1.2] tracking-[0.18em]"
-                style={{ color: 'rgba(201, 161, 77, 0.82)' }}
-              >
-                Fair Properties Inspection Authority
-              </span>
-            </div>
           </Link>
 
-          <div className="relative z-[3] hidden items-center justify-end gap-[10px] md:flex">
+          <div className="relative z-[3] hidden items-center justify-self-center lg:flex lg:gap-[6px] xl:gap-[8px]">
             {desktopMainLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => {
-                  setDesktopOpen(false)
-                  setMobileOpen(false)
+                  setDesktopOpenPath(null)
+                  setMobileOpenPath(null)
                 }}
-                className={`inline-flex min-h-[38px] items-center justify-center rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors ${
+                className={`inline-flex items-center justify-center rounded-full text-[10px] font-bold uppercase transition-colors ${
                   path === link.href ? 'is-active' : ''
                 }`}
-                style={navLinkStyle(path === link.href)}
+                style={navLinkStyle(path === link.href, {
+                  stacked: Boolean(link.lines),
+                  minWidth: link.minWidth,
+                })}
               >
-                {link.label}
+                {link.lines ? (
+                  <span style={stackedLabelStyle}>
+                    {link.lines.map((line) => (
+                      <span key={line}>{line}</span>
+                    ))}
+                  </span>
+                ) : (
+                  link.label
+                )}
               </Link>
             ))}
 
@@ -261,27 +281,36 @@ export default function Nav() {
                 type="button"
                 aria-haspopup="menu"
                 aria-expanded={desktopOpen}
-                onClick={() => setDesktopOpen((current) => !current)}
-                className={`inline-flex min-h-[38px] cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] ${
+                onClick={() =>
+                  setDesktopOpenPath((current) => (current === path ? null : path))
+                }
+                className={`inline-flex cursor-pointer items-center justify-center gap-1 rounded-full text-[10px] font-bold uppercase ${
                   dropdownActive ? 'is-active' : ''
                 }`}
-                style={navLinkStyle(dropdownActive)}
+                style={navLinkStyle(dropdownActive, {
+                  stacked: true,
+                  minWidth: 64,
+                })}
               >
-                For You <span className="text-[10px]">▾</span>
+                <span style={stackedLabelStyle}>
+                  <span>For</span>
+                  <span>You</span>
+                </span>
+                <span className="ml-[1px] text-[9px]">▾</span>
               </button>
 
               {desktopOpen && (
                 <div
                   role="menu"
-                  className="absolute left-1/2 top-[calc(100%+12px)] z-20 min-w-[236px] -translate-x-1/2 rounded-[18px] border border-[rgba(201,161,77,0.26)] bg-[#0f2845] p-[10px] shadow-[0_22px_50px_rgba(0,0,0,0.22)]"
+                  className="absolute left-1/2 top-[calc(100%+10px)] z-20 min-w-[228px] -translate-x-1/2 rounded-[16px] border border-[rgba(201,161,77,0.24)] bg-[#0f2845] p-[8px] shadow-[0_20px_46px_rgba(0,0,0,0.2)]"
                 >
                   {audienceLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
                       onClick={() => {
-                        setDesktopOpen(false)
-                        setMobileOpen(false)
+                        setDesktopOpenPath(null)
+                        setMobileOpenPath(null)
                       }}
                       className={`${path === link.href ? 'is-active' : ''} block rounded-xl px-[14px] py-3 text-[12px] font-bold text-white no-underline transition-colors`}
                       style={dropdownItemStyle(path === link.href)}
@@ -296,36 +325,38 @@ export default function Nav() {
             <Link
               href="/contact"
               onClick={() => {
-                setDesktopOpen(false)
-                setMobileOpen(false)
+                setDesktopOpenPath(null)
+                setMobileOpenPath(null)
               }}
-              className={`inline-flex min-h-[38px] items-center justify-center rounded-full px-3 text-[11px] font-bold uppercase tracking-[0.12em] ${
+              className={`inline-flex items-center justify-center rounded-full text-[10px] font-bold uppercase ${
                 path === '/contact' ? 'is-active' : ''
               }`}
-              style={navLinkStyle(path === '/contact')}
+              style={navLinkStyle(path === '/contact', { minWidth: 68 })}
             >
               Contact
             </Link>
-
-            <Link
-              href="/register"
-              onClick={() => {
-                setDesktopOpen(false)
-                setMobileOpen(false)
-              }}
-              className="inline-flex min-h-[42px] items-center justify-center whitespace-nowrap rounded-full bg-[var(--gold)] px-[18px] text-[11px] font-bold uppercase tracking-[0.14em] no-underline text-[var(--navy)]"
-            >
-              Register
-            </Link>
           </div>
+
+          <Link
+            href="/register"
+            onClick={() => {
+              setDesktopOpenPath(null)
+              setMobileOpenPath(null)
+            }}
+            className="hidden min-h-[36px] items-center justify-center justify-self-end whitespace-nowrap rounded-full border border-[rgba(201,161,77,0.46)] bg-[var(--gold)] px-[14px] text-[10px] font-bold uppercase tracking-[0.12em] no-underline text-[var(--navy)] shadow-[0_8px_18px_rgba(0,0,0,0.12)] lg:inline-flex xl:px-[15px]"
+          >
+            Register
+          </Link>
 
           <button
             type="button"
             data-mobile-nav-trigger="true"
             aria-expanded={mobileOpenEffective}
             aria-label={mobileOpenEffective ? 'Close navigation' : 'Open navigation'}
-            className="inline-flex h-11 w-11 items-center justify-center gap-[5px] rounded-[14px] border border-[rgba(201,161,77,0.24)] bg-[rgba(255,255,255,0.03)] md:hidden"
-            onClick={() => setMobileOpen((current) => !current)}
+            className="inline-flex h-[38px] w-[38px] items-center justify-center gap-[5px] rounded-[12px] border border-[rgba(201,161,77,0.24)] bg-[rgba(255,255,255,0.03)] lg:hidden"
+            onClick={() =>
+              setMobileOpenPath((current) => (current === path ? null : path))
+            }
             style={{ flexDirection: 'column' }}
           >
             <span className="h-[1.5px] w-[18px] rounded-full bg-[var(--gold)]" />
@@ -345,7 +376,7 @@ export default function Nav() {
       {mobileOpenEffective ? (
         <div
           ref={mobilePanelRef}
-          className="fixed inset-y-0 right-0 z-[110] w-[min(100vw,360px)] border-l border-[rgba(201,161,77,0.16)] p-4 pt-20 shadow-[-20px_0_48px_rgba(0,0,0,0.24)] md:hidden"
+          className="fixed inset-y-0 right-0 z-[110] w-[min(100vw,380px)] border-l border-[rgba(201,161,77,0.16)] p-4 pt-20 shadow-[-20px_0_48px_rgba(0,0,0,0.24)] lg:hidden"
           aria-hidden={!mobileOpenEffective}
           style={{
             background:
@@ -374,8 +405,8 @@ export default function Nav() {
                 href={link.href}
                 style={mobileLinkStyle(path === link.href)}
                 onClick={() => {
-                  setDesktopOpen(false)
-                  setMobileOpen(false)
+                  setDesktopOpenPath(null)
+                  setMobileOpenPath(null)
                 }}
               >
                 {link.label}
@@ -405,8 +436,8 @@ export default function Nav() {
                 href={link.href}
                 style={mobileLinkStyle(path === link.href)}
                 onClick={() => {
-                  setDesktopOpen(false)
-                  setMobileOpen(false)
+                  setDesktopOpenPath(null)
+                  setMobileOpenPath(null)
                 }}
               >
                 {link.label}
@@ -435,8 +466,8 @@ export default function Nav() {
                 href={link.href}
                 style={mobileLinkStyle(path === link.href)}
                 onClick={() => {
-                  setDesktopOpen(false)
-                  setMobileOpen(false)
+                  setDesktopOpenPath(null)
+                  setMobileOpenPath(null)
                 }}
               >
                 {link.label}
@@ -457,8 +488,8 @@ export default function Nav() {
             className="flex min-h-12 items-center justify-center rounded-[14px] px-[14px] no-underline"
             style={mobileLinkStyle(false, 'primary')}
             onClick={() => {
-              setDesktopOpen(false)
-              setMobileOpen(false)
+              setDesktopOpenPath(null)
+              setMobileOpenPath(null)
             }}
           >
             Request Inspection

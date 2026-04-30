@@ -33,6 +33,18 @@ function formatDate(input?: string | null) {
   }).format(date)
 }
 
+function formatCurrency(amount?: number | null, currency = 'ZAR') {
+  if (typeof amount !== 'number' || Number.isNaN(amount)) {
+    return null
+  }
+
+  return new Intl.NumberFormat('en-ZA', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
 function normalizeAssetPath(input: string | null | undefined, fallback?: string | null) {
   const value = input?.trim()
 
@@ -312,18 +324,63 @@ function buildShortVerificationHash(hash: string) {
     : normalized
 }
 
-function drawIntegrityWatermark(doc: jsPDF) {
+function buildIntegrityReference(hash: string) {
+  const normalized = normalizeVerificationHash(hash)
+
+  if (normalized === 'No active verification hash' || normalized === 'Not available') {
+    return normalized
+  }
+
+  if (normalized.length <= 24) {
+    return normalized
+  }
+
+  return `${normalized.slice(0, 8)}-${normalized.slice(8, 16)}-${normalized.slice(-8)}`
+}
+
+function getReinstatementEstimateState(certificate: Awaited<ReturnType<typeof loadPublicVerificationRecord>>['certificate']) {
+  if (!certificate) {
+    return null
+  }
+
+  const formattedAmount = formatCurrency(
+    certificate.reinstatement_estimate_amount ?? null,
+    certificate.reinstatement_estimate_currency ?? 'ZAR'
+  )
+
+  if (formattedAmount) {
+    return {
+      value: formattedAmount,
+      footerNote: 'This estimate is not market value or a formal valuation.',
+    }
+  }
+
+  return {
+    value: 'Estimate pending required inputs',
+    footerNote: 'Reinstatement estimate pending required inputs.',
+  }
+}
+
+function drawIntegrityWatermark(doc: jsPDF, integrityReference: string) {
   const angle = 24
-  const startX = 68
-  const startY = 170
+  const startX = 50
+  const startY = 164
 
   doc.saveGraphicsState()
-  doc.setGState(doc.GState({ opacity: 0.03, 'stroke-opacity': 0.03 }))
-  doc.setTextColor(176, 182, 190)
+  doc.setGState(doc.GState({ opacity: 0.05, 'stroke-opacity': 0.05 }))
+  doc.setTextColor(168, 176, 186)
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(42)
+  doc.setFontSize(32)
   doc.text('FPIA', startX, startY, { angle })
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9.2)
+  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', startX + 16, startY + 13, { angle })
+
+  doc.setFont('courier', 'bold')
+  doc.setFontSize(8.2)
+  doc.text(`REF ${integrityReference}`, startX + 38, startY + 26, { angle })
   doc.restoreGraphicsState()
 }
 
@@ -460,6 +517,8 @@ export async function buildProtectedCertificatePdf(id: string) {
   const validUntilLabel = getValidUntilLabel(trustState)
   const issuedLabel = formatDate(registry?.issued_at ?? certificate?.issued_at)
   const shortHash = buildShortVerificationHash(verificationHash)
+  const integrityReference = buildIntegrityReference(verificationHash)
+  const reinstatementEstimate = getReinstatementEstimateState(certificate)
   const inspectorMetaParts = [authorityCode?.trim(), authorityBadgeNumber?.trim()].filter(Boolean)
   const inspectorMeta = inspectorMetaParts.join(' | ')
 
@@ -538,7 +597,7 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setDrawColor(210, 210, 210)
   doc.line(20, 116, 190, 116)
 
-  drawIntegrityWatermark(doc)
+  drawIntegrityWatermark(doc, integrityReference)
 
   doc.setTextColor(...grey)
   doc.setFont('helvetica', 'bold')
@@ -564,6 +623,9 @@ export async function buildProtectedCertificatePdf(id: string) {
   detailRow('Certificate ID', documentId)
   detailRow('Issued', issuedLabel)
   detailRow('Valid Until', validUntilLabel)
+  if (reinstatementEstimate) {
+    detailRow('Reinstatement Estimate', reinstatementEstimate.value)
+  }
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -679,9 +741,11 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.text('This document is cryptographically anchored to the FPIA registry.', 105, footerY - 4.6, {
     align: 'center',
   })
-  doc.text('This estimate is not market value or a formal valuation.', 105, footerY - 1.4, {
-    align: 'center',
-  })
+  if (reinstatementEstimate) {
+    doc.text(reinstatementEstimate.footerNote, 105, footerY - 1.4, {
+      align: 'center',
+    })
+  }
 
   doc.setFillColor(...navy)
   doc.rect(15, footerY, 180, footerHeight, 'F')

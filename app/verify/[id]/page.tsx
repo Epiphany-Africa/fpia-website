@@ -126,6 +126,16 @@ function formatCurrency(amount: number | null | undefined, currency = 'ZAR') {
   }).format(amount)
 }
 
+function formatArea(area: number | null | undefined) {
+  if (typeof area !== 'number' || Number.isNaN(area)) {
+    return 'Not recorded'
+  }
+
+  return `${new Intl.NumberFormat('en-ZA', {
+    maximumFractionDigits: area % 1 === 0 ? 0 : 2,
+  }).format(area)} m²`
+}
+
 function getReinstatementPendingCopy(certificate: CertificateRow | null) {
   const missingInputs = Array.isArray(certificate?.reinstatement_estimate_inputs?.missing_inputs)
     ? (certificate?.reinstatement_estimate_inputs?.missing_inputs as unknown[]).filter(
@@ -646,6 +656,14 @@ export default async function VerifyPropertyPage({
             <div>
               <p style={sectionLabelStyle}>Registry Date</p>
               <p style={recordValueStyle}>{registryDate}</p>
+            </div>
+            <div>
+              <p style={sectionLabelStyle}>Recorded Floor Area</p>
+              <p style={recordValueStyle}>{formatArea(property?.floor_area_m2)}</p>
+            </div>
+            <div>
+              <p style={sectionLabelStyle}>Property Type</p>
+              <p style={recordValueStyle}>{property?.property_type ?? 'Not recorded'}</p>
             </div>
           </div>
         </section>
