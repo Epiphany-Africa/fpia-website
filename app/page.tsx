@@ -414,27 +414,27 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── WITHOUT FPIA ── */}
+      {/* ── OPPORTUNITY ── */}
       <section style={{ backgroundColor: 'var(--navy)' }} className="py-24">
         <div className="max-w-7xl mx-auto px-6">
-          <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">The Risk</p>
+          <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">The Opportunity</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-4xl md:text-5xl mb-4">
-            What happens without FPIA?
+            Why a governed property record matters
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-2xl leading-relaxed mb-16">
-            Most property transactions rely on incomplete disclosure, missing records, and trust that often breaks when accountability is needed most.
+            Many property transactions still rely on fragmented records and late-stage discovery, creating avoidable uncertainty for everyone involved.
           </p>
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             <div style={{ border: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="p-8">
-              <h3 style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Mono, monospace' }} className="text-xs tracking-widest uppercase mb-6">Without FPIA</h3>
+              <h3 style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Mono, monospace' }} className="text-xs tracking-widest uppercase mb-6">In a Typical Transaction</h3>
               <ul className="space-y-4">
                 {[
-                  'Property risk surfaces too late in the process',
-                  'Deals collapse during OTP or just before transfer',
-                  'Price renegotiations erode seller value',
-                  'Buyers inherit hidden repair costs',
-                  'Disputes arise after transfer with no clear accountability',
-                  'No single verified source of truth',
+                  'Important property issues are often identified late in the process',
+                  'Key records may be incomplete, fragmented, or difficult to verify',
+                  'Negotiations can become reactive when new information emerges',
+                  'Repair exposure is not always clear before commitments are made',
+                  'Accountability can be harder to establish after transfer',
+                  'Decision-making often happens without one verified property record',
                 ].map(item => (
                   <li key={item} className="flex items-start gap-3 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
                     <span style={{ color: '#e05555', marginTop: '2px' }}>✕</span> {item}
@@ -447,11 +447,11 @@ export default function HomePage() {
               <ul className="space-y-4">
                 {[
                   'Verified property context is established before key decisions',
-                  'Transparent records are available to all parties',
-                  'Deals progress with confidence and fewer delays',
-                  'Pricing supported by verified property condition',
-                  'Tamper-proof record protects all stakeholders',
-                  'One trusted, independent standard',
+                  'Transparent records are available to all relevant parties',
+                  'Transactions progress with greater confidence and fewer delays',
+                  'Pricing is supported by verified property condition',
+                  'A tamper-resistant record strengthens accountability',
+                  'One independent, trusted property standard supports the process',
                 ].map(item => (
                   <li key={item} className="flex items-start gap-3 text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
                     <span style={{ color: 'var(--gold)', marginTop: '2px' }}>✦</span> {item}
