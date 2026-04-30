@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { allocateInspectionRequest } from '@/lib/requests/allocateInspectionRequest'
 import type { SupabaseLike } from '@/lib/requests/allocateInspectionRequest'
+import { geocodeAddress } from '@/lib/server/geocode'
 import {
   checkRegisterRateLimit,
   detectRegisterSpam,
@@ -60,6 +61,23 @@ function getErrorMessage(error: unknown) {
 function formatDistance(distanceKm: number | null) {
   if (distanceKm === null || !Number.isFinite(distanceKm)) return 'distance unavailable'
   return `${distanceKm.toFixed(distanceKm < 10 ? 1 : 0)} km`
+}
+
+function parseAddressForGeocoding(propertyAddress: string) {
+  const trimmed = propertyAddress.trim()
+  if (!trimmed) {
+    return { streetNumber: '', streetName: '' }
+  }
+
+  const match = trimmed.match(/^(\d+[A-Za-z\-\/]*)\s+(.+)$/)
+  if (!match) {
+    return { streetNumber: '', streetName: trimmed }
+  }
+
+  return {
+    streetNumber: match[1].trim(),
+    streetName: match[2].trim(),
+  }
 }
 
 export async function POST(request: Request) {
@@ -142,6 +160,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Please provide valid inspection dates.' }, { status: 400 })
     }
 
+    const { streetNumber, streetName } = parseAddressForGeocoding(propertyAddress)
+    const geocodeResult = await geocodeAddress(
+      streetNumber,
+      streetName,
+      suburb ?? '',
+      city ?? '',
+      province ?? '',
+      postalCode ?? ''
+    )
+
     const { data: inspectionRequest, error: insertError } = await supabase
       .from('inspection_requests')
       .insert({
@@ -157,6 +185,9 @@ export async function POST(request: Request) {
         preferred_date: preferredDate,
         alt_date: altDate,
         notes,
+        latitude: geocodeResult?.latitude ?? null,
+        longitude: geocodeResult?.longitude ?? null,
+        geo_source: 'openstreetmap',
         status: 'Pending',
       })
       .select('id')
@@ -189,6 +220,8 @@ export async function POST(request: Request) {
           province,
           requestor_role: requestorRole,
           preferred_date: preferredDate,
+          geocode_status: geocodeResult ? 'resolved' : 'not_resolved',
+          geo_source: 'openstreetmap',
         },
       })
     } catch (eventError) {
