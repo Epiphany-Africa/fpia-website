@@ -123,35 +123,30 @@ export default function HomePage() {
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(var(--gold) 1px, transparent 1px), linear-gradient(90deg, var(--gold) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-5 pt-5 pb-11 sm:px-6 sm:pt-7 md:pt-9 md:pb-14 lg:flex-row lg:items-center lg:justify-between lg:gap-[56px] lg:pt-10 xl:pt-11">
           <div className="flex-1">
-            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-4 font-medium">Governed Property Accountability · South Africa</p>
+            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-4 font-medium">Governed Property Records · South Africa</p>
             <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="mb-5 max-w-3xl text-4xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              The accountability layer<br />
-            <em style={{ color: 'var(--gold)' }}>for residential property.</em>
+              Know the property<br />
+            <em style={{ color: 'var(--gold)' }}>before the deal is done.</em>
             </h1>
 
             <p className="mb-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
-              FPIA gives buyers, sellers, property practitioners, lenders, insurers, and property legal practitioners one governed source of truth for residential property — so decisions are made on evidence, not assumption.
+              FPIA creates a governed property record before transfer — helping sellers, buyers, property practitioners, lenders, insurers and legal professionals make decisions from verified evidence, not assumptions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/request-inspection" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
-                Request Inspection →
+              <Link href="/seller-readiness" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
+                Start With Your Property
               </Link>
               <Link href="/verify" style={{ border: '1px solid rgba(255,255,255,0.3)', color: 'white' }} className="inline-block px-8 py-4 font-medium tracking-wide text-sm hover:border-white/60 transition-colors text-center">
-                Verify Certificate
+                Verify a Certificate
               </Link>
             </div>
-            <div className="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
-              <Link href="/contact?message=I%27d%20like%20to%20request%20access%20to%20FPIA%20for%20my%20organisation." className="font-semibold text-[var(--gold)] transition-opacity hover:opacity-80">
-                Request Access →
-              </Link>
-              <Link href="/how-it-works" className="font-semibold text-white/70 transition-opacity hover:text-white">
-                Learn How It Works →
-              </Link>
-            </div>
+            <p className="mt-4 text-sm text-white/65">
+              For sellers, buyers, property practitioners, lenders, insurers and legal professionals.
+            </p>
             <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(201,161,77,0.2)' }} className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span style={{ color: 'var(--gold)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase' }}>National Partner</span>
-              <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '16px' }}>|</span>
-              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontStyle: 'italic' }}>Century 21 South Africa</span>
+              <span style={{ color: 'rgba(255,255,255,0.68)', fontSize: '13px' }}>
+                Built for accountable property transactions across South Africa.
+              </span>
             </div>
           </div>
           <div style={{ flexShrink: 0 }} className="flex flex-col items-center gap-4 lg:min-w-[250px]">
@@ -227,6 +222,62 @@ export default function HomePage() {
           {['Inspection enters truth', 'Evidence structures truth', 'Authority governs truth', 'Verification checks truth', 'Registry persists truth'].map(t => (
             <span key={t}>✦ {t}</span>
           ))}
+        </div>
+      </section>
+
+      <section style={{ backgroundColor: 'white' }} className="py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
+            Choose your path
+          </p>
+          <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-3xl md:text-4xl mb-4">
+            Start from your role in the transaction.
+          </h2>
+          <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-10">
+            FPIA is built for sellers, buyers, professionals and institutions that need governed property records before critical decisions are locked in.
+          </p>
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                title: 'I\u2019m selling',
+                description: 'Prepare your property, disclosure record and visible repair exposure before listing.',
+                href: '/seller-readiness',
+                cta: 'Start Seller Readiness',
+              },
+              {
+                title: 'I\u2019m buying',
+                description: 'Check condition risk and request an independent inspection before committing.',
+                href: '/request-inspection',
+                cta: 'Request Inspection',
+              },
+              {
+                title: 'I\u2019m a professional or institution',
+                description: 'Use governed property records to reduce transaction, lending, insurance or legal risk.',
+                href: '/contact?message=I%27d%20like%20to%20request%20access%20to%20FPIA%20for%20my%20organisation.',
+                cta: 'Request Access',
+              },
+            ].map((path) => (
+              <div
+                key={path.title}
+                style={{ border: '1px solid rgba(11,31,51,0.1)', backgroundColor: 'var(--off-white)' }}
+                className="flex h-full flex-col p-8"
+              >
+                <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-2xl mb-3">
+                  {path.title}
+                </h3>
+                <p style={{ color: 'var(--slate)' }} className="text-sm leading-relaxed mb-6">
+                  {path.description}
+                </p>
+                <Link
+                  href={path.href}
+                  style={{ color: 'var(--navy)' }}
+                  className="mt-auto text-sm font-semibold tracking-wide hover:opacity-80 transition-opacity"
+                >
+                  {path.cta} →
+                </Link>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -326,6 +377,37 @@ export default function HomePage() {
                     {product.ctaLabel}
                   </Link>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ backgroundColor: 'var(--off-white)' }} className="py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
+            Built for the future property record
+          </p>
+          <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
+            FPIA is designed to support a fuller property record over time.
+          </h2>
+          <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-10">
+            FPIA is designed to support a fuller property record over time — including approved plans, title deed references, compliance documents and municipal artefacts where lawful access and formal data-sharing arrangements allow.
+          </p>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              'Approved plans and municipal records',
+              'Title deed and property reference data',
+              'Compliance and certificate history',
+            ].map((item) => (
+              <div
+                key={item}
+                style={{ border: '1px solid rgba(11,31,51,0.1)', backgroundColor: 'white' }}
+                className="px-6 py-5"
+              >
+                <p style={{ color: 'var(--navy)' }} className="text-sm font-medium">
+                  {item}
+                </p>
               </div>
             ))}
           </div>

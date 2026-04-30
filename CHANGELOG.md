@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.11] - 2026-04-30
+
+- Simplified homepage positioning, removed premature named partner claims, added audience pathways, and added future municipal/deeds/plans record roadmap language.
+
 ## [0.9.10] - 2026-04-30
 
 - Updated Property Passport document upload options by renaming Beetle Certificate to Entomology Certificate and adding Occupancy Certificate.
