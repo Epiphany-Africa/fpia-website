@@ -18,11 +18,7 @@ import {
 const COMPANY_NAME = 'Fair Properties Inspection Authority (Pty) Ltd'
 const ALLOWED_REMOTE_HOSTS = new Set(['lpgvjyxwouttbvpgivtu.supabase.co'])
 const PUBLIC_DIR = path.resolve(process.cwd(), 'public')
-const FORBIDDEN_PUBLIC_PDF_PHRASES = [
-  'Case record only',
-  'Registry lookup only',
-  'Location not available',
-]
+const FORBIDDEN_PUBLIC_PDF_PHRASES = ['Case record only', 'Registry lookup only']
 
 function formatDate(input?: string | null) {
   if (!input) return 'Not available'
@@ -37,7 +33,7 @@ function formatDate(input?: string | null) {
   }).format(date)
 }
 
-function formatCurrency(amount: number | null | undefined, currency = 'ZAR') {
+function formatCurrency(amount?: number | null, currency = 'ZAR') {
   if (typeof amount !== 'number' || Number.isNaN(amount)) {
     return null
   }
@@ -328,28 +324,63 @@ function buildShortVerificationHash(hash: string) {
     : normalized
 }
 
-function drawIntegrityWatermark(doc: jsPDF, shortHash: string) {
+function buildIntegrityReference(hash: string) {
+  const normalized = normalizeVerificationHash(hash)
+
+  if (normalized === 'No active verification hash' || normalized === 'Not available') {
+    return normalized
+  }
+
+  if (normalized.length <= 24) {
+    return normalized
+  }
+
+  return `${normalized.slice(0, 8)}-${normalized.slice(8, 16)}-${normalized.slice(-8)}`
+}
+
+function getReinstatementEstimateState(certificate: Awaited<ReturnType<typeof loadPublicVerificationRecord>>['certificate']) {
+  if (!certificate) {
+    return null
+  }
+
+  const formattedAmount = formatCurrency(
+    certificate.reinstatement_estimate_amount ?? null,
+    certificate.reinstatement_estimate_currency ?? 'ZAR'
+  )
+
+  if (formattedAmount) {
+    return {
+      value: formattedAmount,
+      footerNote: 'This estimate is not market value or a formal valuation.',
+    }
+  }
+
+  return {
+    value: 'Estimate pending required inputs',
+    footerNote: 'Reinstatement estimate pending required inputs.',
+  }
+}
+
+function drawIntegrityWatermark(doc: jsPDF, integrityReference: string) {
   const angle = 24
-  const mainX = 56
-  const mainY = 171
-  const supportX = 69
-  const supportY = 151
+  const startX = 50
+  const startY = 164
 
   doc.saveGraphicsState()
-  doc.setGState(doc.GState({ opacity: 0.052, 'stroke-opacity': 0.052 }))
-  doc.setTextColor(170, 176, 184)
+  doc.setGState(doc.GState({ opacity: 0.05, 'stroke-opacity': 0.05 }))
+  doc.setTextColor(168, 176, 186)
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(48)
-  doc.text('FPIA', mainX, mainY, { angle })
+  doc.setFontSize(32)
+  doc.text('FPIA', startX, startY, { angle })
 
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9.6)
-  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', supportX, supportY, { angle })
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9.2)
+  doc.text('INTEGRITY ANCHORED TO LIVE REGISTRY', startX + 16, startY + 13, { angle })
 
   doc.setFont('courier', 'bold')
-  doc.setFontSize(8.4)
-  doc.text(`REF ${shortHash}`, supportX + 16, supportY + 13, { angle })
+  doc.setFontSize(8.2)
+  doc.text(`REF ${integrityReference}`, startX + 38, startY + 26, { angle })
   doc.restoreGraphicsState()
 }
 
@@ -486,21 +517,10 @@ export async function buildProtectedCertificatePdf(id: string) {
   const validUntilLabel = getValidUntilLabel(trustState)
   const issuedLabel = formatDate(registry?.issued_at ?? certificate?.issued_at)
   const shortHash = buildShortVerificationHash(verificationHash)
+  const integrityReference = buildIntegrityReference(verificationHash)
+  const reinstatementEstimate = getReinstatementEstimateState(certificate)
   const inspectorMetaParts = [authorityCode?.trim(), authorityBadgeNumber?.trim()].filter(Boolean)
   const inspectorMeta = inspectorMetaParts.join(' | ')
-  const formattedReinstatementEstimate = formatCurrency(
-    certificate?.reinstatement_estimate_amount ?? null,
-    certificate?.reinstatement_estimate_currency ?? 'ZAR'
-  )
-  const showReinstatementEstimateRow = Boolean(certificate)
-  const reinstatementEstimateValue = showReinstatementEstimateRow
-    ? formattedReinstatementEstimate ?? 'Estimate pending required inputs'
-    : null
-  const reinstatementFooterNote = !showReinstatementEstimateRow
-    ? null
-    : formattedReinstatementEstimate
-    ? 'This estimate is not market value or a formal valuation.'
-    : 'Reinstatement estimate pending required inputs.'
 
   doc.setFillColor(248, 248, 248)
   doc.rect(0, 0, 210, 297, 'F')
@@ -577,7 +597,7 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setDrawColor(210, 210, 210)
   doc.line(20, 116, 190, 116)
 
-  drawIntegrityWatermark(doc, shortHash)
+  drawIntegrityWatermark(doc, integrityReference)
 
   doc.setTextColor(...grey)
   doc.setFont('helvetica', 'bold')
@@ -603,15 +623,8 @@ export async function buildProtectedCertificatePdf(id: string) {
   detailRow('Certificate ID', documentId)
   detailRow('Issued', issuedLabel)
   detailRow('Valid Until', validUntilLabel)
-  if (showReinstatementEstimateRow && reinstatementEstimateValue) {
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.setTextColor(...black)
-    doc.text('Reinstatement Estimate', labelX, y)
-
-    doc.setFont('helvetica', 'normal')
-    doc.text(reinstatementEstimateValue, valueX, y)
-    y += 8
+  if (reinstatementEstimate) {
+    detailRow('Reinstatement Estimate', reinstatementEstimate.value)
   }
 
   doc.setFont('helvetica', 'bold')
@@ -725,11 +738,11 @@ export async function buildProtectedCertificatePdf(id: string) {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.2)
   doc.setTextColor(...grey)
-  doc.text('This document is cryptographically anchored to the FPIA registry.', 105, footerY - 4.8, {
+  doc.text('This document is cryptographically anchored to the FPIA registry.', 105, footerY - 4.6, {
     align: 'center',
   })
-  if (reinstatementFooterNote) {
-    doc.text(reinstatementFooterNote, 105, footerY - 2.1, {
+  if (reinstatementEstimate) {
+    doc.text(reinstatementEstimate.footerNote, 105, footerY - 1.4, {
       align: 'center',
     })
   }

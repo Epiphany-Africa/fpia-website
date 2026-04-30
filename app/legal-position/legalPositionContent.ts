@@ -48,7 +48,7 @@ export const legalPositionSections = [
     paragraphs: [
       'FPIA does not replace the statutory disclosure duties that apply to property practitioners and sellers under the Property Practitioners Act 22 of 2019 and the regulations promulgated thereunder.',
       'The Property Practitioners Act 22 of 2019 forms a central part of the current South African property-regulatory framework. Section 67 requires a property practitioner not to accept a mandate unless the seller or lessor has provided a fully completed and signed mandatory disclosure form, requires that form to be provided to a prospective purchaser or lessee, and requires that it be attached to the agreement of sale or lease.',
-      'The PPRA mandatory disclosure form therefore remains legally relevant wherever that Act applies. If the form is not completed, signed, or attached as required, the agreement must be interpreted as if no defects or deficiencies were disclosed to the purchaser.',
+      'The Property Practitioners Regulatory Authority (PPRA) mandatory disclosure form therefore remains legally relevant wherever that Act applies. If the form is not completed, signed, or attached as required, the agreement must be interpreted as if no defects or deficiencies were disclosed to the purchaser.',
       'FPIA does not replace the mandatory disclosure form. It strengthens the factual and evidentiary environment around it.',
       'That means FPIA complements rather than replaces the mandatory disclosure framework. It can improve the factual quality of the information available, prompt earlier issue identification, and create a clearer supporting record around what was disclosed and when.',
     ],

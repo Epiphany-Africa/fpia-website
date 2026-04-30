@@ -69,6 +69,16 @@ function formatCurrency(amount: number | null | undefined, currency = 'ZAR') {
   }).format(amount)
 }
 
+function formatArea(area: number | null | undefined) {
+  if (typeof area !== 'number' || Number.isNaN(area)) {
+    return 'Not recorded'
+  }
+
+  return `${new Intl.NumberFormat('en-ZA', {
+    maximumFractionDigits: area % 1 === 0 ? 0 : 2,
+  }).format(area)} m²`
+}
+
 function getReinstatementPendingCopy(certificate: CertificateRow | null) {
   const missingInputs = Array.isArray(certificate?.reinstatement_estimate_inputs?.missing_inputs)
     ? (certificate?.reinstatement_estimate_inputs?.missing_inputs as unknown[]).filter(
@@ -821,6 +831,16 @@ export default async function VerifyProperty({
                 <p style={{ color: '#6C7077', margin: '8px 0 0 0', fontSize: '14px' }}>
                   {mock.province}
                 </p>
+              </div>
+
+              <div>
+                <p style={detailLabelStyle}>Recorded Floor Area</p>
+                <p style={detailValueStyle}>{formatArea(property?.floor_area_m2)}</p>
+              </div>
+
+              <div>
+                <p style={detailLabelStyle}>Property Type</p>
+                <p style={detailValueStyle}>{property?.property_type ?? 'Not recorded'}</p>
               </div>
             </div>
           </div>
