@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.10] - 2026-04-30
+
+- Updated Property Passport document upload options by renaming Beetle Certificate to Entomology Certificate and adding Occupancy Certificate.
+
 ## [0.9.9] - 2026-04-29
 
 - Added Property Practitioner FFC Number capture to registration/property practitioner details where FPIA records agent contact details.
