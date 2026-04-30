@@ -276,21 +276,6 @@ function ContactPageForm() {
               </p>
               {[
                 {
-                  label: 'Stephen van der Merwe',
-                  value: '+27 74 273 7869',
-                  href: 'tel:+27742737869',
-                },
-                {
-                  label: 'Rolise Bester',
-                  value: '+27 63 029 7665',
-                  href: 'tel:+27630297665',
-                },
-                {
-                  label: 'Andy Wille',
-                  value: '+27 71 474 6449',
-                  href: 'tel:+27714746449',
-                },
-                {
                   label: 'Email',
                   value: 'info@fairproperties.org.za',
                   href: 'mailto:info@fairproperties.org.za',

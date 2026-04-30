@@ -182,8 +182,8 @@ export function AgentPricingSection() {
             <strong style={{ color: '#C9A14D' }}>R7,500 per property</strong>
           </p>
         </div>
-        <a href="tel:+27742737869" style={styles.ctaGold}>
-          Call +27 74 273 7869
+        <a href="mailto:info@fairproperties.org.za" style={styles.ctaGold}>
+          Email info@fairproperties.org.za
         </a>
       </section>
 
