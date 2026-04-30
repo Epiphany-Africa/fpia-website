@@ -47,6 +47,8 @@ function RequestInspectionPageContent() {
   // Address autocomplete
   const [streetNumber, setStreetNumber] = useState('')
   const [streetName, setStreetName] = useState('')
+  const [unitNumber, setUnitNumber] = useState('')
+  const [complexName, setComplexName] = useState('')
   const [suburbQuery, setSuburbQuery] = useState('')
   const [suburbResults, setSuburbResults] = useState<Suburb[]>([])
   const [selectedSuburb, setSelectedSuburb] = useState<Suburb | null>(null)
@@ -135,7 +137,9 @@ function RequestInspectionPageContent() {
 
   function fullAddress() {
     if (!selectedSuburb) return ''
-    return `${streetNumber} ${streetName}, ${selectedSuburb.suburb}, ${selectedSuburb.city}, ${selectedSuburb.province}, ${selectedSuburb.postal_code}`
+    const unit = unitNumber.trim() ? `${unitNumber.trim()}, ` : ''
+    const complex = complexName.trim() ? `${complexName.trim()}, ` : ''
+    return `${unit}${complex}${streetNumber} ${streetName}, ${selectedSuburb.suburb}, ${selectedSuburb.city}, ${selectedSuburb.province}, ${selectedSuburb.postal_code}`
   }
 
   function canProceedStep1() {
@@ -174,6 +178,8 @@ function RequestInspectionPageContent() {
           city: selectedSuburb?.city,
           province: selectedSuburb?.province,
           postal_code: selectedSuburb?.postal_code,
+          unit_number: unitNumber || null,
+          complex_name: complexName || null,
           requestor_role: role,
           requestor_name: fullName,
           requestor_email: email,
@@ -349,6 +355,28 @@ function RequestInspectionPageContent() {
         {step === 'property' && (
           <div>
             <h2 style={stepTitleStyle}>Property Address</h2>
+
+            {/* Estate / Complex optional fields */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '20px' }}>
+              <div>
+                <label style={labelStyle}>Unit / Stand No <span style={{ color: 'var(--slate)', fontWeight: 400 }}>(optional)</span></label>
+                <input
+                  value={unitNumber}
+                  onChange={e => setUnitNumber(e.target.value)}
+                  placeholder="e.g. Unit 14"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Complex / Estate Name <span style={{ color: 'var(--slate)', fontWeight: 400 }}>(optional)</span></label>
+                <input
+                  value={complexName}
+                  onChange={e => setComplexName(e.target.value)}
+                  placeholder="e.g. Zimbali Wedge"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
 
             <div className="fpia-request-address-row" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '20px' }}>
               <div>
