@@ -310,13 +310,11 @@ export default function ForInspectorsPage() {
           {/* partnership logos / trust strip */}
           <div className="mt-16 pt-10 border-t border-[#E2EAF4]">
             <p className="text-xs font-semibold tracking-widest text-[#8FA3BF] uppercase mb-6 text-center">
-              Institutional partnerships driving inspector demand
+              Demand signal
             </p>
-            <div className="flex flex-wrap justify-center gap-8 items-center">
-              {['Century 21 South Africa', 'Standard Insurance Limited'].map(p => (
-                <span key={p} className="text-sm font-semibold text-[#1A2B4A]/50 tracking-wide">{p}</span>
-              ))}
-            </div>
+            <p className="mx-auto max-w-2xl text-center text-sm font-semibold leading-relaxed text-[#1A2B4A]/55">
+              Institutional demand is emerging across property practitioners, insurers, lenders and legal professionals.
+            </p>
           </div>
         </div>
       </section>
