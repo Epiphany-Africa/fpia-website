@@ -79,6 +79,7 @@ function RegisterForm() {
       contact_phone: form.get('contact_phone'),
       agent_name: form.get('agent_name'),
       agency: form.get('agency'),
+      agent_ffc_number: form.get('agent_ffc_number'),
       agent_email: form.get('agent_email'),
       agent_phone: form.get('agent_phone'),
       transaction_type: form.get('transaction_type'),
@@ -364,6 +365,18 @@ function RegisterForm() {
                   <input name="agency" style={inputStyle} type="text" placeholder="e.g. Pam Golding Properties" />
                 </div>
                 <div>
+                  <label style={labelStyle}>Property Practitioner FFC Number</label>
+                  <input
+                    name="agent_ffc_number"
+                    style={inputStyle}
+                    type="text"
+                    placeholder="e.g. 202400000000000"
+                  />
+                  <p style={helperTextStyle}>
+                    The FFC number helps FPIA link the transaction record to the responsible property practitioner where applicable.
+                  </p>
+                </div>
+                <div>
                   <label style={labelStyle}>Property Practitioner Email</label>
                   <input name="agent_email" style={inputStyle} type="email" placeholder="e.g. sarah@pamgolding.co.za" />
                 </div>
@@ -541,6 +554,13 @@ const inputStyle: React.CSSProperties = {
   color: 'var(--navy)',
   outline: 'none',
   boxSizing: 'border-box',
+}
+
+const helperTextStyle: React.CSSProperties = {
+  marginTop: '8px',
+  color: '#64748b',
+  fontSize: '12px',
+  lineHeight: 1.6,
 }
 
 const nextBtnStyle: React.CSSProperties = {

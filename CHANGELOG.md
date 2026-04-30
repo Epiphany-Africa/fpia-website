@@ -2,6 +2,50 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.15] - 2026-04-30
+
+- Removed individual personal contact details from the public contact page and retained the general FPIA email contact.
+
+## [0.9.14] - 2026-04-30
+
+- Added a Municipal, Deeds and Approved Plans Roadmap page explaining FPIA’s future property-record infrastructure direction while avoiding claims of live municipal or deeds integration.
+
+## [0.9.13] - 2026-04-30
+
+- Added server-side geocoding enrichment for inspection requests, storing latitude, longitude and geo_source where available without blocking request submission.
+
+## [0.9.12] - 2026-04-30
+
+- Refined homepage risk comparison language to make the governed property record value proposition clearer, calmer, and more board-ready.
+
+## [0.9.11] - 2026-04-30
+
+- Simplified homepage positioning, removed premature named partner claims, added audience pathways, and added future municipal/deeds/plans record roadmap language.
+
+## [0.9.10] - 2026-04-30
+
+- Updated Property Passport document upload options by renaming Beetle Certificate to Entomology Certificate and adding Occupancy Certificate.
+
+## [0.9.9] - 2026-04-29
+
+- Added Property Practitioner FFC Number capture to registration/property practitioner details where FPIA records agent contact details.
+
+## [0.9.8] - 2026-04-29
+
+- Fixed public For Inspectors application intake by adding the missing API route, preventing false success states, and validating/storing inspector applications.
+
+## [0.9.7] - 2026-04-29
+
+- Added PPRA Section 67 Mandatory Disclosure support to Seller Readiness, including document status capture, optional upload, disclosure support copy, authority review visibility, and report disclosure-support output.
+- Clarified that FPIA supports but does not replace the prescribed PPRA disclosure process.
+
+## [0.9.6] - 2026-04-29
+
+- Restored the protected certificate PDF Reinstatement Estimate row so public PDFs always show the estimate state in the certificate details block.
+- Improved the diagonal FPIA integrity watermark visibility while keeping the locked-certificate layout and footer structure unchanged.
+- Corrected the compact valuation-disclaimer logic so pending estimate records show pending wording instead of a market-value disclaimer.
+- Expanded the public PDF fallback-wording guard so internal location placeholders are never emitted on protected certificates.
+
 ## [0.9.5] - 2026-04-28
 
 - Added the FPIA Seller Readiness Assessment public intake and the Pre-Listing Property Readiness Report surface.

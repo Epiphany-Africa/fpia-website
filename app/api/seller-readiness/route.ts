@@ -8,11 +8,22 @@ import {
   logRegisterIntakeFailure,
 } from '@/lib/server/registerIntakeProtection'
 import { writeAdminEvent } from '@/lib/server/eventLog'
-import { SELLER_READINESS_DISCLAIMER } from '@/lib/seller-readiness/disclaimers'
+import {
+  PPRA_DISCLOSURE_SUPPORT_DISCLAIMER,
+  SELLER_READINESS_DISCLAIMER,
+} from '@/lib/seller-readiness/disclaimers'
 
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024
 const MAX_DAMAGE_ITEMS = 16
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const ALLOWED_DISCLOSURE_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
+const DISCLOSURE_DOCUMENT_STATUSES = new Set([
+  'not_started',
+  'uploaded',
+  'completed',
+  'signed',
+  'not_applicable',
+])
 const SELLER_READINESS_BUCKET = 'seller-readiness'
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 const OPS_EMAIL = process.env.OPS_EMAIL ?? process.env.SUPPORT_EMAIL ?? null
@@ -45,6 +56,12 @@ function normalizeOptionalNumber(value: FormDataEntryValue | null) {
   if (!trimmed) return null
   const parsed = Number(trimmed)
   return Number.isFinite(parsed) ? parsed : null
+}
+
+function normalizeDisclosureStatus(value: FormDataEntryValue | null) {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return DISCLOSURE_DOCUMENT_STATUSES.has(trimmed) ? trimmed : null
 }
 
 function isValidEmail(value: string) {
@@ -88,12 +105,20 @@ function parseDamageItems(value: FormDataEntryValue | null) {
 
 async function ensureBucket(supabase: ReturnType<typeof createAdminSupabaseClient>) {
   const existingBucket = await supabase.storage.getBucket(SELLER_READINESS_BUCKET)
-  if (existingBucket.data && !existingBucket.error) return true
+  if (existingBucket.data && !existingBucket.error) {
+    const updatedBucket = await supabase.storage.updateBucket(SELLER_READINESS_BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_IMAGE_SIZE_BYTES,
+      allowedMimeTypes: Array.from(new Set([...ALLOWED_IMAGE_TYPES, ...ALLOWED_DISCLOSURE_TYPES])),
+    })
+
+    return !updatedBucket.error
+  }
 
   const createdBucket = await supabase.storage.createBucket(SELLER_READINESS_BUCKET, {
     public: true,
     fileSizeLimit: MAX_IMAGE_SIZE_BYTES,
-    allowedMimeTypes: Array.from(ALLOWED_IMAGE_TYPES),
+    allowedMimeTypes: Array.from(new Set([...ALLOWED_IMAGE_TYPES, ...ALLOWED_DISCLOSURE_TYPES])),
   })
 
   return !createdBucket.error || /already exists/i.test(createdBucket.error.message ?? '')
@@ -140,6 +165,13 @@ export async function POST(request: Request) {
     const finishTier = normalizeOptionalString(formData.get('finish_tier'), 20)
     const expectedAskingPrice = normalizeOptionalNumber(formData.get('expected_asking_price'))
     const sellingUrgency = normalizeOptionalString(formData.get('selling_urgency'), 40)
+    const ppraDisclosureStatus =
+      normalizeDisclosureStatus(formData.get('ppra_disclosure_status')) ?? 'not_started'
+    const ppraDisclosureNotes = normalizeOptionalString(
+      formData.get('ppra_disclosure_notes'),
+      3000
+    )
+    const ppraDisclosureFile = formData.get('ppra_disclosure_file')
     const notes = normalizeOptionalString(formData.get('notes'), 4000)
     const damageItems = parseDamageItems(formData.get('damage_items'))
 
@@ -181,6 +213,22 @@ export async function POST(request: Request) {
       )
     }
 
+    if (ppraDisclosureFile instanceof File && ppraDisclosureFile.size > 0) {
+      if (ppraDisclosureFile.size > MAX_IMAGE_SIZE_BYTES) {
+        return NextResponse.json(
+          { error: 'The PPRA disclosure file must be 10MB or smaller.' },
+          { status: 400 }
+        )
+      }
+
+      if (!ALLOWED_DISCLOSURE_TYPES.has(ppraDisclosureFile.type)) {
+        return NextResponse.json(
+          { error: 'PPRA disclosure uploads must be PDF, JPG, or PNG.' },
+          { status: 400 }
+        )
+      }
+    }
+
     const supabase = createAdminSupabaseClient()
     const bucketReady = await ensureBucket(supabase)
 
@@ -206,7 +254,7 @@ export async function POST(request: Request) {
         expected_price_currency: 'ZAR',
         selling_urgency: sellingUrgency,
         assessment_status: 'submitted',
-        disclaimer: SELLER_READINESS_DISCLAIMER,
+        disclaimer: `${SELLER_READINESS_DISCLAIMER} ${PPRA_DISCLOSURE_SUPPORT_DISCLAIMER}`,
         notes,
       })
       .select('id')
@@ -226,6 +274,55 @@ export async function POST(request: Request) {
     }
 
     const uploadedDamageItems: Record<string, unknown>[] = []
+    let ppraDisclosureFilePath: string | null = null
+
+    if (ppraDisclosureFile instanceof File && ppraDisclosureFile.size > 0 && bucketReady) {
+      ppraDisclosureFilePath = `${assessmentRow.id}/documents/${Date.now()}_${safeFileName(
+        ppraDisclosureFile.name || 'ppra-disclosure'
+      )}`
+      const arrayBuffer = await ppraDisclosureFile.arrayBuffer()
+      const { error: disclosureUploadError } = await supabase.storage
+        .from(SELLER_READINESS_BUCKET)
+        .upload(ppraDisclosureFilePath, Buffer.from(arrayBuffer), {
+          contentType: ppraDisclosureFile.type || undefined,
+          upsert: false,
+        })
+
+      if (disclosureUploadError) {
+        ppraDisclosureFilePath = null
+      }
+    }
+
+    const ppraDocumentStatus =
+      ppraDisclosureFilePath && ppraDisclosureStatus === 'not_started'
+        ? 'uploaded'
+        : ppraDisclosureStatus
+
+    const { error: documentError } = await supabase
+      .from('seller_readiness_documents')
+      .insert({
+        assessment_id: assessmentRow.id,
+        document_type: 'ppra_section_67_disclosure',
+        document_status: ppraDocumentStatus,
+        file_path: ppraDisclosureFilePath,
+        file_name:
+          ppraDisclosureFile instanceof File && ppraDisclosureFile.size > 0
+            ? ppraDisclosureFile.name
+            : null,
+        mime_type:
+          ppraDisclosureFile instanceof File && ppraDisclosureFile.size > 0
+            ? ppraDisclosureFile.type || null
+            : null,
+        uploaded_at: ppraDisclosureFilePath ? new Date().toISOString() : null,
+        notes: ppraDisclosureNotes,
+      })
+
+    if (documentError) {
+      return NextResponse.json(
+        { error: documentError.message ?? 'Failed to save transaction document.' },
+        { status: 500 }
+      )
+    }
 
     for (const [index, item] of damageItems.entries()) {
       const fileEntry = formData.get(item.fieldName)
@@ -317,6 +414,8 @@ export async function POST(request: Request) {
           province,
           expected_asking_price: expectedAskingPrice,
           selling_urgency: sellingUrgency,
+          ppra_disclosure_status: ppraDocumentStatus,
+          ppra_disclosure_uploaded: Boolean(ppraDisclosureFilePath),
           uploaded_damage_item_count: uploadedDamageItems.length,
         },
       })
@@ -340,6 +439,8 @@ export async function POST(request: Request) {
               <p><strong>Location:</strong> ${[suburb, city, province, postalCode].filter(Boolean).join(', ')}</p>
               <p><strong>Expected Asking Price:</strong> ${expectedAskingPrice ?? 'Not provided'}</p>
               <p><strong>Selling Urgency:</strong> ${sellingUrgency ?? 'Not provided'}</p>
+              <p><strong>PPRA disclosure status:</strong> ${ppraDocumentStatus}</p>
+              <p><strong>PPRA disclosure uploaded:</strong> ${ppraDisclosureFilePath ? 'Yes' : 'No'}</p>
               <p><strong>Uploaded damage items:</strong> ${uploadedDamageItems.length}</p>
               <p><strong>Storage bucket ready:</strong> ${bucketReady ? 'Yes' : 'No'}</p>
               <p style="white-space: pre-wrap;"><strong>Notes:</strong> ${notes ?? 'None provided'}</p>
