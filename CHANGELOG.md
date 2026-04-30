@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.13] - 2026-04-30
+
+- Added server-side geocoding enrichment for inspection requests, storing latitude, longitude and geo_source where available without blocking request submission.
+
 ## [0.9.12] - 2026-04-30
 
 - Refined homepage risk comparison language to make the governed property record value proposition clearer, calmer, and more board-ready.
