@@ -2,6 +2,10 @@
 
 All notable governed releases for `fpia-website` are recorded here.
 
+## [0.9.14] - 2026-04-30
+
+- Added a Municipal, Deeds and Approved Plans Roadmap page explaining FPIA’s future property-record infrastructure direction while avoiding claims of live municipal or deeds integration.
+
 ## [0.9.13] - 2026-04-30
 
 - Added server-side geocoding enrichment for inspection requests, storing latitude, longitude and geo_source where available without blocking request submission.
