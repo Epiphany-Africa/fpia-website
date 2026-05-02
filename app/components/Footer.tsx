@@ -19,6 +19,7 @@ const audienceLinks = [
   { label: 'For Property Practitioners', href: '/for-agents' },
   { label: 'For Insurers', href: '/for-insurers' },
   { label: 'For Bond Originators', href: '/for-bond-originators' },
+  { label: 'For Inspectors', href: '/for-inspectors' },
 ]
 
 const utilityLinks = [
