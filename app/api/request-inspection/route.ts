@@ -115,6 +115,8 @@ export async function POST(request: Request) {
     const preferredDate = normalizeRequiredString(body?.preferred_date, 10)
     const altDate = normalizeOptionalString(body?.alt_date, 10)
     const notes = normalizeOptionalString(body?.notes, 2000)
+    const unit_number = body.unit_number?.trim() || null
+    const complex_name = body.complex_name?.trim() || null
     const spamReason = detectRegisterSpam({
       honeypot,
       fullName: requestorName,
@@ -185,6 +187,8 @@ export async function POST(request: Request) {
         preferred_date: preferredDate,
         alt_date: altDate,
         notes,
+        unit_number,
+        complex_name,
         latitude: geocodeResult?.latitude ?? null,
         longitude: geocodeResult?.longitude ?? null,
         geo_source: 'openstreetmap',
@@ -339,6 +343,8 @@ export async function POST(request: Request) {
     const safeRequestorEmail = escapeHtml(requestorEmail)
     const safeRequestorPhone = escapeHtml(requestorPhone)
     const safeNotes = notes ? escapeHtml(notes) : null
+    const safeUnitNumber = unit_number || ''
+    const safeComplexName = complex_name || ''
     const safeAssignedInspectorName = allocation.assignedInspector
       ? escapeHtml(allocation.assignedInspector.full_name)
       : null
@@ -429,7 +435,9 @@ export async function POST(request: Request) {
               <p style="color: #666; margin-bottom: 32px;">Reference: FPIA-REQ-${inspectionRequestId.slice(0, 8).toUpperCase()}</p>
 
               <table style="width: 100%; border-collapse: collapse;">
-                <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; width: 160px;">Property</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safePropertyAddress}</td></tr>
+                ${safeUnitNumber ? `<tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; width: 160px;">Unit / Stand</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeUnitNumber}</td></tr>` : ''}
+                ${safeComplexName ? `<tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; width: 160px;">Complex / Estate</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeComplexName}</td></tr>` : ''}
+                <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; width: 160px;">Address</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safePropertyAddress}</td></tr>
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Province</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeProvince}</td></tr>
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Requestor</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeRequestorName} (${safeRequestorRole})</td></tr>
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Email</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeRequestorEmail}</td></tr>
