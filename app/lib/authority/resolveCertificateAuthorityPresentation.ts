@@ -4,6 +4,7 @@ type CertificateAuthorityRecord = {
   badge_number?: string | null
   title?: string | null
   company_name?: string | null
+  status?: string | null
 }
 
 type CertificateAuthorityAssets = {
@@ -29,6 +30,13 @@ type CertificateRecord = {
   signature_image_url?: string | null
   stamp_image_url?: string | null
 }
+
+export type AuthorityConfidence =
+  | 'verified_active_authority'
+  | 'legacy_issuer_only'
+  | 'inactive_authority'
+  | 'unresolved_issuer_linkage'
+  | 'missing_issuer_data'
 
 const DEMO_CERTIFICATE_ID = 'ZA-2024-00142'
 const OFFICIAL_AUTHORITY_COMPANY = 'Fair Properties Inspection Authority'
@@ -60,6 +68,31 @@ export function resolveCertificateAuthorityPresentation(args: {
 }) {
   const { normalizedId, authority, authorityAssets, legacyInspector, certificate } = args
   const isDemoCertificate = normalizedId === DEMO_CERTIFICATE_ID
+  const normalizedAuthorityStatus =
+    typeof authority?.status === 'string' ? authority.status.trim().toLowerCase() : null
+  const hasLegacyIssuerData = Boolean(
+    legacyInspector?.full_name ??
+      legacyInspector?.inspector_code ??
+      legacyInspector?.badge_number ??
+      legacyInspector?.company_name ??
+      certificate?.signature_name ??
+      certificate?.inspector_name ??
+      certificate?.inspector_id
+  )
+
+  let authorityConfidence: AuthorityConfidence
+
+  if (isDemoCertificate || normalizedAuthorityStatus === 'active') {
+    authorityConfidence = 'verified_active_authority'
+  } else if (authority) {
+    authorityConfidence = 'inactive_authority'
+  } else if (hasLegacyIssuerData) {
+    authorityConfidence = 'legacy_issuer_only'
+  } else if (certificate) {
+    authorityConfidence = 'unresolved_issuer_linkage'
+  } else {
+    authorityConfidence = 'missing_issuer_data'
+  }
 
   const authorityName =
     authority?.full_name ??
@@ -85,7 +118,59 @@ export function resolveCertificateAuthorityPresentation(args: {
     legacyInspector?.badge_number ??
     (isDemoCertificate ? 'SACPCMP Reg.' : null)
 
-  const authorityCompanyName = OFFICIAL_AUTHORITY_COMPANY
+  const authorityCompanyName =
+    authorityConfidence === 'verified_active_authority'
+      ? authority?.company_name ?? OFFICIAL_AUTHORITY_COMPANY
+      : authorityConfidence === 'inactive_authority'
+      ? authority?.company_name ?? 'Authority registry record not active'
+      : authorityConfidence === 'legacy_issuer_only'
+      ? legacyInspector?.company_name ?? 'Legacy inspector / certificate record'
+      : authorityConfidence === 'unresolved_issuer_linkage'
+      ? 'Authority linkage unresolved'
+      : 'Issuer data missing'
+
+  const authorityRegistryText =
+    authorityConfidence === 'verified_active_authority'
+      ? 'Verified active authority registry identity'
+      : authorityConfidence === 'legacy_issuer_only'
+      ? 'Legacy issuer information only'
+      : authorityConfidence === 'inactive_authority'
+      ? `Authority registry record found, status: ${authority?.status ?? 'not confirmed'}`
+      : authorityConfidence === 'unresolved_issuer_linkage'
+      ? 'Current active authority linkage could not be fully confirmed'
+      : 'Issuer identity not available in this public record'
+
+  const authorityConfidenceLabel =
+    authorityConfidence === 'verified_active_authority'
+      ? 'Verified Active Authority'
+      : authorityConfidence === 'legacy_issuer_only'
+      ? 'Legacy Issuer Information Only'
+      : authorityConfidence === 'inactive_authority'
+      ? 'Authority Record Not Active'
+      : authorityConfidence === 'unresolved_issuer_linkage'
+      ? 'Authority Linkage Unresolved'
+      : 'Issuer Data Missing'
+
+  const authoritySupportNote =
+    authorityConfidence === 'verified_active_authority'
+      ? null
+      : authorityConfidence === 'legacy_issuer_only'
+      ? 'Issuer details were recovered from legacy or incomplete records. Current active authority linkage could not be fully confirmed from this public record.'
+      : authorityConfidence === 'inactive_authority'
+      ? 'The linked authority record is not currently active. Read this record together with the trust status and certificate details.'
+      : authorityConfidence === 'unresolved_issuer_linkage'
+      ? 'Current active authority linkage could not be fully confirmed from this public record. This verification record should be read together with the trust status and certificate details.'
+      : 'Issuer data is missing from this public record.'
+
+  const authoritySectionLabel =
+    authorityConfidence === 'verified_active_authority' ? 'Verified Authority' : 'Issuer Record'
+
+  const authorityOfficeLabel =
+    authorityConfidence === 'verified_active_authority' || authorityConfidence === 'inactive_authority'
+      ? 'Authority Office'
+      : authorityConfidence === 'legacy_issuer_only'
+      ? 'Legacy Issuer Source'
+      : 'Issuer Record Status'
 
   const signatureFallback =
     isDemoCertificate
@@ -111,12 +196,19 @@ export function resolveCertificateAuthorityPresentation(args: {
 
   return {
     isDemoCertificate,
+    authorityConfidence,
+    authorityConfidenceLabel,
     authorityName,
+    authorityOfficeLabel,
     authorityTitle,
     authorityCode,
     authorityBadgeNumber,
     authorityCompanyName,
+    authorityRegistryText,
+    authoritySectionLabel,
+    authoritySupportNote,
     resolvedSignatureImageUrl,
     resolvedStampImageUrl,
+    showStrongAuthorityFraming: authorityConfidence === 'verified_active_authority',
   }
 }

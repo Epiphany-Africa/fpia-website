@@ -13,8 +13,9 @@ export type EmbeddableTrustBadgeRecord = {
 
 export async function getEmbeddableTrustBadgeRecord(
   id: string
-): Promise<EmbeddableTrustBadgeRecord> {
+): Promise<EmbeddableTrustBadgeRecord | null> {
   const {
+    matchStatus,
     registry,
     certificate,
     caseRecord,
@@ -22,6 +23,10 @@ export async function getEmbeddableTrustBadgeRecord(
     verificationUrl,
     embedBadgeUrl,
   } = await loadPublicVerificationRecord(id)
+
+  if (matchStatus === 'unmatched') {
+    return null
+  }
 
   const trustState = getCanonicalTrustState({
     certificateState: certificate?.certificate_state,

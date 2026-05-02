@@ -16,6 +16,15 @@ export async function GET(
 ) {
   const { id } = await params
   const record = await getEmbeddableTrustBadgeRecord(id)
+  if (!record) {
+    return new Response('No embeddable FPIA verification record was found for this reference.', {
+      status: 404,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store',
+      },
+    })
+  }
   const meta = getTrustBadgeMeta(record.trustState)
   const badgeMarkup = `
     <a

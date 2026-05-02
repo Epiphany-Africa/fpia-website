@@ -1,9 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { notFound } from 'next/navigation'
 import QRCode from 'qrcode'
 import type { CSSProperties } from 'react'
 import TrustBadge from '@/components/TrustBadge'
-import { resolveCertificateAuthorityPresentation } from '@/lib/authority/resolveCertificateAuthorityPresentation'
+import {
+  resolveCertificateAuthorityPresentation,
+  type AuthorityConfidence,
+} from '@/lib/authority/resolveCertificateAuthorityPresentation'
 import {
   getCanonicalTrustState,
   type TrustOutcome,
@@ -86,6 +90,11 @@ type AuditItem = {
   value: string
 }
 
+type AuditTrailResult = {
+  items: AuditItem[]
+  hasRecordedEvents: boolean
+}
+
 function formatDate(input: string | null | undefined) {
   if (!input) return 'Not available'
 
@@ -145,34 +154,31 @@ function buildAuditTrail(
   auditRows: AuditLogRow[] | null,
   certificate?: CertificateRow | null,
   caseEvents?: CaseEventRow[] | null
-): AuditItem[] {
+): AuditTrailResult {
   const rows = auditRows ?? []
   const events = caseEvents ?? []
 
   if (!registry && events.length > 0) {
-    return events
-      .map((event) => ({
+    return {
+      hasRecordedEvents: true,
+      items: events.map((event) => ({
         label: event.event_label ?? event.event_type ?? 'Case Event',
         value: formatDateTime(event.created_at),
-      }))
-      .slice(-3)
+      })).slice(-3),
+    }
   }
 
   if (!registry && certificate) {
-    return [
-      { label: 'Certificate Issued', value: formatDateTime(certificate.issued_at) },
-      {
-        label: 'Certificate Reference',
-        value: certificate.verification_ref ?? 'Not available',
-      },
-    ]
-  }
-
-  if (!registry && rows.length === 0) {
-    return [
-      { label: 'Lookup Performed', value: formatDateTime(new Date().toISOString()) },
-      { label: 'Registry Match', value: 'No active certification found' },
-    ]
+    return {
+      hasRecordedEvents: false,
+      items: [
+        { label: 'Certificate Issued', value: formatDateTime(certificate.issued_at) },
+        {
+          label: 'Certificate Reference',
+          value: certificate.verification_ref ?? 'Not available',
+        },
+      ],
+    }
   }
 
   const preferred = rows
@@ -191,18 +197,28 @@ function buildAuditTrail(
     }))
     .slice(-3)
 
-  if (preferred.length > 0) return preferred
+  if (preferred.length > 0) {
+    return {
+      hasRecordedEvents: true,
+      items: preferred,
+    }
+  }
 
-  return [
-    {
-      label: 'Record Created',
-      value: formatDateTime(registry?.issued_at ?? registry?.submitted_for_review_at),
-    },
-    {
-      label: 'Last Verified',
-      value: formatDateTime(registry?.certified_at ?? registry?.reviewed_at),
-    },
-  ]
+  return {
+    hasRecordedEvents: false,
+    items: registry
+      ? [
+          {
+            label: 'Record Created',
+            value: formatDateTime(registry.issued_at ?? registry.submitted_for_review_at),
+          },
+          {
+            label: 'Last Verified',
+            value: formatDateTime(registry.certified_at ?? registry.reviewed_at),
+          },
+        ]
+      : [],
+  }
 }
 
 export default async function VerifyPropertyPage({
@@ -212,6 +228,7 @@ export default async function VerifyPropertyPage({
 }) {
   const { id } = await params
   const {
+    matchStatus,
     registry,
     property,
     certificate,
@@ -224,8 +241,11 @@ export default async function VerifyPropertyPage({
     verificationReference,
     verificationUrl,
     embedBadgeUrl,
-    issuerIdentityWarning,
   } = await loadPublicVerificationRecord(id)
+
+  if (matchStatus === 'unmatched') {
+    notFound()
+  }
 
   const trustState = getCanonicalTrustState({
     certificateState: certificate?.certificate_state,
@@ -309,13 +329,20 @@ export default async function VerifyPropertyPage({
   })
 
   const auditTrail = buildAuditTrail(registry, auditRows, certificate, caseEvents)
-  const latestAudit = auditTrail.at(-1)
+  const latestAudit = auditTrail.items.at(-1)
   const {
+    authorityConfidence,
+    authorityConfidenceLabel,
     authorityName,
+    authorityOfficeLabel,
     authorityTitle,
     authorityCode,
     authorityBadgeNumber,
     authorityCompanyName,
+    authorityRegistryText,
+    authoritySectionLabel,
+    authoritySupportNote,
+    showStrongAuthorityFraming,
   } = resolveCertificateAuthorityPresentation({
     normalizedId: id.toUpperCase(),
     authority,
@@ -370,15 +397,6 @@ export default async function VerifyPropertyPage({
     NOT_ISSUED: 'Not issued',
     REVOKED: 'Revoked',
   }
-  const authorityRegistryText =
-    authority?.status?.toLowerCase() === 'active'
-      ? 'Verified active authority registry identity'
-      : authority
-      ? `Authority registry status: ${authority.status ?? 'not confirmed'}`
-      : issuerIdentityWarning
-      ? 'Legacy issuer details presented'
-      : 'Issuer identity not fully available'
-
   const hasIntegrityRecord = verificationHash !== 'No active verification hash'
   const integrityCheckText = hasIntegrityRecord
     ? 'Verified — no changes detected'
@@ -387,8 +405,36 @@ export default async function VerifyPropertyPage({
     ? 'Locked — record cannot be altered'
     : 'Not locked'
   const showRegistryVerifiedSignal =
+    showStrongAuthorityFraming &&
     Boolean(registry) &&
     (trustState === 'FINAL_VERIFIED' || trustState === 'CONDITIONAL')
+
+  const authorityHeaderLabel =
+    showStrongAuthorityFraming ? 'Authority Registry' : 'Issuer Status'
+  const publicRecordIntro = showStrongAuthorityFraming
+    ? 'Public verification for an authority-backed FPIA record. Accountability built in through the issuing authority registry, the verification ledger, and record integrity controls.'
+    : 'Public verification for an FPIA record reference. Trust should be read together with the certificate status, issuer disclosure, and verification integrity details shown below.'
+  const authorityIdentityMicrocopy = showStrongAuthorityFraming
+    ? 'This public record is tied to the accountable authority identity that issued or controlled the certificate within the FPIA registry.'
+    : 'Issuer details are shown for transparency, but this public record does not fully confirm current active authority standing from the available issuer linkage.'
+  const integrityMicrocopy = showStrongAuthorityFraming
+    ? 'This verification record is stored as part of the FPIA registry and is protected against unauthorized modification. Any changes to the underlying data will invalidate this record.'
+    : 'This public record remains integrity-protected, but the issuer presentation above should be read together with the trust status and certificate details before reliance is placed on authority standing.'
+  const authorityFootnoteCopy = showStrongAuthorityFraming
+    ? 'FPIA operates as an independent property verification authority. This public record is tied to the issuing authority registry, the locked verification ledger, and the inspection outcome recorded at the time of issue. Accountability built in.'
+    : 'FPIA operates an independent property verification surface. Where issuer linkage is legacy, incomplete, or not currently active, the trust status and certificate details remain the primary governed signals for public reliance.'
+
+  const auditIndicatorValue = auditTrail.hasRecordedEvents
+    ? `${auditTrail.items.length} recorded event${auditTrail.items.length === 1 ? '' : 's'}`
+    : 'No recorded audit events published'
+
+  const auditIndicatorMeta = auditTrail.hasRecordedEvents
+    ? latestAudit
+      ? `Latest: ${latestAudit.value}`
+      : null
+    : latestAudit
+    ? `Timeline marker: ${latestAudit.label}`
+    : null
 
   const verificationIntegrityItems: {
     label: string
@@ -501,10 +547,10 @@ export default async function VerifyPropertyPage({
             </div>
             <div style={{ flex: '1 1 520px' }}>
               <p style={eyebrowStyle}>Public Registry Record</p>
-              <h1 style={pageTitleStyle}>Official Property Condition Record</h1>
-              <p style={pageIntroStyle}>
-                Public verification for an authority-backed FPIA record. Accountability built in through the issuing authority registry, the verification ledger, and record integrity controls.
-              </p>
+               <h1 style={pageTitleStyle}>Official Property Condition Record</h1>
+               <p style={pageIntroStyle}>
+                 {publicRecordIntro}
+                </p>
             </div>
           </div>
 
@@ -522,7 +568,7 @@ export default async function VerifyPropertyPage({
               <p style={headerMetaValueStyle}>{registryDate}</p>
             </div>
             <div>
-              <p style={sectionLabelStyle}>Authority Registry</p>
+              <p style={sectionLabelStyle}>{authorityHeaderLabel}</p>
               <p style={headerMetaValueStyle}>{authorityRegistryText}</p>
             </div>
           </div>
@@ -539,6 +585,9 @@ export default async function VerifyPropertyPage({
               <TrustBadge trustState={trustState} />
               {showRegistryVerifiedSignal ? (
                 <p style={registryVerifiedSignalStyle}>Authority Registry Verified</p>
+              ) : null}
+              {!showRegistryVerifiedSignal ? (
+                <p style={registryVerifiedSignalMutedStyle}>{authorityConfidenceLabel}</p>
               ) : null}
             </div>
           </div>
@@ -567,15 +616,18 @@ export default async function VerifyPropertyPage({
         </section>
 
         <section style={cardStyle}>
-          <p style={sectionLabelStyle}>Verified Authority</p>
+          <p style={sectionLabelStyle}>{authoritySectionLabel}</p>
           <div style={authorityPanelStyle}>
             <div style={authorityPanelCardStyle}>
+              <p style={authorityConfidenceEyebrowStyle(authorityConfidence)}>
+                {authorityConfidenceLabel}
+              </p>
               <p style={sectionLabelStyle}>Issuing Officer</p>
               <p style={recordPrimaryValueStyle}>{authorityName}</p>
               <p style={authorityMetaStyle}>{authorityTitle}</p>
-              <p style={authorityMicrocopyStyle}>
-                This public record is tied to the accountable authority identity that issued or controlled the certificate within the FPIA registry.
-              </p>
+               <p style={authorityMicrocopyStyle}>
+                 {authorityIdentityMicrocopy}
+               </p>
             </div>
             <div style={authorityMetricsGridStyle}>
               <div style={authorityMetricCardStyle}>
@@ -587,7 +639,7 @@ export default async function VerifyPropertyPage({
                 <p style={recordValueStyle}>{authorityBadgeNumber ?? 'Not recorded'}</p>
               </div>
               <div style={authorityMetricCardStyle}>
-                <p style={sectionLabelStyle}>Authority Office</p>
+                <p style={sectionLabelStyle}>{authorityOfficeLabel}</p>
                 <p style={recordValueStyle}>{authorityCompanyName}</p>
               </div>
               <div style={authorityMetricCardStyle}>
@@ -596,9 +648,9 @@ export default async function VerifyPropertyPage({
               </div>
             </div>
           </div>
-          {issuerIdentityWarning ? (
-            <p style={{ ...integrityMicrocopyStyle, marginTop: '12px', color: '#7F1D1D' }}>
-              {issuerIdentityWarning}
+          {authoritySupportNote ? (
+            <p style={authoritySupportNoteStyle(authorityConfidence)}>
+              {authoritySupportNote}
             </p>
           ) : null}
         </section>
@@ -617,10 +669,8 @@ export default async function VerifyPropertyPage({
             ))}
           </div>
           <p style={integrityMicrocopyStyle}>
-            This verification record is stored as part of the FPIA registry and
-            is protected against unauthorized modification. Any changes to the
-            underlying data will invalidate this record.
-          </p>
+             {integrityMicrocopy}
+           </p>
         </section>
 
         <section style={cardStyle}>
@@ -732,12 +782,8 @@ export default async function VerifyPropertyPage({
               </div>
               <div>
                 <p style={technicalLabelStyle}>Audit Indicator</p>
-                <p style={technicalValueStyle}>
-                  {latestAudit
-                    ? `${auditTrail.length} recorded event${auditTrail.length === 1 ? '' : 's'}`
-                    : 'No recorded audit events'}
-                </p>
-                {latestAudit ? <p style={technicalMetaStyle}>Latest: {latestAudit.value}</p> : null}
+                <p style={technicalValueStyle}>{auditIndicatorValue}</p>
+                {auditIndicatorMeta ? <p style={technicalMetaStyle}>{auditIndicatorMeta}</p> : null}
               </div>
               <div>
                 <p style={technicalLabelStyle}>Inspection Date</p>
@@ -842,10 +888,7 @@ export default async function VerifyPropertyPage({
         ) : null}
 
         <p style={authorityFootnoteStyle}>
-          FPIA operates as an independent property verification authority. This
-          public record is tied to the issuing authority registry, the locked
-          verification ledger, and the inspection outcome recorded at the time
-          of issue. Accountability built in.
+          {authorityFootnoteCopy}
         </p>
       </div>
     </main>
@@ -1013,6 +1056,21 @@ const registryVerifiedSignalStyle: CSSProperties = {
   textTransform: 'uppercase',
 }
 
+const registryVerifiedSignalMutedStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  margin: '12px 0 0 12px',
+  padding: '7px 10px',
+  borderRadius: '999px',
+  border: '1px solid rgba(11,31,51,0.12)',
+  backgroundColor: '#f6f6f3',
+  color: '#475467',
+  fontSize: '11px',
+  fontWeight: 700,
+  letterSpacing: '1.2px',
+  textTransform: 'uppercase',
+}
+
 const authorityPanelStyle: CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -1051,6 +1109,85 @@ const authorityMicrocopyStyle: CSSProperties = {
   color: '#55606d',
   margin: '12px 0 0 0',
   lineHeight: 1.7,
+}
+
+function authorityConfidenceEyebrowStyle(
+  authorityConfidence: AuthorityConfidence
+): CSSProperties {
+  const tone =
+    authorityConfidence === 'verified_active_authority'
+      ? {
+          border: '1px solid rgba(26, 127, 55, 0.22)',
+          backgroundColor: '#F3FBF5',
+          color: '#166534',
+        }
+      : authorityConfidence === 'legacy_issuer_only'
+      ? {
+          border: '1px solid rgba(183, 121, 31, 0.24)',
+          backgroundColor: '#FFF9ED',
+          color: '#9A6700',
+        }
+      : authorityConfidence === 'inactive_authority'
+      ? {
+          border: '1px solid rgba(127, 29, 29, 0.2)',
+          backgroundColor: '#FFF4F4',
+          color: '#991B1B',
+        }
+      : authorityConfidence === 'unresolved_issuer_linkage'
+      ? {
+          border: '1px solid rgba(11, 31, 51, 0.14)',
+          backgroundColor: '#F7F8FA',
+          color: '#344054',
+        }
+      : {
+          border: '1px solid rgba(11, 31, 51, 0.1)',
+          backgroundColor: '#F9FAFB',
+          color: '#475467',
+        }
+
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    margin: '0 0 12px 0',
+    padding: '7px 10px',
+    borderRadius: '999px',
+    fontSize: '11px',
+    fontWeight: 700,
+    letterSpacing: '1.3px',
+    textTransform: 'uppercase',
+    ...tone,
+  }
+}
+
+function authoritySupportNoteStyle(
+  authorityConfidence: AuthorityConfidence
+): CSSProperties {
+  const tone =
+    authorityConfidence === 'inactive_authority'
+      ? {
+          border: '1px solid rgba(127, 29, 29, 0.16)',
+          backgroundColor: '#FFF6F6',
+          color: '#7A1C1C',
+        }
+      : authorityConfidence === 'legacy_issuer_only'
+      ? {
+          border: '1px solid rgba(183, 121, 31, 0.18)',
+          backgroundColor: '#FFF9F0',
+          color: '#8A5B13',
+        }
+      : {
+          border: '1px solid rgba(11, 31, 51, 0.1)',
+          backgroundColor: '#F7F8FA',
+          color: '#475467',
+        }
+
+  return {
+    margin: '16px 0 0 0',
+    padding: '14px 16px',
+    fontSize: '14px',
+    lineHeight: 1.7,
+    ...tone,
+  }
 }
 
 const integrityGridStyle: CSSProperties = {

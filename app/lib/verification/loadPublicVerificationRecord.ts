@@ -163,6 +163,7 @@ export type LegacyInspectorRow = {
 
 export type LoadedPublicVerificationRecord = {
   normalizedId: string
+  matchStatus: 'governed' | 'demo' | 'unmatched'
   registry: RegistryRow | null
   property: PropertyRow | null
   certificate: CertificateRow | null
@@ -182,6 +183,7 @@ export async function loadPublicVerificationRecord(
   id: string
 ): Promise<LoadedPublicVerificationRecord> {
   const normalizedId = id.toUpperCase()
+  let matchStatus: LoadedPublicVerificationRecord['matchStatus'] = 'governed'
 
   let registry: RegistryRow | null = null
   let property: PropertyRow | null = null
@@ -259,6 +261,7 @@ export async function loadPublicVerificationRecord(
     if (!demoRecord) {
       return {
         normalizedId,
+        matchStatus: 'unmatched',
         registry,
         property,
         certificate,
@@ -276,6 +279,7 @@ export async function loadPublicVerificationRecord(
     }
 
     registry = demoRecord.registry as RegistryRow
+    matchStatus = 'demo'
     property = demoRecord.property as PropertyRow
     certificate = demoRecord.certificate as CertificateRow
     caseRecord = demoRecord.caseRecord as CaseRow
@@ -412,6 +416,7 @@ export async function loadPublicVerificationRecord(
 
   return {
     normalizedId,
+    matchStatus,
     registry,
     property,
     certificate,

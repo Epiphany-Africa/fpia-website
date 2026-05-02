@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import DownloadPdfButton from '../../verify/[id]/DownloadPdfButton'
 import CopyHashButton from '../../verify/[id]/CopyHashButton'
 import RequestInspectionCaptureForm from '../../verify/[id]/RequestInspectionCaptureForm'
@@ -7,7 +8,10 @@ import QRCode from 'qrcode'
 import Image from 'next/image'
 import type { CSSProperties } from 'react'
 import TrustBadge from '@/components/TrustBadge'
-import { resolveCertificateAuthorityPresentation } from '@/lib/authority/resolveCertificateAuthorityPresentation'
+import {
+  resolveCertificateAuthorityPresentation,
+  type AuthorityConfidence,
+} from '@/lib/authority/resolveCertificateAuthorityPresentation'
 import { getCanonicalTrustState, type TrustOutcome } from '@/lib/certification/getCanonicalTrustState'
 import { getConditionalExplanation } from '@/lib/certification/getConditionalExplanation'
 import { getFpiaProduct } from '@/lib/products/fpiaProducts'
@@ -225,6 +229,7 @@ export default async function VerifyProperty({
 }) {
   const { id } = await params
   const {
+    matchStatus,
     normalizedId,
     registry,
     property,
@@ -238,8 +243,11 @@ export default async function VerifyProperty({
     verificationReference,
     verificationUrl,
     embedBadgeUrl,
-    issuerIdentityWarning,
   } = await loadPublicVerificationRecord(id)
+
+  if (matchStatus === 'unmatched') {
+    notFound()
+  }
 
   const trustState = getCanonicalTrustState({
     certificateState: certificate?.certificate_state,
@@ -318,13 +326,20 @@ export default async function VerifyProperty({
       : 'Location not available'
 
   const {
+    authorityConfidence,
+    authorityConfidenceLabel,
     authorityName,
+    authorityOfficeLabel,
     authorityTitle,
     authorityCode,
     authorityBadgeNumber,
     authorityCompanyName,
+    authorityRegistryText,
+    authoritySectionLabel,
+    authoritySupportNote,
     resolvedSignatureImageUrl,
     resolvedStampImageUrl,
+    showStrongAuthorityFraming,
   } = resolveCertificateAuthorityPresentation({
     normalizedId,
     authority,
@@ -405,12 +420,22 @@ export default async function VerifyProperty({
 
   const certificateNumberDisplay =
     certificate?.certificate_number ?? registry?.certificate_number ?? 'Pending assignment'
-  const authorityRegistryStanding =
-    authority?.status?.toLowerCase() === 'active'
-      ? 'Verified active authority registry record'
-      : authority
-      ? `Authority registry status: ${authority.status ?? 'not confirmed'}`
-      : 'Legacy record presentation in use'
+  const authorityRegistryStanding = authorityRegistryText
+  const certificateEyebrowLabel = showStrongAuthorityFraming
+    ? 'Authority-Issued Registry Certificate'
+    : 'Public Certificate Representation'
+  const certificateIntro = showStrongAuthorityFraming
+    ? 'Accountability built in through the FPIA authority registry, issued record controls, and live verification ledger.'
+    : 'This certificate representation should be read together with the live trust status, issuer disclosure, and verification controls shown for this record.'
+  const authorityCredentialFootnote = showStrongAuthorityFraming
+    ? 'This certificate is issued under governed authority controls. Each public record is bound to an accountable issuing identity, registry reference, and integrity hash.'
+    : 'This certificate representation retains the governed record and integrity references available for this entry, but the issuer presentation should be read together with the trust status and certificate details.'
+  const certificateIntegrityFootnote = showStrongAuthorityFraming
+    ? 'This document is cryptographically anchored to the FPIA registry and tied to a governed authority identity.'
+    : 'This document remains cryptographically anchored to the FPIA registry record, but the issuer presentation above does not fully confirm current active authority standing.'
+  const certificateSystemFootnote = showStrongAuthorityFraming
+    ? 'Issued under the Fair Properties Inspection Authority (FPIA) trust system. Accountability built in.'
+    : 'Issued through the Fair Properties Inspection Authority (FPIA) public trust system. Read the certificate together with the live verification status and issuer disclosure.'
   const publicRecordStatusLabel =
     trustState === 'FINAL_VERIFIED'
       ? 'Valid and fully verified'
@@ -609,7 +634,7 @@ export default async function VerifyProperty({
                     marginBottom: '8px',
                   }}
                 >
-                  Authority-Issued Registry Certificate
+                  {certificateEyebrowLabel}
                 </p>
                 <h1
                   style={{
@@ -623,7 +648,7 @@ export default async function VerifyProperty({
                   Official Property Condition Certificate
                 </h1>
                 <p style={{ color: '#a0aec0', fontSize: '14px', margin: 0 }}>
-                  Accountability built in through the FPIA authority registry, issued record controls, and live verification ledger.
+                  {certificateIntro}
                 </p>
                 <p style={{ color: '#d0d7de', fontSize: '12px', margin: '8px 0 0 0', lineHeight: 1.6 }}>
                   This is a certificate representation. For verification, use the{' '}
@@ -653,7 +678,9 @@ export default async function VerifyProperty({
               <p style={snapshotSecondaryValueStyle}>{verificationReference}</p>
             </div>
             <div style={authoritySnapshotCardStyle}>
-              <p style={detailLabelStyle}>Authority Registry</p>
+              <p style={detailLabelStyle}>
+                {showStrongAuthorityFraming ? 'Authority Registry' : 'Issuer Status'}
+              </p>
               <p style={snapshotSecondaryValueStyle}>{authorityRegistryStanding}</p>
             </div>
           </div>
@@ -754,10 +781,13 @@ export default async function VerifyProperty({
           </div>
 
           <div style={sectionCardStyle}>
-            <p style={sectionLabelStyle}>Authority Issue Credentials</p>
+            <p style={sectionLabelStyle}>{authoritySectionLabel}</p>
 
             <div style={authorityMetricsGridStyle}>
               <div style={authorityMetricCardStyle}>
+                <p style={authorityConfidenceBadgeStyle(authorityConfidence)}>
+                  {authorityConfidenceLabel}
+                </p>
                 <p style={detailLabelStyle}>Inspector Name</p>
                 <p style={detailValueStyle}>{authorityName}</p>
               </div>
@@ -770,14 +800,19 @@ export default async function VerifyProperty({
                 <p style={detailValueStyle}>{authorityBadgeNumber ?? 'Not available'}</p>
               </div>
               <div style={authorityMetricCardStyle}>
-                <p style={detailLabelStyle}>Authority Office</p>
+                <p style={detailLabelStyle}>{authorityOfficeLabel}</p>
                 <p style={detailValueStyle}>{authorityCompanyName}</p>
               </div>
             </div>
 
             <p style={authorityCredentialFootnoteStyle}>
-              This certificate is issued under governed authority controls. Each public record is bound to an accountable issuing identity, registry reference, and integrity hash.
+              {authorityCredentialFootnote}
             </p>
+            {authoritySupportNote ? (
+              <p style={authoritySupportNoteStyle(authorityConfidence)}>
+                {authoritySupportNote}
+              </p>
+            ) : null}
           </div>
 
           <div style={sectionCardStyle}>
@@ -1270,7 +1305,7 @@ export default async function VerifyProperty({
           </div>
 
           <div style={sectionCardStyle}>
-            <p style={sectionLabelStyle}>Certification Authority</p>
+            <p style={sectionLabelStyle}>{authoritySectionLabel}</p>
 
             <div
               style={{
@@ -1311,16 +1346,11 @@ export default async function VerifyProperty({
                 <p style={{ color: '#6C7077', margin: '6px 0 0 0', fontSize: '13px' }}>
                   {authorityCompanyName}
                 </p>
-                {issuerIdentityWarning ? (
+                {authoritySupportNote ? (
                   <p
-                    style={{
-                      color: '#7F1D1D',
-                      margin: '10px 0 0 0',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                    }}
+                    style={authoritySupportNoteInlineStyle(authorityConfidence)}
                   >
-                    {issuerIdentityWarning}
+                    {authoritySupportNote}
                   </p>
                 ) : null}
               </div>
@@ -1477,7 +1507,7 @@ export default async function VerifyProperty({
           lineHeight: 1.6,
         }}
       >
-        This document is cryptographically anchored to the FPIA registry and tied to a governed authority identity.
+        {certificateIntegrityFootnote}
       </p>
 
       <p
@@ -1488,7 +1518,7 @@ export default async function VerifyProperty({
           paddingBottom: '60px',
         }}
       >
-        Issued under the Fair Properties Inspection Authority (FPIA) trust system. Accountability built in.
+        {certificateSystemFootnote}
       </p>
     </main>
   )
@@ -1555,6 +1585,104 @@ const authorityCredentialFootnoteStyle: CSSProperties = {
   lineHeight: 1.7,
   color: '#55606d',
   maxWidth: '720px',
+}
+
+function authorityConfidenceBadgeStyle(
+  authorityConfidence: AuthorityConfidence
+): CSSProperties {
+  const tone =
+    authorityConfidence === 'verified_active_authority'
+      ? {
+          border: '1px solid rgba(26, 127, 55, 0.22)',
+          backgroundColor: '#F3FBF5',
+          color: '#166534',
+        }
+      : authorityConfidence === 'legacy_issuer_only'
+      ? {
+          border: '1px solid rgba(183, 121, 31, 0.24)',
+          backgroundColor: '#FFF9ED',
+          color: '#9A6700',
+        }
+      : authorityConfidence === 'inactive_authority'
+      ? {
+          border: '1px solid rgba(127, 29, 29, 0.2)',
+          backgroundColor: '#FFF4F4',
+          color: '#991B1B',
+        }
+      : authorityConfidence === 'unresolved_issuer_linkage'
+      ? {
+          border: '1px solid rgba(11, 31, 51, 0.14)',
+          backgroundColor: '#F7F8FA',
+          color: '#344054',
+        }
+      : {
+          border: '1px solid rgba(11, 31, 51, 0.1)',
+          backgroundColor: '#F9FAFB',
+          color: '#475467',
+        }
+
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    margin: '0 0 12px 0',
+    padding: '7px 10px',
+    borderRadius: '999px',
+    fontSize: '11px',
+    fontWeight: 700,
+    letterSpacing: '1.3px',
+    textTransform: 'uppercase',
+    ...tone,
+  }
+}
+
+function authoritySupportNoteStyle(
+  authorityConfidence: AuthorityConfidence
+): CSSProperties {
+  const tone =
+    authorityConfidence === 'inactive_authority'
+      ? {
+          border: '1px solid rgba(127, 29, 29, 0.16)',
+          backgroundColor: '#FFF6F6',
+          color: '#7A1C1C',
+        }
+      : authorityConfidence === 'legacy_issuer_only'
+      ? {
+          border: '1px solid rgba(183, 121, 31, 0.18)',
+          backgroundColor: '#FFF9F0',
+          color: '#8A5B13',
+        }
+      : {
+          border: '1px solid rgba(11, 31, 51, 0.1)',
+          backgroundColor: '#F7F8FA',
+          color: '#475467',
+        }
+
+  return {
+    margin: '16px 0 0 0',
+    padding: '14px 16px',
+    fontSize: '14px',
+    lineHeight: 1.7,
+    ...tone,
+  }
+}
+
+function authoritySupportNoteInlineStyle(
+  authorityConfidence: AuthorityConfidence
+): CSSProperties {
+  const tone =
+    authorityConfidence === 'inactive_authority'
+      ? '#7A1C1C'
+      : authorityConfidence === 'legacy_issuer_only'
+      ? '#8A5B13'
+      : '#475467'
+
+  return {
+    color: tone,
+    margin: '10px 0 0 0',
+    fontSize: '13px',
+    fontWeight: 600,
+    lineHeight: 1.6,
+  }
 }
 
 const verificationCardStyle: CSSProperties = {
