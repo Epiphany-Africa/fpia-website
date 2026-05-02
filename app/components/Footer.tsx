@@ -141,7 +141,7 @@ export default function Footer() {
             color: 'rgba(255,255,255,0.54)',
           }}
         >
-          © 2026 Fair Properties Inspection Authority. {APP_VERSION_LABEL}
+          {APP_VERSION_LABEL}
         </p>
       </div>
       <style jsx>{`
