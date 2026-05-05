@@ -654,6 +654,10 @@ export default async function VerifyPropertyPage({
               <p style={recordValueStyle}>{issueDate}</p>
             </div>
             <div>
+              <p style={sectionLabelStyle}>Current Certificate Status</p>
+              <p style={recordValueStyle}>{relianceStatusText[trustState]}</p>
+            </div>
+            <div>
               <p style={sectionLabelStyle}>Registry Date</p>
               <p style={recordValueStyle}>{registryDate}</p>
             </div>
@@ -664,6 +668,10 @@ export default async function VerifyPropertyPage({
             <div>
               <p style={sectionLabelStyle}>Property Type</p>
               <p style={recordValueStyle}>{property?.property_type ?? 'Not recorded'}</p>
+            </div>
+            <div style={recordItemWideStyle}>
+              <p style={sectionLabelStyle}>Certificate Hash</p>
+              <p style={technicalMetaValueStyle}>{verificationHash}</p>
             </div>
           </div>
         </section>
@@ -765,7 +773,7 @@ export default async function VerifyPropertyPage({
 
             <div style={hashPanelStyle}>
               <div style={{ flex: '1 1 420px' }}>
-                <p style={technicalLabelStyle}>Integrity Hash</p>
+                <p style={technicalLabelStyle}>Certificate Hash</p>
                 <p style={hashValueStyle}>{verificationHash}</p>
               </div>
               <CopyHashButton value={verificationHash} />

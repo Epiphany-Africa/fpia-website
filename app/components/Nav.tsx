@@ -20,6 +20,7 @@ const desktopMainLinks = [
   { label: 'How It Works', href: '/how-it-works', lines: ['How It', 'Works'], minWidth: 82 },
   { label: 'Property Passport', href: '/property-passport', lines: ['Property', 'Passport'], minWidth: 92 },
   { label: 'Registry', href: '/verify' },
+  { label: 'LeaseLedger', href: '/lease-ledger' },
 ]
 
 const mobilePrimaryLinks = [
@@ -29,6 +30,7 @@ const mobilePrimaryLinks = [
   { label: 'Property Passport', href: '/property-passport' },
   { label: 'Verify Certificate', href: '/verify' },
   { label: 'How It Works', href: '/how-it-works' },
+  { label: 'LeaseLedger', href: '/lease-ledger' },
   { label: 'Contact', href: '/contact' },
 ]
 

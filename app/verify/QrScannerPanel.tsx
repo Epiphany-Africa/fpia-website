@@ -23,6 +23,8 @@ type ScannerStatus =
 const supportedMessageByReason: Record<ScanFailureReason, string> = {
   empty: 'No QR content was detected.',
   'invalid-qr': 'The image does not contain a readable QR code.',
+  'invalid-security-data':
+    'The QR code security data failed validation and was not opened.',
   'external-url':
     'This QR code points outside the official FPIA public verification domain, so it was not opened.',
   'unsupported-url':
@@ -47,6 +49,16 @@ export default function QrScannerPanel() {
   const [uploadBusy, setUploadBusy] = useState(false)
 
   const isLive = status === 'starting' || status === 'scanning'
+
+  const verifyQRCode = useCallback((qrData: string) => {
+    const resolution = resolveScannedVerificationTarget(qrData)
+
+    if (!resolution.ok && resolution.reason === 'invalid-security-data') {
+      throw new Error('Invalid QR Code detected.')
+    }
+
+    return resolution
+  }, [])
 
   const statusBadge = useMemo(() => {
     if (status === 'scanning') return 'Live camera'
@@ -135,12 +147,18 @@ export default function QrScannerPanel() {
     })
 
     if (qr?.data) {
-      handleResolvedTarget(resolveScannedVerificationTarget(qr.data))
+      try {
+        handleResolvedTarget(verifyQRCode(qr.data))
+      } catch {
+        setStatus('invalid')
+        setStatusTone('danger')
+        setStatusMessage('Invalid QR Code detected.')
+      }
       return
     }
 
     frameRequestRef.current = window.requestAnimationFrame(scanFrame)
-  }, [handleResolvedTarget, stopScanner])
+  }, [handleResolvedTarget, stopScanner, verifyQRCode])
 
   const startScanner = useCallback(async () => {
     if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
@@ -251,7 +269,13 @@ export default function QrScannerPanel() {
           return
         }
 
-        handleResolvedTarget(resolveScannedVerificationTarget(qr.data))
+        try {
+          handleResolvedTarget(verifyQRCode(qr.data))
+        } catch {
+          setStatus('invalid')
+          setStatusTone('danger')
+          setStatusMessage('Invalid QR Code detected.')
+        }
       } catch {
         setStatus('error')
         setStatusTone('danger')
@@ -260,7 +284,7 @@ export default function QrScannerPanel() {
         setUploadBusy(false)
       }
     },
-    [handleResolvedTarget, stopScanner]
+    [handleResolvedTarget, stopScanner, verifyQRCode]
   )
 
   useEffect(() => stopScanner, [stopScanner])

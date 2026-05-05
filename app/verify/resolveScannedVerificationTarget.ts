@@ -1,4 +1,4 @@
-const ALLOWED_PUBLIC_HOSTS = new Set([
+const PRODUCTION_PUBLIC_HOSTS = new Set([
   'fairproperties.org.za',
   'www.fairproperties.org.za',
 ])
@@ -8,6 +8,7 @@ const PUBLIC_ROUTE_PATTERNS = [/^\/verify\/([^/?#]+)$/i, /^\/certificate\/([^/?#
 export type ScanFailureReason =
   | 'empty'
   | 'invalid-qr'
+  | 'invalid-security-data'
   | 'external-url'
   | 'unsupported-url'
   | 'unsupported-content'
@@ -31,6 +32,15 @@ export function resolveScannedVerificationTarget(raw: string): ScanResolution {
     return { ok: false, reason: 'empty' }
   }
 
+  const securedPayload = parseSecureQrPayload(trimmed)
+  if (securedPayload) {
+    if (!securedPayload.ok) {
+      return { ok: false, reason: 'invalid-security-data' }
+    }
+
+    return resolveScannedVerificationTarget(securedPayload.target)
+  }
+
   const directIdentifier = normalizeIdentifier(trimmed)
   if (directIdentifier) {
     return {
@@ -48,8 +58,14 @@ export function resolveScannedVerificationTarget(raw: string): ScanResolution {
     return { ok: false, reason: 'unsupported-content' }
   }
 
-  if (!ALLOWED_PUBLIC_HOSTS.has(parsed.hostname.toLowerCase())) {
+  if (!getAllowedPublicHosts().has(parsed.hostname.toLowerCase())) {
     return { ok: false, reason: 'external-url' }
+  }
+
+  const hash = parsed.searchParams.get('hash')
+  const signature = parsed.searchParams.get('signature')
+  if ((hash && !isValidHash(hash)) || (signature && !isValidSignature(signature))) {
+    return { ok: false, reason: 'invalid-security-data' }
   }
 
   for (const pattern of PUBLIC_ROUTE_PATTERNS) {
@@ -72,6 +88,62 @@ export function resolveScannedVerificationTarget(raw: string): ScanResolution {
   return { ok: false, reason: 'unsupported-url' }
 }
 
+function parseSecureQrPayload(raw: string):
+  | { ok: true; target: string }
+  | { ok: false }
+  | null {
+  try {
+    const parsed = JSON.parse(raw) as unknown
+
+    if (!parsed || typeof parsed !== 'object') {
+      return null
+    }
+
+    const candidate = parsed as Record<string, unknown>
+    const target = getPayloadTarget(candidate)
+    const hash = typeof candidate.hash === 'string' ? candidate.hash.trim() : null
+    const signature =
+      typeof candidate.signature === 'string' ? candidate.signature.trim() : null
+
+    if (!target && !hash && !signature) {
+      return null
+    }
+
+    if (!target || (!hash && !signature)) {
+      return { ok: false }
+    }
+
+    if ((hash && !isValidHash(hash)) || (signature && !isValidSignature(signature))) {
+      return { ok: false }
+    }
+
+    return { ok: true, target }
+  } catch {
+    return null
+  }
+}
+
+function getPayloadTarget(payload: Record<string, unknown>) {
+  const targetKeys = ['verificationTarget', 'verificationUrl', 'url', 'certificateId']
+
+  for (const key of targetKeys) {
+    const value = payload[key]
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim()
+    }
+  }
+
+  return null
+}
+
+function isValidHash(value: string) {
+  return /^(sha256:)?[a-f0-9]{64}$/i.test(value.trim())
+}
+
+function isValidSignature(value: string) {
+  return /^[A-Za-z0-9_-]{32,512}$/.test(value.trim())
+}
+
 function normalizeIdentifier(value: string): string | null {
   const normalized = value.trim().replace(/^\/+|\/+$/g, '')
 
@@ -80,4 +152,33 @@ function normalizeIdentifier(value: string): string | null {
   if (!/^[A-Za-z0-9][A-Za-z0-9-]{4,}$/i.test(normalized)) return null
 
   return normalized
+}
+
+function getAllowedPublicHosts() {
+  const hosts = new Set(PRODUCTION_PUBLIC_HOSTS)
+  const configuredHost = getConfiguredPublicHost()
+
+  if (configuredHost) {
+    hosts.add(configuredHost)
+  }
+
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    hosts.add(window.location.hostname.toLowerCase())
+  }
+
+  return hosts
+}
+
+function getConfiguredPublicHost() {
+  const rawOrigin = process.env.NEXT_PUBLIC_FPIA_PUBLIC_ORIGIN?.trim()
+
+  if (!rawOrigin) {
+    return null
+  }
+
+  try {
+    return new URL(rawOrigin).hostname.toLowerCase()
+  } catch {
+    return null
+  }
 }

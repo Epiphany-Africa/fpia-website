@@ -1,5 +1,6 @@
 import { createAdminSupabaseClient } from '@/lib/server/adminSupabase'
 import { getDemoVerificationRecord } from '@/lib/demo/demoVerificationRecord'
+import { buildPublicSiteUrl } from '@/lib/verification/publicSiteOrigin'
 
 const supabase = createAdminSupabaseClient()
 
@@ -182,6 +183,8 @@ export async function loadPublicVerificationRecord(
   id: string
 ): Promise<LoadedPublicVerificationRecord> {
   const normalizedId = id.toUpperCase()
+  const verificationUrl = buildPublicSiteUrl(`/verify/${encodeURIComponent(id)}`)
+  const embedBadgeUrl = buildPublicSiteUrl(`/embed/badge/${encodeURIComponent(id)}`)
 
   let registry: RegistryRow | null = null
   let property: PropertyRow | null = null
@@ -269,8 +272,8 @@ export async function loadPublicVerificationRecord(
         authorityAssets,
         legacyInspector,
         verificationReference: id,
-        verificationUrl: `https://www.fairproperties.org.za/verify/${id}`,
-        embedBadgeUrl: `https://www.fairproperties.org.za/embed/badge/${id}`,
+        verificationUrl,
+        embedBadgeUrl,
         issuerIdentityWarning: null,
       }
     }
@@ -422,8 +425,8 @@ export async function loadPublicVerificationRecord(
     authorityAssets,
     legacyInspector,
     verificationReference,
-    verificationUrl: `https://www.fairproperties.org.za/verify/${id}`,
-    embedBadgeUrl: `https://www.fairproperties.org.za/embed/badge/${id}`,
+    verificationUrl,
+    embedBadgeUrl,
     issuerIdentityWarning:
       certificate && !authority && !legacyInspector
         ? 'Issuer identity could not be verified'
