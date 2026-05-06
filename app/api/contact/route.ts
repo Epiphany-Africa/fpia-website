@@ -8,6 +8,10 @@ import {
   logRegisterIntakeFailure,
 } from '@/lib/server/registerIntakeProtection'
 import { writeAdminEvent } from '@/lib/server/eventLog'
+import {
+  getLeaseLedgerContactContext,
+  normalizeLeaseLedgerTopic,
+} from '@/lib/contact/leaseLedgerInquiry'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 const OPS_EMAIL = process.env.OPS_EMAIL ?? process.env.SUPPORT_EMAIL ?? null
@@ -65,6 +69,12 @@ export async function POST(request: Request) {
     }
 
     const inquiry = normalizeOptionalString(body?.inquiry, 80)
+    const rawTopic = normalizeLeaseLedgerTopic(body?.topic)
+    const leaseLedgerContext = getLeaseLedgerContactContext(rawTopic, body?.intent)
+    const topic = leaseLedgerContext?.topic ?? null
+    const normalizedIntent = leaseLedgerContext?.intent ?? null
+    const sourcePage = normalizeOptionalString(body?.source_page, 240)
+    const originalQuery = normalizeOptionalString(body?.original_query, 400)
     const name = normalizeRequiredString(body?.name, 160)
     const email = normalizeRequiredString(body?.email, 200)?.toLowerCase() ?? null
     const phone = normalizeOptionalString(body?.phone, 40)
@@ -119,6 +129,11 @@ export async function POST(request: Request) {
         eventPayload: {
           request_id: requestId,
           inquiry,
+          topic,
+          intent: normalizedIntent,
+          intent_label: leaseLedgerContext?.intentLabel ?? null,
+          source_page: sourcePage,
+          original_query: originalQuery,
           name,
           email,
           phone,
@@ -133,27 +148,40 @@ export async function POST(request: Request) {
 
     if (resend && OPS_EMAIL) {
       const safeInquiry = inquiry ? escapeHtml(inquiry) : 'general'
+      const safeTopic = topic ? escapeHtml(topic) : 'general'
+      const safeIntent = leaseLedgerContext?.intentLabel
+        ? escapeHtml(leaseLedgerContext.intentLabel)
+        : 'General'
       const safeName = escapeHtml(name)
       const safeEmail = escapeHtml(email)
       const safeRole = escapeHtml(role)
       const safePhone = phone ? escapeHtml(phone) : 'Not provided'
       const safeMessage = escapeHtml(message)
+      const safeSourcePage = sourcePage ? escapeHtml(sourcePage) : 'Not provided'
+      const leaseLedgerSubjectPrefix = leaseLedgerContext
+        ? `[Lease Ledger] ${leaseLedgerContext.intentLabel}`
+        : null
 
       try {
         await resend.emails.send({
           from: 'FPIA Website <info@fairproperties.org.za>',
           to: OPS_EMAIL,
-          subject: `Website enquiry — ${safeRole}${inquiry ? ` (${safeInquiry})` : ''}`,
+          subject: leaseLedgerSubjectPrefix
+            ? `Website enquiry — ${leaseLedgerSubjectPrefix}`
+            : `Website enquiry — ${safeRole}${inquiry ? ` (${safeInquiry})` : ''}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 32px;">
               <h1 style="color: #0B1F33;">New Website Enquiry</h1>
               <p style="color: #666; margin-bottom: 24px;">Request ID: ${escapeHtml(requestId)}</p>
               <table style="width: 100%; border-collapse: collapse;">
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; width: 140px;">Inquiry</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeInquiry}</td></tr>
+                <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Topic</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeTopic}</td></tr>
+                <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Intent</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeIntent}</td></tr>
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Name</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeName}</td></tr>
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Role</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeRole}</td></tr>
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Email</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeEmail}</td></tr>
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Phone</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safePhone}</td></tr>
+                <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Source page</td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeSourcePage}</td></tr>
                 <tr><td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; vertical-align: top;">Message</td><td style="padding: 10px; border-bottom: 1px solid #eee; white-space: pre-wrap;">${safeMessage}</td></tr>
               </table>
             </div>

@@ -385,6 +385,71 @@ export default function HomePage() {
 
       <section style={{ backgroundColor: 'var(--off-white)' }} className="py-20">
         <div className="max-w-7xl mx-auto px-6">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-start">
+            <div>
+              <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
+                Lease Ledger
+              </p>
+              <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
+                Tenancy condition accountability from move-in to handover closure
+              </h2>
+              <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-8">
+                Lease Ledger gives landlords, managers, lessees, and agencies a governed record of
+                property condition across the tenancy lifecycle. It captures move-in baselines,
+                move-out condition, handover comparison, dispute support, and closure in one
+                evidence-backed workflow.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  'Move-in baseline',
+                  'Move-out record',
+                  'Handover comparison',
+                  'Dispute support',
+                  'Governed closure',
+                ].map((item) => (
+                  <div
+                    key={item}
+                    style={{ border: '1px solid rgba(11,31,51,0.1)', backgroundColor: '#fff' }}
+                    className="px-5 py-4 text-sm font-medium"
+                  >
+                    <span style={{ color: 'var(--navy)' }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: 'var(--navy)',
+                border: '1px solid rgba(201,161,77,0.18)',
+              }}
+              className="p-8"
+            >
+              <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-4 font-medium">
+                Product Capability
+              </p>
+              <p style={{ color: 'rgba(255,255,255,0.72)' }} className="text-sm leading-relaxed mb-6">
+                Lease Ledger is built to preserve the tenancy condition record, support accountable
+                handover review, and prepare evidence for downstream dispute processes without
+                claiming legal adjudication or automated liability decisions.
+              </p>
+              <p style={{ color: 'rgba(255,255,255,0.52)' }} className="text-xs leading-relaxed mb-6 uppercase tracking-[0.16em]">
+                One-off workflow services, agency access, and portfolio rollout discussions are available through FPIA.
+              </p>
+              <Link
+                href="/lease-ledger"
+                style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }}
+                className="inline-flex items-center justify-center px-8 py-4 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              >
+                See Lease Ledger in Action
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ backgroundColor: 'var(--off-white)' }} className="py-20">
+        <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
             Built for the future property record
           </p>

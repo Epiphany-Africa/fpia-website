@@ -1,7 +1,8 @@
 'use client'
-import { Suspense, useState } from 'react'
+import { Suspense, useState, type CSSProperties, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { getLeaseLedgerContactContext } from '@/lib/contact/leaseLedgerInquiry'
 
 type InquiryPreset = {
   label: string
@@ -73,12 +74,41 @@ function ContactPageForm() {
   const searchParams = useSearchParams()
   const inquiryKey = searchParams.get('inquiry')?.trim().toLowerCase() ?? ''
   const inquiryPreset = INQUIRY_PRESETS[inquiryKey] ?? null
+  const leaseLedgerContext = getLeaseLedgerContactContext(
+    searchParams.get('topic'),
+    searchParams.get('intent')
+  )
+  const sourceParam = searchParams.get('source')?.trim() ?? ''
+  const originalQuery = searchParams.toString()
+
+  const isLeaseLedgerInquiry = Boolean(leaseLedgerContext)
+  const roleOptions = isLeaseLedgerInquiry
+    ? [
+        'Landlord',
+        'Tenant',
+        'Property Practitioner / Estate Agent',
+        'Institutional / Portfolio Operator',
+        'Other',
+      ]
+    : [
+        'Homeowner',
+        'Buyer',
+        'Seller',
+        'Property Practitioner',
+        'Insurer',
+        'Bond Originator',
+        'Other',
+      ]
 
   const [name, setName] = useState(() => searchParams.get('name')?.trim() ?? '')
   const [email, setEmail] = useState(() => searchParams.get('email')?.trim() ?? '')
   const [phone, setPhone] = useState(() => searchParams.get('phone')?.trim() ?? '')
   const [role, setRole] = useState(
-    () => searchParams.get('role')?.trim() ?? inquiryPreset?.role ?? ''
+    () =>
+      searchParams.get('role')?.trim() ??
+      leaseLedgerContext?.recommendedRole ??
+      inquiryPreset?.role ??
+      ''
   )
   const [message, setMessage] = useState(
     () => searchParams.get('message')?.trim() ?? inquiryPreset?.message ?? ''
@@ -88,12 +118,25 @@ function ContactPageForm() {
   const [error, setError] = useState('')
   const [companyWebsite, setCompanyWebsite] = useState('')
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
     setBusy(true)
 
     try {
+      let sourcePage = sourceParam || null
+
+      if (!sourcePage && typeof window !== 'undefined' && document.referrer) {
+        try {
+          const referrer = new URL(document.referrer)
+          if (referrer.origin === window.location.origin) {
+            sourcePage = `${referrer.pathname}${referrer.search}${referrer.hash}`
+          }
+        } catch {
+          // Keep sourcePage null when the referrer cannot be parsed safely.
+        }
+      }
+
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -101,6 +144,10 @@ function ContactPageForm() {
         },
         body: JSON.stringify({
           inquiry: inquiryKey || null,
+          topic: leaseLedgerContext?.topic ?? null,
+          intent: leaseLedgerContext?.intent ?? null,
+          source_page: sourcePage,
+          original_query: originalQuery || null,
           name,
           email,
           phone,
@@ -155,7 +202,9 @@ function ContactPageForm() {
             maxWidth: '700px',
             marginBottom: '20px',
           }}>
-            Let&rsquo;s talk about your property.
+            {isLeaseLedgerInquiry
+              ? 'Let’s talk about Lease Ledger.'
+              : 'Let’s talk about your property.'}
           </h1>
           <p style={{
             color: 'var(--slate)',
@@ -163,9 +212,29 @@ function ContactPageForm() {
             lineHeight: 1.8,
             maxWidth: '560px',
           }}>
-            Whether you&rsquo;re a buyer, seller, property practitioner, or insurer — we&rsquo;re here to help you understand what FPIA certification means for your transaction.
+            {isLeaseLedgerInquiry
+              ? leaseLedgerContext?.introCopy
+              : 'Whether you’re a buyer, seller, property practitioner, or insurer — we’re here to help you understand what FPIA certification means for your transaction.'}
           </p>
-          {inquiryPreset ? (
+          {isLeaseLedgerInquiry ? (
+            <div
+              style={{
+                marginTop: '24px',
+                maxWidth: '620px',
+                padding: '16px 18px',
+                border: '1px solid rgba(201,161,77,0.22)',
+                backgroundColor: 'rgba(201,161,77,0.06)',
+              }}
+            >
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+                <span style={contextBadgeStyle}>Topic: {leaseLedgerContext?.topicLabel}</span>
+                <span style={contextBadgeStyle}>Enquiry type: {leaseLedgerContext?.intentLabel}</span>
+              </div>
+              <p style={{ color: 'var(--slate)', fontSize: '14px', lineHeight: 1.7, margin: 0 }}>
+                {leaseLedgerContext?.helperText}
+              </p>
+            </div>
+          ) : inquiryPreset ? (
             <div
               style={{
                 marginTop: '24px',
@@ -212,27 +281,46 @@ function ContactPageForm() {
               color: 'var(--off-white)',
               marginBottom: '32px',
             }}>
-              How we can help
+              {isLeaseLedgerInquiry ? 'How Lease Ledger enquiries are routed' : 'How we can help'}
             </h2>
 
-            {[
-              {
-                title: 'Book an Inspection',
-                desc: 'Request a certified FPIA property inspection for your suspensive period or pre-listing assessment.',
-              },
-              {
-                title: 'Property Practitioner Partnerships',
-                desc: 'Enquire about integrating FPIA certification into your listings and offering buyers verified property condition.',
-              },
-              {
-                title: 'Insurer & Originator Enquiries',
-                desc: 'Find out how FPIA data supports underwriting, valuations, and bond decisions.',
-              },
-              {
-                title: 'General Questions',
-                desc: 'Not sure where to start? Send us a message and we will point you in the right direction.',
-              },
-            ].map((item) => (
+            {(isLeaseLedgerInquiry
+              ? [
+                  {
+                    title: 'One-off workflow support',
+                    desc: 'Use this route when you need support for a specific move-in, move-out, handover comparison, or deposit dispute support output.',
+                  },
+                  {
+                    title: 'Agency and portfolio rollout',
+                    desc: 'Use this route when you want recurring Lease Ledger usage, portfolio oversight, or a more consistent tenancy accountability process.',
+                  },
+                  {
+                    title: 'Walkthroughs and demos',
+                    desc: 'We can tailor a Lease Ledger walkthrough around landlord, tenant, agency, or institutional operating needs.',
+                  },
+                  {
+                    title: 'General guidance',
+                    desc: 'If you are not yet sure which Lease Ledger path fits, send the context you have and we will route the enquiry appropriately.',
+                  },
+                ]
+              : [
+                  {
+                    title: 'Book an Inspection',
+                    desc: 'Request a certified FPIA property inspection for your suspensive period or pre-listing assessment.',
+                  },
+                  {
+                    title: 'Property Practitioner Partnerships',
+                    desc: 'Enquire about integrating FPIA certification into your listings and offering buyers verified property condition.',
+                  },
+                  {
+                    title: 'Insurer & Originator Enquiries',
+                    desc: 'Find out how FPIA data supports underwriting, valuations, and bond decisions.',
+                  },
+                  {
+                    title: 'General Questions',
+                    desc: 'Not sure where to start? Send us a message and we will point you in the right direction.',
+                  },
+                ]).map((item) => (
               <div key={item.title} style={{
                 marginBottom: '32px',
                 paddingLeft: '20px',
@@ -321,7 +409,9 @@ function ContactPageForm() {
                   Message received.
                 </h3>
                 <p style={{ color: 'var(--slate)', lineHeight: 1.7 }}>
-                  We&rsquo;ll be in touch within one business day.
+                  {isLeaseLedgerInquiry
+                    ? 'We’ll route your Lease Ledger enquiry and be in touch within one business day.'
+                    : 'We’ll be in touch within one business day.'}
                 </p>
               </div>
             ) : (
@@ -334,7 +424,19 @@ function ContactPageForm() {
                 }}>
                   Send us a message
                 </h2>
-                {inquiryPreset ? (
+                {isLeaseLedgerInquiry ? (
+                  <>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      <span style={contextBadgeStyle}>Topic: Lease Ledger</span>
+                      <span style={contextBadgeStyle}>
+                        Enquiry type: {leaseLedgerContext?.intentLabel}
+                      </span>
+                    </div>
+                    <p style={{ color: 'var(--slate)', fontSize: '14px', lineHeight: 1.7, margin: 0 }}>
+                      {leaseLedgerContext?.helperText}
+                    </p>
+                  </>
+                ) : inquiryPreset ? (
                   <p style={{ color: 'var(--slate)', fontSize: '14px', lineHeight: 1.7, margin: 0 }}>
                     This form is prefilled for <strong style={{ color: 'var(--off-white)' }}>{inquiryPreset.label}</strong>.
                     Adjust the details below before sending if needed.
@@ -351,13 +453,11 @@ function ContactPageForm() {
                     style={inputStyle}
                   >
                     <option value="">Select your role</option>
-                    <option value="Homeowner">Homeowner</option>
-                    <option value="Buyer">Buyer</option>
-                    <option value="Seller">Seller</option>
-                    <option value="Property Practitioner">Property Practitioner</option>
-                    <option value="Insurer">Insurer</option>
-                    <option value="Bond Originator">Bond Originator</option>
-                    <option value="Other">Other</option>
+                    {roleOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -402,7 +502,10 @@ function ContactPageForm() {
                     onChange={(e) => setMessage(e.target.value)}
                     required
                     rows={5}
-                    placeholder="Tell us about your property or enquiry..."
+                    placeholder={
+                      leaseLedgerContext?.messagePlaceholder ??
+                      'Tell us about your property or enquiry...'
+                    }
                     style={{ ...inputStyle, resize: 'vertical', paddingTop: '12px' }}
                   />
                 </div>
@@ -529,7 +632,7 @@ export default function ContactPage() {
   )
 }
 
-const labelStyle: React.CSSProperties = {
+const labelStyle: CSSProperties = {
   display: 'block',
   fontSize: '11px',
   letterSpacing: '1.5px',
@@ -538,7 +641,7 @@ const labelStyle: React.CSSProperties = {
   marginBottom: '8px',
 }
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
   width: '100%',
   backgroundColor: 'rgba(255,255,255,0.04)',
   border: '1px solid rgba(201,161,77,0.25)',
@@ -547,4 +650,19 @@ const inputStyle: React.CSSProperties = {
   fontSize: '14px',
   outline: 'none',
   boxSizing: 'border-box',
+}
+
+const contextBadgeStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: '30px',
+  padding: '0 12px',
+  borderRadius: '999px',
+  border: '1px solid rgba(201,161,77,0.24)',
+  backgroundColor: 'rgba(201,161,77,0.1)',
+  color: 'var(--gold)',
+  fontSize: '10px',
+  fontWeight: 700,
+  letterSpacing: '0.14em',
+  textTransform: 'uppercase',
 }
