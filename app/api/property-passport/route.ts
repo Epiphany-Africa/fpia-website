@@ -11,9 +11,18 @@ import { writeAdminEvent } from '@/lib/server/eventLog'
 
 type PassportDocumentInput = {
   fieldName: string
+  documentId: string | null
+  rowIndex: number | null
   documentType: string
   issuedAt: string | null
   expiresAt: string | null
+}
+
+type PassportDocumentValidationError = {
+  documentId: string | null
+  rowIndex: number | null
+  documentType: string
+  messages: string[]
 }
 
 const MAX_DOCUMENT_COUNT = 20
@@ -61,6 +70,24 @@ function isValidEmail(value: string) {
 function isValidDate(value: string | null) {
   if (!value) return true
   return /^\d{4}-\d{2}-\d{2}$/.test(value)
+}
+
+function parseDateValue(value: string | null) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+
+  const [year, month, day] = value.split('-').map(Number)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null
+  }
+
+  return parsed
 }
 
 function safeFileName(value: string) {
@@ -354,6 +381,14 @@ function normalizeDocuments(value: FormDataEntryValue | null) {
 
       const fieldName =
         typeof item.fieldName === 'string' ? item.fieldName.trim().slice(0, 80) : ''
+      const documentId =
+        typeof item.documentId === 'string' && item.documentId.trim()
+          ? item.documentId.trim().slice(0, 80)
+          : null
+      const rowIndex =
+        typeof item.rowIndex === 'number' && Number.isInteger(item.rowIndex) && item.rowIndex > 0
+          ? item.rowIndex
+          : null
       const documentType =
         typeof item.documentType === 'string'
           ? item.documentType.trim().slice(0, 120)
@@ -371,6 +406,8 @@ function normalizeDocuments(value: FormDataEntryValue | null) {
 
       normalizedDocuments.push({
         fieldName,
+        documentId,
+        rowIndex,
         documentType,
         issuedAt,
         expiresAt,
@@ -381,6 +418,39 @@ function normalizeDocuments(value: FormDataEntryValue | null) {
   } catch {
     return null
   }
+}
+
+function validateDocuments(documents: PassportDocumentInput[]) {
+  const errors: PassportDocumentValidationError[] = []
+
+  for (const document of documents) {
+    const messages: string[] = []
+    const issuedDate = document.issuedAt ? parseDateValue(document.issuedAt) : null
+    const expiryDate = document.expiresAt ? parseDateValue(document.expiresAt) : null
+
+    if (document.issuedAt && !issuedDate) {
+      messages.push('Issue date is invalid.')
+    }
+
+    if (document.expiresAt && !expiryDate) {
+      messages.push('Expiry date is invalid.')
+    }
+
+    if (issuedDate && expiryDate && expiryDate.getTime() < issuedDate.getTime()) {
+      messages.push('Expiry date cannot be earlier than issue date.')
+    }
+
+    if (messages.length > 0) {
+      errors.push({
+        documentId: document.documentId,
+        rowIndex: document.rowIndex,
+        documentType: document.documentType,
+        messages,
+      })
+    }
+  }
+
+  return errors
 }
 
 export async function POST(request: Request) {
@@ -465,10 +535,27 @@ export async function POST(request: Request) {
     for (const document of documents) {
       if (!isValidDate(document.issuedAt) || !isValidDate(document.expiresAt)) {
         return NextResponse.json(
-          { error: 'Please provide valid document dates.' },
+          {
+            error:
+              'One or more uploaded records has invalid dates. Please review the issue and expiry dates for your uploaded certificates.',
+            documentErrors: validateDocuments([document]),
+          },
           { status: 400 }
         )
       }
+    }
+
+    const documentValidationErrors = validateDocuments(documents)
+
+    if (documentValidationErrors.length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            'One or more uploaded records has invalid dates. Please review the issue and expiry dates for your uploaded certificates.',
+          documentErrors: documentValidationErrors,
+        },
+        { status: 400 }
+      )
     }
 
     const supabase = createAdminSupabaseClient()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import FpiaPhoneInput from '@/components/FpiaPhoneInput'
 import FpiaStepper from '@/components/FpiaStepper'
@@ -18,6 +18,21 @@ type PassportSubmissionResult = {
   profileId: string
   uploadedDocumentCount: number
   failedDocumentCount: number
+}
+
+type PropertyPassportDocumentError = {
+  documentId?: string | null
+  rowIndex?: number | null
+  documentType?: string | null
+  messages?: string[]
+}
+
+type PropertyPassportErrorResponse = {
+  error?: string
+  profileId?: string
+  uploadedDocumentCount?: number
+  failedDocumentCount?: number
+  documentErrors?: PropertyPassportDocumentError[]
 }
 
 const PASSPORT_STEPS = [
@@ -64,11 +79,64 @@ function validateDocumentFile(file: File | null) {
   return null
 }
 
+function parseDateInput(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+
+  const [year, month, day] = value.split('-').map(Number)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null
+  }
+
+  return parsed
+}
+
+function getDocumentDateErrors(document: PassportDocument) {
+  if (!document.file) return []
+
+  const errors: string[] = []
+  const issuedDate = document.issuedAt ? parseDateInput(document.issuedAt) : null
+  const expiryDate = document.expiresAt ? parseDateInput(document.expiresAt) : null
+
+  if (document.issuedAt && !issuedDate) {
+    errors.push('Issue date is invalid.')
+  }
+
+  if (document.expiresAt && !expiryDate) {
+    errors.push('Expiry date is invalid.')
+  }
+
+  if (issuedDate && expiryDate && expiryDate.getTime() < issuedDate.getTime()) {
+    errors.push('Expiry date cannot be earlier than issue date.')
+  }
+
+  return errors
+}
+
+function buildDocumentDateErrorMap(documents: PassportDocument[]) {
+  return documents.reduce<Record<string, string[]>>((accumulator, document) => {
+    const errors = getDocumentDateErrors(document)
+
+    if (errors.length > 0) {
+      accumulator[document.id] = errors
+    }
+
+    return accumulator
+  }, {})
+}
+
 export default function PropertyPassportPage() {
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [documentDateErrors, setDocumentDateErrors] = useState<Record<string, string[]>>({})
   const [submissionResult, setSubmissionResult] = useState<PassportSubmissionResult | null>(null)
 
   const [ownerName, setOwnerName] = useState('')
@@ -84,6 +152,8 @@ export default function PropertyPassportPage() {
   const [documents, setDocuments] = useState<PassportDocument[]>([
     createEmptyDocument(),
   ])
+  const documentRowRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const documentIssuedInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   const validDocuments = useMemo(
     () => documents.filter((document) => document.file),
@@ -94,15 +164,47 @@ export default function PropertyPassportPage() {
     [documents]
   )
 
+  function syncDocumentDateErrors(nextDocuments: PassportDocument[]) {
+    const nextErrors = buildDocumentDateErrorMap(nextDocuments)
+    setDocumentDateErrors(nextErrors)
+    return nextErrors
+  }
+
+  function focusDocumentRow(documentId: string) {
+    requestAnimationFrame(() => {
+      const row = documentRowRefs.current[documentId]
+      row?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      documentIssuedInputRefs.current[documentId]?.focus()
+    })
+  }
+
+  function focusFirstDocumentError(nextErrors: Record<string, string[]>) {
+    const firstInvalidDocumentId = documents.find((document) => nextErrors[document.id]?.length)?.id
+
+    if (!firstInvalidDocumentId) return
+
+    setStep(1)
+    focusDocumentRow(firstInvalidDocumentId)
+  }
+
   function updateDocument(
     id: string,
     patch: Partial<PassportDocument>
   ) {
-    setDocuments((current) =>
-      current.map((document) =>
+    let nextDocuments: PassportDocument[] = []
+
+    setDocuments((current) => {
+      nextDocuments = current.map((document) =>
         document.id === id ? { ...document, ...patch } : document
       )
-    )
+
+      return nextDocuments
+    })
+
+    const nextErrors = syncDocumentDateErrors(nextDocuments)
+    if (Object.keys(nextErrors).length === 0 && !documentsWithErrors.length) {
+      setError(null)
+    }
   }
 
   function addDocumentRow() {
@@ -110,9 +212,19 @@ export default function PropertyPassportPage() {
   }
 
   function removeDocumentRow(id: string) {
-    setDocuments((current) =>
-      current.length === 1 ? current : current.filter((document) => document.id !== id)
-    )
+    let nextDocuments: PassportDocument[] = []
+
+    setDocuments((current) => {
+      nextDocuments =
+        current.length === 1 ? current : current.filter((document) => document.id !== id)
+
+      return nextDocuments
+    })
+
+    const nextErrors = syncDocumentDateErrors(nextDocuments)
+    if (Object.keys(nextErrors).length === 0 && !documentsWithErrors.length) {
+      setError(null)
+    }
   }
 
   function canContinuePropertyStep() {
@@ -124,7 +236,56 @@ export default function PropertyPassportPage() {
     )
   }
 
+  function applyClientDocumentValidation() {
+    const nextErrors = syncDocumentDateErrors(documents)
+
+    if (documentsWithErrors.length > 0 || Object.keys(nextErrors).length > 0) {
+      setError(
+        'One or more uploaded records has invalid dates. Please review the issue and expiry dates for your uploaded certificates.'
+      )
+
+      if (Object.keys(nextErrors).length > 0) {
+        focusFirstDocumentError(nextErrors)
+      } else if (documentsWithErrors[0]) {
+        setStep(1)
+        focusDocumentRow(documentsWithErrors[0].id)
+      }
+
+      return false
+    }
+
+    return true
+  }
+
+  function applyServerDocumentErrors(serverDocumentErrors: PropertyPassportDocumentError[]) {
+    const nextErrors: Record<string, string[]> = {}
+
+    for (const serverDocumentError of serverDocumentErrors) {
+      const matchedDocument =
+        documents.find((document) => document.id === serverDocumentError.documentId) ??
+        (typeof serverDocumentError.rowIndex === 'number'
+          ? documents[serverDocumentError.rowIndex - 1] ?? null
+          : null)
+
+      if (!matchedDocument) continue
+
+      nextErrors[matchedDocument.id] = serverDocumentError.messages?.length
+        ? serverDocumentError.messages
+        : ['Please review this uploaded record.']
+    }
+
+    setDocumentDateErrors(nextErrors)
+
+    if (Object.keys(nextErrors).length > 0) {
+      focusFirstDocumentError(nextErrors)
+    }
+  }
+
   async function handleSubmit() {
+    if (!applyClientDocumentValidation()) {
+      return
+    }
+
     setBusy(true)
     setError(null)
 
@@ -145,6 +306,8 @@ export default function PropertyPassportPage() {
         formData.append(`document_file_${index}`, document.file as File)
         return {
           fieldName: `document_file_${index}`,
+          documentId: document.id,
+          rowIndex: documents.findIndex((item) => item.id === document.id) + 1,
           documentType: document.documentType,
           issuedAt: document.issuedAt || null,
           expiresAt: document.expiresAt || null,
@@ -158,15 +321,22 @@ export default function PropertyPassportPage() {
         body: formData,
       })
 
-      const payload = (await response.json().catch(() => ({}))) as {
-        error?: string
-        profileId?: string
-        uploadedDocumentCount?: number
-        failedDocumentCount?: number
-      }
+      const payload = (await response.json().catch(() => ({}))) as PropertyPassportErrorResponse
 
       if (!response.ok) {
-        throw new Error(payload.error ?? 'Could not create your Property Passport.')
+        if (payload.documentErrors?.length) {
+          setError(
+            payload.error ??
+              'One or more uploaded records has invalid dates. Please review the issue and expiry dates for your uploaded certificates.'
+          )
+          applyServerDocumentErrors(payload.documentErrors)
+          return
+        }
+
+        throw new Error(
+          payload.error ??
+            'Could not create your Property Passport. Please review your uploaded records and try again.'
+        )
       }
 
       setSubmissionResult({
@@ -179,7 +349,7 @@ export default function PropertyPassportPage() {
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : 'Could not create your Property Passport.'
+          : 'Could not create your Property Passport. Please review your uploaded records and try again.'
       )
     } finally {
       setBusy(false)
@@ -403,7 +573,7 @@ export default function PropertyPassportPage() {
 
       <section
         className="fpia-passport-form-shell"
-        style={{ padding: '52px 80px 72px', maxWidth: '940px' }}
+        style={{ padding: '52px 80px 96px', maxWidth: '940px' }}
       >
         {step === 0 && (
           <div>
@@ -531,6 +701,9 @@ export default function PropertyPassportPage() {
               {documents.map((document, index) => (
                 <div
                   key={document.id}
+                  ref={(node) => {
+                    documentRowRefs.current[document.id] = node
+                  }}
                   style={{
                     border: '1px solid rgba(201,161,77,0.18)',
                     backgroundColor: 'rgba(255,255,255,0.03)',
@@ -572,6 +745,9 @@ export default function PropertyPassportPage() {
                       <input
                         type="date"
                         value={document.issuedAt}
+                        ref={(node) => {
+                          documentIssuedInputRefs.current[document.id] = node
+                        }}
                         onChange={(event) =>
                           updateDocument(document.id, { issuedAt: event.target.value })
                         }
@@ -617,6 +793,25 @@ export default function PropertyPassportPage() {
                       ) : null}
                     </div>
                   </div>
+                  {documentDateErrors[document.id]?.length ? (
+                    <div
+                      style={{
+                        marginTop: '14px',
+                        padding: '14px 16px',
+                        border: '1px solid rgba(252,129,129,0.22)',
+                        backgroundColor: 'rgba(252,129,129,0.05)',
+                      }}
+                    >
+                      {documentDateErrors[document.id].map((message) => (
+                        <p
+                          key={message}
+                          style={{ color: '#fbd5d5', fontSize: '12px', lineHeight: 1.7, margin: 0 }}
+                        >
+                          {message}
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -629,7 +824,7 @@ export default function PropertyPassportPage() {
                 {validDocuments.length} document{validDocuments.length === 1 ? '' : 's'} ready to upload
               </div>
             </div>
-            {documentsWithErrors.length ? (
+            {documentsWithErrors.length || Object.keys(documentDateErrors).length ? (
               <div
                 style={{
                   marginTop: '18px',
@@ -639,7 +834,21 @@ export default function PropertyPassportPage() {
                 }}
               >
                 <p style={{ color: '#fbd5d5', fontSize: '13px', lineHeight: 1.7, margin: 0 }}>
-                  Fix file issues before review. Unsupported or oversized files will be skipped.
+                  Fix file or date issues before review. Unsupported files, invalid dates, and expiry dates earlier than issue dates need attention first.
+                </p>
+              </div>
+            ) : null}
+            {error ? (
+              <div
+                style={{
+                  marginTop: '16px',
+                  padding: '16px 18px',
+                  border: '1px solid rgba(252,129,129,0.24)',
+                  backgroundColor: 'rgba(252,129,129,0.05)',
+                }}
+              >
+                <p style={{ color: '#fbd5d5', fontSize: '13px', lineHeight: 1.7, margin: 0 }}>
+                  {error}
                 </p>
               </div>
             ) : null}
@@ -650,12 +859,23 @@ export default function PropertyPassportPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setStep(2)}
-                disabled={documentsWithErrors.length > 0}
+                onClick={() => {
+                  if (applyClientDocumentValidation()) {
+                    setError(null)
+                    setStep(2)
+                  }
+                }}
+                disabled={documentsWithErrors.length > 0 || Object.keys(documentDateErrors).length > 0}
                 style={{
                   ...primaryButtonStyle,
-                  opacity: documentsWithErrors.length > 0 ? 0.5 : 1,
-                  cursor: documentsWithErrors.length > 0 ? 'not-allowed' : 'pointer',
+                  opacity:
+                    documentsWithErrors.length > 0 || Object.keys(documentDateErrors).length > 0
+                      ? 0.5
+                      : 1,
+                  cursor:
+                    documentsWithErrors.length > 0 || Object.keys(documentDateErrors).length > 0
+                      ? 'not-allowed'
+                      : 'pointer',
                 }}
               >
                 Review Passport
@@ -722,6 +942,18 @@ export default function PropertyPassportPage() {
                           {document.issuedAt ? ` • Issued ${document.issuedAt}` : ''}
                           {document.expiresAt ? ` • Expires ${document.expiresAt}` : ''}
                         </div>
+                        {documentDateErrors[document.id]?.length ? (
+                          <div style={{ marginTop: '8px' }}>
+                            {documentDateErrors[document.id].map((message) => (
+                              <p
+                                key={message}
+                                style={{ color: '#fbd5d5', fontSize: '12px', lineHeight: 1.7, margin: 0 }}
+                              >
+                                {message}
+                              </p>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     ))}
                   </div>
@@ -772,22 +1004,38 @@ export default function PropertyPassportPage() {
               <div style={{ color: '#fc8181', fontSize: '13px', marginTop: '16px' }}>{error}</div>
             ) : null}
 
-            <div style={{ display: 'flex', gap: '14px', marginTop: '30px', flexWrap: 'wrap' }}>
-              <button type="button" onClick={() => setStep(1)} style={secondaryButtonStyle}>
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={busy}
-                style={{
-                  ...primaryButtonStyle,
-                  opacity: busy ? 0.6 : 1,
-                  cursor: busy ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {busy ? 'Creating Passport...' : 'Create Free Property Passport'}
-              </button>
+            <div
+              style={{
+                display: 'flex',
+                gap: '14px',
+                marginTop: '34px',
+                paddingTop: '24px',
+                borderTop: '1px solid rgba(201,161,77,0.14)',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ color: 'rgba(255,255,255,0.52)', fontSize: '12px', lineHeight: 1.7, maxWidth: '440px' }}>
+                Review your uploaded records carefully before creating the passport. If a certificate date looks wrong, fix it now so the record is stored cleanly.
+              </div>
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => setStep(1)} style={secondaryButtonStyle}>
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={busy}
+                  style={{
+                    ...primaryButtonStyle,
+                    opacity: busy ? 0.6 : 1,
+                    cursor: busy ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {busy ? 'Creating Passport...' : 'Create Free Property Passport'}
+                </button>
+              </div>
             </div>
           </div>
         )}
