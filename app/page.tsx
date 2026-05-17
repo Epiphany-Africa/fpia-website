@@ -27,41 +27,41 @@ const audiences = [
   {
     icon: '🏠',
     title: 'Buyers',
-    desc: 'Check the governed property record before you commit. FPIA reduces hidden-condition risk before transfer.',
+    desc: 'Check the property record before you commit. FPIA reduces hidden-condition risk before transfer.',
   },
   {
     icon: '📋',
     title: 'Sellers',
-    desc: 'Support price and disclosure with structured evidence, controlled issuance, and a verifiable trust signal.',
+    desc: 'Support price and disclosure with a trusted property record buyers can verify.',
   },
   {
     icon: '🤝',
-    title: 'Property Practitioners',
-    desc: 'List with a governed record that reduces dispute risk, supports pricing, and keeps deals moving.',
+    title: 'Agents',
+    desc: 'List with a trusted property record that reduces dispute risk and keeps deals moving.',
   },
   {
     icon: '🛡️',
     title: 'Insurers',
-    desc: 'Assess residential property risk against governed evidence and verification, not fragmented attachments.',
+    desc: 'Assess residential property risk against verified records, not scattered attachments.',
   },
   {
     icon: '🏦',
     title: 'Banks & Originators',
-    desc: 'Advise, lend, and structure applications against verified property truth instead of assumptions and gaps.',
+    desc: 'Advise, lend, and structure applications against verified property facts, not assumptions and gaps.',
   },
   {
     icon: '⚖️',
-    title: 'Property Legal Practitioners',
-    desc: 'Work from one verifiable record during OTP, transfer, and registration, not disconnected claims, emails, and PDFs.',
+    title: 'Attorneys',
+    desc: 'Work from one verifiable record during OTP, transfer, and registration, not disconnected emails and PDFs.',
   },
 ]
 
 const steps = [
-  { num: '01', title: 'Truth Enters', desc: 'An inspection or governed intake event creates the initial property record.' },
-  { num: '02', title: 'Evidence Is Structured', desc: 'Condition findings, compliance artefacts, and supporting records are organised into one accountable file.' },
-  { num: '03', title: 'Authority Governs', desc: 'Issuance status and trust outcomes are applied under FPIA authority controls.' },
-  { num: '04', title: 'Verification Checks', desc: 'Any party can verify certificate status and registry truth before they act.' },
-  { num: '05', title: 'Registry Persists', desc: 'The property record remains durable, referenceable, and usable across future transactions.' },
+  { num: '01', title: 'Truth Enters', desc: 'An inspection or controlled intake starts the property record.' },
+  { num: '02', title: 'Evidence Is Structured', desc: 'Condition findings and supporting documents are organised in one file.' },
+  { num: '03', title: 'Authority Governs', desc: 'FPIA applies issuance status and trust outcomes under authority controls.' },
+  { num: '04', title: 'Verification Checks', desc: 'Any party can verify certificate status before they act.' },
+  { num: '05', title: 'Registry Persists', desc: 'The property record stays available for future reference and use.' },
 ]
 
 const qrCode = (
@@ -123,14 +123,13 @@ export default function HomePage() {
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'linear-gradient(var(--gold) 1px, transparent 1px), linear-gradient(90deg, var(--gold) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-5 pt-5 pb-11 sm:px-6 sm:pt-7 md:pt-9 md:pb-14 lg:flex-row lg:items-center lg:justify-between lg:gap-[56px] lg:pt-10 xl:pt-11">
           <div className="flex-1">
-            <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-4 font-medium">Governed Property Records · South Africa</p>
             <h1 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="mb-5 max-w-3xl text-4xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
               Know the property<br />
             <em style={{ color: 'var(--gold)' }}>before the deal is done.</em>
             </h1>
 
             <p className="mb-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
-              FPIA creates a governed property record before transfer — helping sellers, buyers, property practitioners, lenders, insurers and legal professionals make decisions from verified evidence, not assumptions.
+              FPIA helps create a trusted property record before transfer, so buyers, sellers, agents, lenders, insurers and attorneys can make decisions based on facts, not assumptions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/seller-readiness" style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }} className="inline-block px-8 py-4 font-semibold tracking-wide text-sm hover:opacity-90 transition-opacity text-center">
@@ -141,13 +140,8 @@ export default function HomePage() {
               </Link>
             </div>
             <p className="mt-4 text-sm text-white/65">
-              For sellers, buyers, property practitioners, lenders, insurers and legal professionals.
+              Built for buyers, sellers, agents, lenders, insurers and attorneys.
             </p>
-            <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(201,161,77,0.2)' }} className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span style={{ color: 'rgba(255,255,255,0.68)', fontSize: '13px' }}>
-                Built for accountable property transactions across South Africa.
-              </span>
-            </div>
           </div>
           <div style={{ flexShrink: 0 }} className="flex flex-col items-center gap-4 lg:min-w-[250px]">
             <div
@@ -178,10 +172,27 @@ export default function HomePage() {
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', textAlign: 'center' }}>Fair Property Certified™</p>
           </div>
         </div>
+        <div className="relative mx-auto flex max-w-7xl justify-center px-6 pb-6">
+          <Link
+            href="#property-record-gap"
+            aria-label="Scroll to explore the homepage"
+            className="inline-flex flex-col items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-white/45 transition-colors hover:text-white/70"
+          >
+            <span>Scroll to explore</span>
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 5.5L7 9.5L11 5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          </Link>
+        </div>
       </section>
 
       {/* ── PROBLEM SECTION ── */}
-      <section style={{ backgroundColor: 'var(--off-white)' }} className="py-20">
+      <section id="property-record-gap" style={{ backgroundColor: 'var(--off-white)' }} className="py-20">
         <div className="max-w-7xl mx-auto px-6">
               <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">
               The Property Record Gap
@@ -192,7 +203,7 @@ export default function HomePage() {
             </h2>
 
               <p style={{ color: 'var(--slate)' }} className="text-base max-w-2xl leading-relaxed mb-12">
-                In most transactions, disclosure, inspection evidence, plans, certificates and ownership references sit in different places. FPIA brings those records into one governed view so buyers, sellers and professionals can make decisions with clearer evidence.
+                In most transactions, disclosure, inspection evidence, plans, certificates, and ownership records sit in different places. FPIA brings them together so buyers, sellers, and professionals can make clearer decisions earlier.
               </p>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -218,10 +229,8 @@ export default function HomePage() {
 
       {/* ── TRUST BAR ── */}
       <section style={{ backgroundColor: 'var(--gold)' }} className="py-4">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-4 gap-y-3 px-5 text-center text-[11px] font-semibold uppercase tracking-widest text-navy sm:px-6 md:flex md:flex-wrap md:justify-center md:gap-8 md:text-xs">
-          {['Inspection enters truth', 'Evidence structures truth', 'Authority governs truth', 'Verification checks truth', 'Registry persists truth'].map(t => (
-            <span key={t}>✦ {t}</span>
-          ))}
+        <div className="mx-auto max-w-7xl px-5 text-center text-sm font-semibold tracking-wide text-navy sm:px-6">
+          Better property records lead to better decisions before transfer.
         </div>
       </section>
 
@@ -234,15 +243,15 @@ export default function HomePage() {
             Start from your role in the transaction.
           </h2>
           <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-10">
-            FPIA is built for sellers, buyers, professionals and institutions that need governed property records before critical decisions are locked in.
+            Choose the route that fits your role and the decision you need to make.
           </p>
           <div className="grid gap-6 md:grid-cols-3">
             {[
               {
                 title: 'I\u2019m selling',
-                description: 'Prepare your property, disclosure record and visible repair exposure before listing.',
+                description: 'Review your property record, disclosure position, and visible repair exposure before listing.',
                 href: '/seller-readiness',
-                cta: 'Start Seller Readiness',
+                cta: 'Start Property Readiness Review',
               },
               {
                 title: 'I\u2019m buying',
@@ -252,7 +261,7 @@ export default function HomePage() {
               },
               {
                 title: 'I\u2019m a professional or institution',
-                description: 'Use governed property records to reduce transaction, lending, insurance or legal risk.',
+                description: 'Use trusted property records to reduce transaction, lending, insurance, or legal risk.',
                 href: '/contact?message=I%27d%20like%20to%20request%20access%20to%20FPIA%20for%20my%20organisation.',
                 cta: 'Request Access',
               },
@@ -290,7 +299,7 @@ export default function HomePage() {
             One accountability system. Multiple controlled outcomes.
           </h2>
           <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-12">
-            Inspection is how truth enters. Evidence is how truth is structured. Authority issuance is how truth is governed. Verification is how truth is checked. Registry is how truth persists.
+            Inspection starts the record. Evidence supports it. Authority controls it. Verification checks it. The registry keeps it available.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -391,13 +400,13 @@ export default function HomePage() {
                 Lease Ledger
               </p>
               <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-4">
-                Tenancy condition accountability from move-in to handover closure
+                Keep tenancy condition records clear from move-in to handover.
               </h2>
+              <p style={{ color: 'var(--navy)' }} className="text-base max-w-3xl leading-relaxed mb-3">
+                Lease Ledger is the tenancy condition accountability layer inside FPIA.
+              </p>
               <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-8">
-                Lease Ledger gives landlords, managers, lessees, and agencies a governed record of
-                property condition across the tenancy lifecycle. It captures move-in baselines,
-                move-out condition, handover comparison, dispute support, and closure in one
-                evidence-backed workflow.
+                It helps manage move-in records, move-out records, handover comparison, dispute support and closure in one evidence-backed workflow.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {[
@@ -429,20 +438,27 @@ export default function HomePage() {
                 Product Capability
               </p>
               <p style={{ color: 'rgba(255,255,255,0.72)' }} className="text-sm leading-relaxed mb-6">
-                Lease Ledger is built to preserve the tenancy condition record, support accountable
-                handover review, and prepare evidence for downstream dispute processes without
-                claiming legal adjudication or automated liability decisions.
+                Lease Ledger sits inside FPIA as the condition record and handover accountability layer. It does not replace rental CRM, tenant scoring, or legal adjudication.
               </p>
               <p style={{ color: 'rgba(255,255,255,0.52)' }} className="text-xs leading-relaxed mb-6 uppercase tracking-[0.16em]">
                 One-off workflow services, agency access, and portfolio rollout discussions are available through FPIA.
               </p>
-              <Link
-                href="/lease-ledger"
-                style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }}
-                className="inline-flex items-center justify-center px-8 py-4 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity"
-              >
-                See Lease Ledger in Action
-              </Link>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link
+                  href="/lease-ledger"
+                  style={{ backgroundColor: 'var(--gold)', color: 'var(--navy)' }}
+                  className="inline-flex items-center justify-center px-8 py-4 text-sm font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                >
+                  See Lease Ledger in Action
+                </Link>
+                <Link
+                  href="/api/lease-ledger-one-pager-pdf"
+                  style={{ border: '1px solid rgba(201,161,77,0.32)', color: 'var(--off-white)' }}
+                  className="inline-flex items-center justify-center px-8 py-4 text-sm font-semibold tracking-wide hover:border-[rgba(201,161,77,0.62)] transition-colors"
+                >
+                  Download One-Pager
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -457,7 +473,7 @@ export default function HomePage() {
             FPIA is designed to support a fuller property record over time.
           </h2>
           <p style={{ color: 'var(--slate)' }} className="text-base max-w-3xl leading-relaxed mb-10">
-            FPIA is designed to support a fuller property record over time — including approved plans, title deed references, compliance documents and municipal artefacts where lawful access and formal data-sharing arrangements allow.
+            Over time, FPIA is designed to support a fuller property record, including approved plans, title deed references, compliance documents, and municipal records where lawful access allows.
           </p>
             <div className="grid gap-4 md:grid-cols-3">
               {[
@@ -493,10 +509,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">The Opportunity</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-4xl md:text-5xl mb-4">
-            Why a governed property record matters
+            Why a trusted property record matters
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-2xl leading-relaxed mb-16">
-            Many property transactions still rely on fragmented records and late-stage discovery, creating avoidable uncertainty for everyone involved.
+            Many property transactions still rely on scattered records and late-stage discovery, creating avoidable uncertainty for everyone involved.
           </p>
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             <div style={{ border: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(255,255,255,0.03)' }} className="p-8">
@@ -535,7 +551,7 @@ export default function HomePage() {
             </div>
           </div>
           <p style={{ borderTop: '1px solid rgba(201,161,77,0.2)', paddingTop: '32px', color: 'var(--gold)', fontFamily: 'DM Serif Display, serif' }} className="text-xl md:text-2xl">
-            FPIA doesn&rsquo;t just certify properties — it installs accountability across the transaction.
+            FPIA brings clear property accountability into the transaction.
           </p>
         </div>
       </section>
@@ -549,9 +565,9 @@ export default function HomePage() {
           </h2>
           <div className="flex flex-col gap-8">
             <div style={{ backgroundColor: 'white', border: '1px solid rgba(11,31,51,0.1)' }} className="p-8">
-              <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-xl mb-6">Without a governed record</h3>
+              <h3 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-xl mb-6">Without a clear property record</h3>
               <p style={{ color: 'var(--slate)' }} className="text-sm leading-relaxed mb-6">
-                A buyer signs an offer on a property that appears to be in good condition. Weeks into the process, during the suspensive period:
+                A buyer signs an offer on a property that appears to be in good condition. Weeks later, during the suspensive period:
               </p>
               <div className="grid sm:grid-cols-2 gap-6">
                 <ul className="space-y-3">
@@ -581,8 +597,8 @@ export default function HomePage() {
               <div className="grid sm:grid-cols-2 gap-6">
                 <ul className="space-y-3">
                   {[
-                    'An FPIA inspection creates the initial truth record',
-                    'Evidence and compliance items are structured in one governed file',
+                    'An FPIA inspection creates the initial property record',
+                    'Evidence and compliance items are structured in one file',
                     'Issuance and verification status are recorded under authority control',
                     'The full condition is visible before decisions are locked in',
                     'The price reflects verified reality',
@@ -605,7 +621,7 @@ export default function HomePage() {
             </div>
           </div>
           <p style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid rgba(11,31,51,0.1)', fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-xl md:text-2xl">
-            Certainty upfront changes everything downstream.
+            Clarity upfront changes everything downstream.
           </p>
         </div>
       </section>
@@ -615,10 +631,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">See It In Action</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-4xl md:text-5xl mb-4">
-            See governed property truth in action.
+            See the property record in action.
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-2xl leading-relaxed mb-10">
-            Explore a live FPIA record and see how evidence, issuance, verification, and registry logic appear to every party in the chain.
+            Explore a live FPIA record and see how evidence, issuance, verification, and registry details appear to every party in the chain.
           </p>
           <div className="grid sm:grid-cols-4 gap-4 mb-10">
             {['Evidence record', 'Issuance status', 'Registry verification', 'Authority credentials'].map(item => (
@@ -700,7 +716,7 @@ export default function HomePage() {
           </h2>
           <hr className="gold-rule w-16 mb-6" />
           <p style={{ color: 'var(--slate)' }} className="text-base max-w-2xl leading-relaxed mb-12">
-            FPIA creates one governed source of truth for residential property — reducing dispute risk, pricing friction, and information asymmetry across the transaction.
+            FPIA creates one trusted property record for residential transactions, reducing dispute risk, pricing friction, and information gaps.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {audiences.map(a => (
@@ -719,10 +735,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">The Process</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--off-white)' }} className="text-4xl md:text-5xl mb-2">
-            From truth entering the system to governed verification.
+            From first inspection to verified record.
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.6)' }} className="text-base max-w-xl mb-2">
-            Five steps to establish accountable residential property truth.
+            Five steps to build a trusted residential property record.
           </p>
           <hr className="gold-rule w-16 mb-12" />
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -750,13 +766,13 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <p style={{ color: 'var(--gold)' }} className="text-xs tracking-widest uppercase mb-3 font-medium">What You Get</p>
           <h2 style={{ fontFamily: 'DM Serif Display, serif', color: 'var(--navy)' }} className="text-4xl md:text-5xl mb-2">
-            The governed property record — your proof of property truth.
+            The property record you can verify.
           </h2>
           <hr className="gold-rule w-16 mb-12" />
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
             <div>
               <p style={{ color: 'var(--slate)' }} className="text-base leading-relaxed mb-6">
-                Every governed property record captures condition, supporting evidence, issuance status, and verification pathways — all controlled and instantly accessible.
+                Every property record captures condition, supporting evidence, issuance status, and verification pathways in one controlled, accessible view.
               </p>
               <ul className="space-y-3">
                 {['Timestamped evidence record', 'Compliance category breakdown', 'COC artefact tracking', 'Unique verification route per property', 'Tamper-proof ledger entry', 'Four canonical trust outcomes'].map(item => (

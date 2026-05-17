@@ -32,7 +32,7 @@ export default function ForBondOriginators() {
                 { num: '01', title: 'Independent Asset Verification', body: 'An FPIA certificate is independent of the seller, property practitioner, and buyer — giving lenders a neutral, third-party condition report they can rely on.' },
                 { num: '02', title: 'Reduce Valuation Surprises', body: 'Undisclosed defects are one of the biggest causes of bond complications post-approval. FPIA surfaces these before the application reaches the bank.' },
                 { num: '03', title: 'Support Faster Bond Approval', body: 'Certified properties arrive at the lender with documented condition history — fewer queries, fewer holdups, faster registration.' },
-                { num: '04', title: 'Protect Your Client Relationships', body: 'Originators who recommend FPIA protect their clients from post-transfer surprises — and build the kind of trust that generates referrals.' },
+                { num: '04', title: 'Protect Client Trust', body: 'Using independent verification helps originators give clients a clearer factual base before the deal moves too far.' },
               ].map((item) => (
                 <div key={item.num} className="flex flex-col gap-4 border-t border-gray-200 pt-8 sm:flex-row sm:gap-10 sm:pt-10">
                   <span className="text-[#C9A14D] text-3xl font-bold w-12 shrink-0">{item.num}</span>
@@ -50,10 +50,10 @@ export default function ForBondOriginators() {
 
         {/* CTA */}
         <section className="bg-[#0B1F33] px-5 py-16 text-center sm:px-8 md:py-24">
-          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">Refer with confidence.</h2>
-          <p className="text-gray-400 mb-10">Partner with FPIA and add certification to your pre-approval checklist.</p>
+          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">Talk to FPIA.</h2>
+          <p className="text-gray-400 mb-10">Discuss how FPIA can fit into your client workflow or wider originator process.</p>
           <a href="/contact?inquiry=originator-integration" className="inline-flex w-full justify-center bg-[#C9A14D] px-8 py-4 text-sm font-semibold uppercase tracking-widest text-[#0B1F33] transition-colors hover:bg-[#b8903e] sm:w-auto sm:px-10">
-            Enquire About Partnership
+            Discuss Originator Access
           </a>
         </section>
       </main>

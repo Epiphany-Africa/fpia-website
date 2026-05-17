@@ -427,6 +427,19 @@ export default function LeaseLedgerPage() {
             </div>
           ))}
         </div>
+        <div style={{ marginTop: '28px' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid rgba(11, 31, 51, 0.1)', padding: '32px 36px', borderTop: '3px solid var(--gold)' }}>
+            <p style={{ fontSize: '10px', color: 'var(--gold)', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '14px' }}>
+              Supporting Capability
+            </p>
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '24px', color: 'var(--navy)', marginBottom: '14px' }}>
+              Early Tenant Observations
+            </h3>
+            <p style={{ fontSize: '14px', color: '#55606d', lineHeight: 1.75, margin: 0, maxWidth: '860px' }}>
+              Lease Ledger can include a governed post-move-in observation window that allows early tenancy issues to be submitted and reviewed without rewriting the original move-in record. This improves fairness, strengthens the evidentiary environment, and reduces avoidable friction later in the tenancy.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* ── CTA ──────────────────────────────────────────────────────────── */}

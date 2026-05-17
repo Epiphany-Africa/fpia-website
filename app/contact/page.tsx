@@ -13,11 +13,11 @@ type InquiryPreset = {
 
 const INQUIRY_PRESETS: Record<string, InquiryPreset> = {
   'agency-account': {
-    label: 'Property Practitioner Account',
-    role: 'Property Practitioner',
-    summary: 'Agency retainer pricing and onboarding.',
+    label: 'Agency Access',
+    role: 'Agent / Agency',
+    summary: 'Agency access, onboarding, and operating model.',
     message:
-      "I'm interested in an FPIA property practitioner account. Please send the onboarding steps, pricing structure, and what is included in the monthly retainer.",
+      "I'm interested in agency access to FPIA. Please send the onboarding steps, pricing structure, and what is included in the account.",
   },
   'insurer-pilot-a': {
     label: 'Insurer Pilot A',
@@ -41,18 +41,18 @@ const INQUIRY_PRESETS: Record<string, InquiryPreset> = {
       "I'm interested in the custom insurer portfolio intelligence pilot for 50+ properties. Please contact me to scope the cohort, data outputs, and commercial structure.",
   },
   'originator-referral': {
-    label: 'Originator Referral Model',
+    label: 'Originator Workflow',
     role: 'Bond Originator',
-    summary: 'Referral programme with R500 per completed inspection.',
+    summary: 'Using FPIA in a client workflow before finance and transfer move too far.',
     message:
-      "I'm interested in the FPIA originator referral model, including referral-code setup, payout terms, and onboarding steps.",
+      "I'm interested in using FPIA in our client workflow. Please send the onboarding steps and how this can fit our current process.",
   },
   'originator-integration': {
-    label: 'Originator Integration Model',
+    label: 'Originator Rollout',
     role: 'Bond Originator',
-    summary: 'Integrated pre-approval workflow and dashboard model.',
+    summary: 'Structured originator rollout and operating model.',
     message:
-      "I'm interested in the FPIA originator integration model. Please send the onboarding process, dashboard scope, and pricing structure.",
+      "I'm interested in a structured FPIA rollout for our originator team. Please send the onboarding process, operating model, and pricing structure.",
   },
   'property-passport': {
     label: 'Property Passport',
@@ -94,7 +94,7 @@ function ContactPageForm() {
         'Homeowner',
         'Buyer',
         'Seller',
-        'Property Practitioner',
+        'Agent / Agency',
         'Insurer',
         'Bond Originator',
         'Other',
@@ -214,7 +214,7 @@ function ContactPageForm() {
           }}>
             {isLeaseLedgerInquiry
               ? leaseLedgerContext?.introCopy
-              : 'Whether you’re a buyer, seller, property practitioner, or insurer — we’re here to help you understand what FPIA certification means for your transaction.'}
+              : 'Whether you’re a buyer, seller, agent, lender, or insurer, we’re here to help you understand how FPIA fits your transaction.'}
           </p>
           {isLeaseLedgerInquiry ? (
             <div
@@ -309,8 +309,8 @@ function ContactPageForm() {
                     desc: 'Request a certified FPIA property inspection for your suspensive period or pre-listing assessment.',
                   },
                   {
-                    title: 'Property Practitioner Partnerships',
-                    desc: 'Enquire about integrating FPIA certification into your listings and offering buyers verified property condition.',
+                    title: 'Agency access and rollout',
+                    desc: 'Enquire about using FPIA more consistently across your listings and agency workflow.',
                   },
                   {
                     title: 'Insurer & Originator Enquiries',

@@ -259,7 +259,7 @@ export default function SellerReadinessPage() {
             Submission received
           </h1>
           <p className="text-[#4A6082] leading-relaxed mb-6">
-            Your Seller Readiness Assessment has been received. FPIA will review the
+            Your Property Readiness Review request has been received. FPIA will review the
             submitted evidence and prepare the Pre-Listing Property Readiness Report.
           </p>
           <p className="text-sm text-[#6B7A90] leading-relaxed mb-8">
@@ -288,15 +288,18 @@ export default function SellerReadinessPage() {
       <section className="bg-[#1A2B4A] px-6 py-24 md:py-28">
         <div className="max-w-6xl mx-auto">
           <p className="text-[#C9A84C] text-xs font-bold tracking-[0.18em] uppercase mb-5">
-            FPIA Seller Readiness Assessment
+            Property Readiness Review
           </p>
           <h1 className="text-white text-4xl md:text-6xl font-bold leading-tight max-w-4xl mb-6">
             Understand visible repair exposure, disclosure risk and buyer
             negotiation pressure before you list.
           </h1>
+          <p className="text-[#D9E4F0] text-sm md:text-base font-medium tracking-[0.02em] max-w-3xl mb-4">
+            A practical review of how ready the property record is for transfer.
+          </p>
           <p className="text-[#A8BFDA] text-lg leading-relaxed max-w-3xl mb-10">
             Before you list, understand the visible issues buyers may use to
-            renegotiate. FPIA helps sellers move from guesswork to governed pre-sale
+            renegotiate. FPIA helps sellers move from guesswork to practical pre-sale
             intelligence.
           </p>
 
@@ -347,11 +350,11 @@ export default function SellerReadinessPage() {
               repair exposure, and negotiation risk.
             </p>
             <ul className="space-y-3 text-sm text-[#1A2B4A]">
-              {[
+              {[ 
                 'Pre-sale property intelligence, not a formal valuation',
-                'Useful for sellers, property practitioners, buyers, banks, insurers, and legal practitioners',
+                'Useful for sellers, agents, buyers, banks, insurers, and attorneys',
                 'Designed to prevent late-stage OTP surprises and last-minute price renegotiation',
-                'Conservative, governed language that avoids overclaiming hidden-defect certainty',
+                'Careful language that avoids overclaiming hidden-defect certainty',
               ].map((item) => (
                 <li key={item} className="flex gap-3">
                   <span className="text-[#C9A84C] font-bold">✦</span>
@@ -395,7 +398,7 @@ export default function SellerReadinessPage() {
                 <p className="text-[#4A6082] text-sm leading-relaxed">
                   The PPRA Section 67 Mandatory Disclosure Form remains a statutory
                   transaction document where the Property Practitioners Act applies.
-                  FPIA does not replace this form. The Seller Readiness Assessment
+                  FPIA does not replace this form. The Property Readiness Review
                   helps sellers identify visible issues, disclosure-risk items, and
                   supporting evidence that may assist completion of the prescribed
                   disclosure form.
@@ -441,7 +444,7 @@ export default function SellerReadinessPage() {
       <section className="px-6 pb-24">
         <div className="max-w-5xl mx-auto bg-white border border-[#D8E2EE] rounded-2xl p-6 md:p-8">
           <p className="text-[#C9A84C] text-xs font-bold tracking-[0.18em] uppercase mb-4">
-            Start Seller Readiness Assessment
+            Start Property Readiness Review
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-10">
@@ -706,7 +709,7 @@ export default function SellerReadinessPage() {
                 disabled={submitting}
                 className="inline-flex items-center justify-center px-8 py-4 bg-[#1A2B4A] text-white rounded-lg text-sm font-semibold disabled:opacity-60"
               >
-                {submitting ? 'Submitting...' : 'Submit Seller Readiness Assessment'}
+                {submitting ? 'Submitting...' : 'Submit Property Readiness Review'}
               </button>
               <div className="text-sm text-[#6B7A90] leading-relaxed max-w-2xl">
                 FPIA review is required before any public report is released. AI-assisted

@@ -78,7 +78,7 @@ const agentTiers = [
     highlight: false,
     features: [
       '48-hour priority scheduling',
-      'Property practitioner dashboard access',
+      'Team dashboard access',
       'Digital certificates per property',
       'QR verification on all listings',
       'Email support',
@@ -94,11 +94,11 @@ const agentTiers = [
     badge: 'Most Popular',
     features: [
       '24-hour priority scheduling',
-      'Branded property practitioner dashboard',
+      'Shared agency dashboard',
       'Fast-track available (+R2,000)',
       'Automated certificate renewal alerts',
-      'Dedicated account manager',
-      'Monthly deal-protection summary',
+      'Dedicated support contact',
+      'Monthly activity summary',
     ],
     cta: 'Register Agency',
     href: '/register?type=agent&tier=professional',
@@ -110,10 +110,10 @@ const agentTiers = [
     highlight: false,
     features: [
       'Same-day scheduling on request',
-      'Multi-branch dashboard',
+      'Multi-branch access',
       'Dedicated inspector allocation',
-      'API access for CRM integration',
-      'White-label reporting option',
+      'Structured onboarding support',
+      'API and workflow support',
       'Quarterly portfolio review',
     ],
     cta: 'Contact Us',
@@ -189,8 +189,8 @@ export function AgentPricingSection() {
 
       <section style={styles.sectionOffWhite}>
         <div style={styles.inner}>
-          <p style={styles.eyebrow}>Agency Accounts</p>
-          <h2 style={styles.h2Dark}>One account. Every listing covered.</h2>
+          <p style={styles.eyebrow}>Agency Access</p>
+          <h2 style={styles.h2Dark}>Structured access for teams handling multiple listings.</h2>
           <div style={styles.rule} />
           <p
             style={{
@@ -202,8 +202,8 @@ export function AgentPricingSection() {
               fontFamily: 'DM Sans, sans-serif',
             }}
           >
-            Monthly retainer accounts give your agency priority scheduling, volume
-            pricing, and a dedicated dashboard so inspections never slow a deal.
+            Agency access gives your team priority scheduling, shared visibility,
+            and a consistent way to use FPIA across listings without slowing the deal.
           </p>
 
           <div
@@ -556,11 +556,11 @@ export function BondOriginatorProgrammeSection() {
   return (
     <section style={styles.sectionOffWhite}>
       <div style={styles.inner}>
-        <p style={styles.eyebrow}>Originator Programme</p>
+        <p style={styles.eyebrow}>Originator Access</p>
         <h2 style={styles.h2Dark}>
-          Recommend FPIA.
+          Use FPIA earlier
           <br />
-          Add value to every application.
+          in the application process.
         </h2>
         <div style={styles.rule} />
         <p
@@ -573,10 +573,9 @@ export function BondOriginatorProgrammeSection() {
             fontFamily: 'DM Sans, sans-serif',
           }}
         >
-          Bond originators who refer clients to FPIA give them a stronger
-          application and protect their own reputation if a defect surfaces
-          post-transfer. Two structures are available depending on your firm&apos;s
-          model.
+          FPIA can be introduced as an early property-check step for clients who
+          need clearer condition records before finance and transfer move too far.
+          Two operating approaches are available depending on how your firm works.
         </p>
 
         <div
@@ -593,7 +592,7 @@ export function BondOriginatorProgrammeSection() {
               padding: '32px 28px',
             }}
           >
-            <p style={styles.eyebrow}>Referral Model</p>
+            <p style={styles.eyebrow}>Client Workflow</p>
             <p
               style={{
                 fontFamily: 'DM Serif Display, Georgia, serif',
@@ -602,7 +601,7 @@ export function BondOriginatorProgrammeSection() {
                 marginBottom: 12,
               }}
             >
-              Recommend FPIA to clients
+              Introduce FPIA when independent verification is needed
             </p>
             <p
               style={{
@@ -613,9 +612,9 @@ export function BondOriginatorProgrammeSection() {
                 marginBottom: 24,
               }}
             >
-              Refer your clients to FPIA for pre-transfer inspection. You receive a
-              structured referral fee per completed inspection. No integration required;
-              a referral code is all you need.
+              Use this route when a client needs an independent property condition
+              record before the application progresses too far. No system change is
+              required.
             </p>
             <div
               style={{
@@ -625,10 +624,10 @@ export function BondOriginatorProgrammeSection() {
               }}
             >
               {[
-                'R500 referral fee per completed inspection',
-                'Unique referral code per firm',
-                'Monthly payout summary',
-                'No minimum volume required',
+                'Independent condition record before transfer',
+                'No change to your existing process',
+                'Useful for older or higher-risk stock',
+                'Direct scheduling through FPIA',
               ].map((item) => (
                 <div
                   key={item}
@@ -647,7 +646,7 @@ export function BondOriginatorProgrammeSection() {
               ))}
             </div>
             <Link href="/contact?inquiry=originator-referral" style={styles.ctaOutlineNavy}>
-              Join the Programme
+              Discuss Workflow
             </Link>
           </div>
 
@@ -658,7 +657,7 @@ export function BondOriginatorProgrammeSection() {
               padding: '32px 28px',
             }}
           >
-            <p style={styles.eyebrow}>Integration Model</p>
+            <p style={styles.eyebrow}>Structured Rollout</p>
             <p
               style={{
                 fontFamily: 'DM Serif Display, Georgia, serif',
@@ -667,7 +666,7 @@ export function BondOriginatorProgrammeSection() {
                 marginBottom: 12,
               }}
             >
-              Add FPIA to your pre-approval checklist
+              Add FPIA to a consistent firm workflow
             </p>
             <p
               style={{
@@ -678,9 +677,9 @@ export function BondOriginatorProgrammeSection() {
                 marginBottom: 24,
               }}
             >
-              For firms that want FPIA as a formal step in the bond origination
-              process. Clients are directed to FPIA at application stage, and the
-              certified report arrives with the application.
+              For firms that want FPIA referenced more consistently at application
+              stage. This model is for teams that want a repeatable operating
+              approach rather than one-off use.
             </p>
             <div
               style={{
@@ -690,11 +689,11 @@ export function BondOriginatorProgrammeSection() {
               }}
             >
               {[
-                'Branded originator dashboard',
-                'Client-facing FPIA referral landing page',
+                'Shared operating approach for the team',
                 'Direct ledger reference for bond file',
-                'Dedicated account manager',
-                'Volume-based fee structure',
+                'Dedicated support contact',
+                'Volume-based commercial structure',
+                'Workflow review with FPIA',
               ].map((item) => (
                 <div
                   key={item}
@@ -713,7 +712,7 @@ export function BondOriginatorProgrammeSection() {
               ))}
             </div>
             <Link href="/contact?inquiry=originator-integration" style={styles.ctaGold}>
-              Discuss Integration
+              Discuss Rollout
             </Link>
           </div>
         </div>
@@ -726,8 +725,8 @@ export function BondOriginatorProgrammeSection() {
             textAlign: 'center',
           }}
         >
-          Both models work alongside existing bond origination process. No workflow
-          disruption required.
+          Both models can sit alongside existing bond origination processes without
+          forcing a full workflow change.
         </p>
       </div>
 

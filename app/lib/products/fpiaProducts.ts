@@ -73,19 +73,19 @@ export const fpiaProducts: FpiaProduct[] = [
   },
   {
     id: 'seller_readiness_assessment',
-    name: 'FPIA Seller Readiness Assessment',
-    usageSubheading: 'Before committing to an asking strategy',
+    name: 'Property Readiness Review',
+    usageSubheading: 'Before you commit to price and transfer timing',
     certificateOutcome: 'Pre-Listing Property Readiness Report',
     priceLabel: 'Guided Intake',
     price: 'Request Assessment',
     valueMicrocopy:
-      'Pre-sale property intelligence that separates reinstatement value, visible repair exposure, and listing posture guidance.',
+      'A practical review of how ready the property record is for transfer.',
     description:
-      'A seller-led pre-listing intelligence report that helps property owners understand visible repair exposure, disclosure risk and buyer negotiation pressure before committing to an asking strategy.',
+      'A seller-led review that helps property owners understand visible repair exposure, disclosure risk, and buyer negotiation pressure before listing.',
     systemTrigger:
-      'Triggered when a seller wants governed pre-listing guidance using property details, visible damage evidence, and a stated asking expectation without treating the output as a formal valuation.',
+      'Used when a seller wants practical pre-listing guidance using property details, visible damage evidence, and asking expectations without treating the output as a formal valuation.',
     triggerRoute: '/seller-readiness',
-    ctaLabel: 'Start Seller Readiness Assessment',
+    ctaLabel: 'Start Property Readiness Review',
     ctaHref: '/seller-readiness',
   },
 ]
